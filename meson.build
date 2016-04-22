@@ -3,7 +3,11 @@ project('unzip', 'c')
 zdep = dependency('zlib')
 #bzdep = dependency('bz2')
 
-add_global_arguments('-DUSE_DEFLATE64=1', language : 'c')
+add_global_arguments(
+  '-DUSE_DEFLATE64=1',
+  '-DLARGE_FILE_SUPPORT=1',
+  '-DZIP64_SUPPORT=1',
+  language : 'c')
 
 
 unziplib = static_library('unziplib',

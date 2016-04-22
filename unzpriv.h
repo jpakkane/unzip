@@ -239,132 +239,12 @@
 #endif
 
 /*---------------------------------------------------------------------------
-    Acorn RISCOS section:
-  ---------------------------------------------------------------------------*/
-
-#ifdef RISCOS
-#  include "acorn/riscos.h"
-#endif
-
-/*---------------------------------------------------------------------------
-    Amiga section:
-  ---------------------------------------------------------------------------*/
-
-#ifdef AMIGA
-#  include "amiga/amiga.h"
-#endif
-
-/*---------------------------------------------------------------------------
-    AOS/VS section (somewhat similar to Unix, apparently):
-  ---------------------------------------------------------------------------*/
-
-#ifdef AOS_VS
-#  ifdef __FILEIO_C
-#    include "aosvs/aosvs.h"
-#  endif
-#endif
-
-/*---------------------------------------------------------------------------
-    Atari ST section:
-  ---------------------------------------------------------------------------*/
-
-#ifdef ATARI
-#  include <time.h>
-#  include <stat.h>
-#  include <fcntl.h>
-#  include <limits.h>
-#  define SYMLINKS
-#  define EXE_EXTENSION  ".tos"
-#  ifndef DATE_FORMAT
-#    define DATE_FORMAT  DF_DMY
-#  endif
-#  define DIR_END        '/'
-#  define INT_SPRINTF
-#  define timezone      _timezone
-#  define lenEOL        2
-#  define PutNativeEOL  {*q++ = native(CR); *q++ = native(LF);}
-#  undef SHORT_NAMES
-#  if (!defined(NOTIMESTAMP) && !defined(TIMESTAMP))
-#    define TIMESTAMP
-#  endif
-#endif
-
-/*---------------------------------------------------------------------------
-    AtheOS section:
-  ---------------------------------------------------------------------------*/
-
-#ifdef __ATHEOS__
-#  include "atheos/athcfg.h"
-#endif
-
-/*---------------------------------------------------------------------------
-    BeOS section:
-  ---------------------------------------------------------------------------*/
-
-#ifdef __BEOS__
-#  include "beos/beocfg.h"
-#endif
-
-/*---------------------------------------------------------------------------
-    Human68k/X680x0 section:
-  ---------------------------------------------------------------------------*/
-
-#ifdef __human68k__
-   /* DO NOT DEFINE DOS_OS2 HERE!  If Human68k is so much */
-   /*  like MS-DOS and/or OS/2, create DOS_H68_OS2 macro. */
-#  if (!defined(_MBCS) && !defined(NO_MBCS))
-     /* enable MBCS support by default for this system */
-#    define _MBCS
-#  endif
-#  if (defined(_MBCS) && defined(NO_MBCS))
-     /* disable MBCS support when explicitely requested */
-#    undef _MBCS
-#  endif
-#  include <time.h>
-#  include <fcntl.h>
-#  include <io.h>
-#  include <conio.h>
-#  include <sys/stat.h>
-#  ifdef HAVE_MBSTRING_H
-#    include <mbstring.h>
-#  endif
-#  ifdef HAVE_MBCTYPE_H
-#    include <mbctype.h>
-#  else
-#    ifndef _ismbblead
-#      define _ismbblead(c) (0x80 <= (c) && ((c) < 0xa0 || 0xe0 <= (c)))
-#    endif
-#  endif
-#  ifndef DATE_FORMAT
-#    define DATE_FORMAT DF_YMD   /* Japanese standard */
-#  endif
-#  define lenEOL        1
-#  define PutNativeEOL  *q++ = native(LF);
-#  define INT_SPRINTF
-#  define SYMLINKS
-#  ifdef SFX
-#    define MAIN main_sfx
-#  endif
-#endif
-
-/*---------------------------------------------------------------------------
-    Mac section:
-  ---------------------------------------------------------------------------*/
-
-#ifdef MACOS
-#  include "maccfg.h"
-#endif /* MACOS */
-
-/*---------------------------------------------------------------------------
     MS-DOS, OS/2, FLEXOS section:
   ---------------------------------------------------------------------------*/
 
 #ifdef WINDLL
 #  ifdef MORE
 #    undef MORE
-#  endif
-#  ifdef OS2_EAS
-#    undef OS2_EAS
 #  endif
 #endif
 
@@ -374,184 +254,6 @@
 #  endif
 #endif
 
-#if (defined(MSDOS) || defined(OS2) || defined(FLEXOS))
-#  include <sys/types.h>      /* off_t, time_t, dev_t, ... */
-#  include <sys/stat.h>
-#  include <io.h>             /* lseek(), open(), setftime(), dup(), creat() */
-#  include <time.h>           /* localtime() */
-#  include <fcntl.h>          /* O_BINARY for open() w/o CR/LF translation */
-
-#  ifdef OS2                  /* defined for all OS/2 compilers */
-#    include "os2/os2cfg.h"
-#  else
-#    ifdef FLEXOS
-#      include "flexos/flxcfg.h"
-#    else
-#      include "msdos/doscfg.h"
-#    endif
-#  endif
-
-#  if (defined(_MSC_VER) && (_MSC_VER == 700) && !defined(GRR))
-    /*
-     * ARGH.  MSC 7.0 libraries think times are based on 1899 Dec 31 00:00, not
-     *  1970 Jan 1 00:00.  So we have to diddle time_t's appropriately:  add or
-     *  subtract 70 years' worth of seconds; i.e., number of days times 86400;
-     *  i.e., (70*365 regular days + 17 leap days + 1 1899 day) * 86400 ==
-     *  (25550 + 17 + 1) * 86400 == 2209075200 seconds.  We know time_t is an
-     *  unsigned long (ulg) on the only system with this bug.
-     */
-#    define TIMET_TO_NATIVE(x)  (x) += (ulg)2209075200L;
-#    define NATIVE_TO_TIMET(x)  (x) -= (ulg)2209075200L;
-#  endif
-#  if (defined(__BORLANDC__) && (__BORLANDC__ >= 0x0450))
-#    define timezone      _timezone
-#  endif
-#  if (defined(__GO32__) || defined(FLEXOS))
-#    define DIR_END       '/'
-#  else
-#    define DIR_END       '\\'  /* OS uses '\\' as directory separator */
-#    define DIR_END2      '/'   /* also check for '/' (RTL may convert) */
-#  endif
-#  ifdef DATE_FORMAT
-#    undef DATE_FORMAT
-#  endif
-#  define DATE_FORMAT     dateformat()
-#  define lenEOL          2
-#  define PutNativeEOL    {*q++ = native(CR); *q++ = native(LF);}
-#  if (!defined(NO_EF_UT_TIME) && !defined(USE_EF_UT_TIME))
-#    define USE_EF_UT_TIME
-#  endif
-#endif /* MSDOS || OS2 || FLEXOS */
-
-/*---------------------------------------------------------------------------
-    MTS section (piggybacks UNIX, I think):
-  ---------------------------------------------------------------------------*/
-
-#ifdef MTS
-#  include <sys/types.h>      /* off_t, time_t, dev_t, ... */
-#  include <sys/stat.h>
-#  include <sys/file.h>       /* MTS uses this instead of fcntl.h */
-#  include <timeb.h>
-#  include <time.h>
-#  include <unix.h>           /* some important non-ANSI routines */
-#  define mkdir(s,n) (-1)     /* no "make directory" capability */
-#  define EBCDIC              /* set EBCDIC conversion on */
-#  define NO_STRNICMP         /* unzip's is as good the one in MTS */
-#  define USE_FWRITE
-#  define close_outfile()  fclose(G.outfile)   /* can't set time on files */
-#  define umask(n)            /* don't have umask() on MTS */
-#  define FOPWT         "w"   /* open file for writing in TEXT mode */
-#  ifndef DATE_FORMAT
-#    define DATE_FORMAT DF_MDY
-#  endif
-#  define lenEOL        1
-#  define PutNativeEOL  *q++ = native(LF);
-#endif /* MTS */
-
- /*---------------------------------------------------------------------------
-    Novell Netware NLM section
-  ---------------------------------------------------------------------------*/
-
-#ifdef NLM
-#  include "netware/nlmcfg.h"
-#endif
-
- /*---------------------------------------------------------------------------
-    QDOS section
-  ---------------------------------------------------------------------------*/
-
-#ifdef QDOS
-#  define DIRENT
-#  include <fcntl.h>
-#  include <unistd.h>
-#  include <sys/stat.h>
-#  include <time.h>
-#  include "qdos/izqdos.h"
-#  ifndef DATE_FORMAT
-#    define DATE_FORMAT DF_MDY
-#  endif
-#  define lenEOL        1
-#  define PutNativeEOL  *q++ = native(LF);
-#  define DIR_END       '_'
-#  define RETURN        QReturn
-#  undef PATH_MAX
-#  define PATH_MAX      36
-#  if (!defined(NOTIMESTAMP) && !defined(TIMESTAMP))
-#    define TIMESTAMP
-#  endif
-#  define SCREENSIZE(ttrows, ttcols)  screensize(ttrows, ttcols)
-#  define SCREENWIDTH 80
-#endif
-
-/*---------------------------------------------------------------------------
-    Tandem NSK section:
-  ---------------------------------------------------------------------------*/
-
-#ifdef TANDEM
-#  include "tandem.h"
-#  include <fcntl.h>
-#  ifndef __INT32
-     /* We are compiling with non-WIDE memory model, int = 16 bits */
-#    ifndef INT_16BIT
-#      define INT_16BIT   /* report "int" size is 16-bit to inflate setup */
-#    endif
-#    ifdef USE_DEFLATE64
-       /* Following required for 64k WSIZE of Deflate64 support */
-#      define MED_MEM     /* else OUTBUFSIZ is 64K and fails in do_string */
-#      define INBUFSIZ  8192  /* but larger buffer for real OSes */
-#    endif
-#  endif
-   /* use a single LF delimiter so that writes to 101 text files work */
-#  define PutNativeEOL  *q++ = native(LF);
-#  define lenEOL        1
-#  ifndef DATE_FORMAT
-#    define DATE_FORMAT  DF_DMY
-#  endif
-#  define SCREENLINES   25
-   /* USE_EF_UT_TIME is set in tandem.h */
-#  define RESTORE_UIDGID
-#  define NO_STRNICMP
-#endif
-
-/*---------------------------------------------------------------------------
-    THEOS section:
-  ---------------------------------------------------------------------------*/
-
-#ifdef THEOS
-#  include "theos/thscfg.h"
-#endif
-
-/*---------------------------------------------------------------------------
-    TOPS-20 section:
-  ---------------------------------------------------------------------------*/
-
-#ifdef TOPS20
-#  include <sys/types.h>        /* off_t, time_t, dev_t, ... */
-#  include <sys/stat.h>
-#  include <sys/param.h>
-#  include <sys/time.h>
-#  include <sys/timeb.h>
-#  include <sys/file.h>
-#  include <timex.h>
-#  include <monsym.h>           /* get amazing monsym() macro */
-   extern int open(), close(), read();
-   extern int stat(), unlink(), jsys(), fcntl();
-   extern long lseek(), dup(), creat();
-#  define strchr    index       /* GRR: necessary? */
-#  define strrchr   rindex
-#  define REALLY_SHORT_SYMS
-#  define NO_MKDIR
-#  ifndef HAVE_STRNICMP
-#    define NO_STRNICMP           /* probably not provided by TOPS20 C RTL  */
-#  endif
-#  define DIR_BEG       '<'
-#  define DIR_END       '>'
-#  define DIR_EXT       ".directory"
-#  ifndef DATE_FORMAT
-#    define DATE_FORMAT DF_MDY
-#  endif
-#  define EXE_EXTENSION ".exe"  /* just a guess... */
-#endif /* TOPS20 */
 
 /*---------------------------------------------------------------------------
     Unix section:
@@ -560,23 +262,6 @@
 #ifdef UNIX
 #  include "unix/unxcfg.h"
 #endif /* UNIX */
-
-/*---------------------------------------------------------------------------
-    VM/CMS and MVS section:
-  ---------------------------------------------------------------------------*/
-
-#ifdef CMS_MVS
-#  include "vmmvs.h"
-#  define CLOSE_INFILE()  close_infile(__G)
-#endif
-
-/*---------------------------------------------------------------------------
-    VMS section:
-  ---------------------------------------------------------------------------*/
-
-#ifdef VMS
-#  include "vms/vmscfg.h"
-#endif /* VMS */
 
 /*---------------------------------------------------------------------------
     Win32 (Windows 95/NT) section:
@@ -630,9 +315,7 @@
 #  define Z_STAT_DEFINED
 #endif
 
-#ifndef MINIX            /* Minix needs it after all the other includes (?) */
 #  include <stdio.h>
-#endif
 
 #include <ctype.h>       /* skip for VMS, to use tolower() function? */
 #include <errno.h>       /* used in mapname() */
@@ -658,14 +341,6 @@
 #  endif
    typedef size_t extent;
 #else /* !MODERN */
-#  ifndef AOS_VS         /* mostly modern? */
-     Z_OFF_T lseek();
-#    ifdef VAXC          /* not fully modern, but has stdlib.h and void */
-#      include <stdlib.h>
-#    else
-       char *malloc();
-#    endif /* ?VAXC */
-#  endif /* !AOS_VS */
    typedef unsigned int extent;
 #endif /* ?MODERN */
 
@@ -691,10 +366,6 @@
 #endif
 #endif
 #define VMS_UNZIP_VERSION 42   /* if OS-needed-to-extract is VMS:  can do */
-
-#if (defined(MSDOS) || defined(OS2))
-#  define DOS_OS2
-#endif
 
 #if (defined(OS2) || defined(WIN32))
 #  define OS2_W32
@@ -731,26 +402,6 @@
 
 #if (defined(DOS_FLX_H68_OS2_W32) || defined(NLM))
 #  define DOS_FLX_H68_NLM_OS2_W32
-#endif
-
-#if (defined(TOPS20) || defined(VMS))
-#  define T20_VMS
-#endif
-
-#if (defined(MSDOS) || defined(T20_VMS))
-#  define DOS_T20_VMS
-#endif
-
-#if (defined(__ATHEOS__) || defined(__BEOS__))
-#  define ATH_BEO
-#endif
-
-#if (defined(ATH_BEO) || defined(UNIX))
-#  define ATH_BEO_UNX
-#endif
-
-#if (defined(ATH_BEO_UNX) || defined(THEOS))
-#  define ATH_BEO_THS_UNX
 #endif
 
 /* clean up with a few defaults */
@@ -793,11 +444,6 @@
 
 
 #if (defined(DOS_FLX_NLM_OS2_W32) || defined(ATH_BEO_UNX) || defined(RISCOS))
-#  ifndef HAVE_UNLINK
-#    define HAVE_UNLINK
-#  endif
-#endif
-#if (defined(AOS_VS) || defined(ATARI)) /* GRR: others? */
 #  ifndef HAVE_UNLINK
 #    define HAVE_UNLINK
 #  endif
@@ -1130,17 +776,6 @@
 #define INCSTR(ptr) PREINCSTR(ptr)
 
 
-#if (defined(MALLOC_WORK) && !defined(MY_ZCALLOC))
-   /* Any system without a special calloc function */
-# ifndef zcalloc
-#  define zcalloc(items, size) \
-          (void far *)calloc((unsigned)(items), (unsigned)(size))
-# endif
-# ifndef zcfree
-#  define zcfree    free
-# endif
-#endif /* MALLOC_WORK && !MY_ZCALLOC */
-
 #ifdef ZMEM
 #  undef ZMEM
 #  define memcmp(b1,b2,len)      bcmp(b2,b1,len)
@@ -1208,7 +843,7 @@
 
 /* ---------------------------- */
 
-# if defined(UNIX) || defined(VMS)
+# if defined(UNIX)
 
     /* 64-bit stat functions */
 #   define zstat stat
@@ -1225,7 +860,7 @@
 #   define zfopen fopen
 #   define zfdopen fdopen
 
-# endif /* UNIX || VMS */
+# endif /* UNIX */
 
 /* ---------------------------- */
 
@@ -1305,37 +940,6 @@
 #     define zfdopen fdopen
 
 #   endif
-#   if defined(__WATCOMC__) || defined(__BORLANDC__)
-    /* WATCOM C and Borland C provide their own C runtime libraries,
-       but they are sufficiently compatible with MS CRTL. */
-
-      /* 64-bit stat functions */
-#     define zstat _stati64
-#     define zfstat _fstati64
-
-      /* 64-bit fseeko */
-      int zfseeko OF((FILE *, zoff_t, int));
-
-      /* 64-bit ftello */
-      zoff_t zftello OF((FILE *));
-
-      /* 64-bit fopen */
-#     define zfopen fopen
-#     define zfdopen fdopen
-
-#   endif
-#   ifdef __IBMC__
-      /* IBM C */
-
-      /* 64-bit stat functions */
-
-      /* 64-bit fseeko */
-
-      /* 64-bit ftello */
-
-      /* 64-bit fopen */
-
-#   endif
 
 # endif /* WIN32 */
 
@@ -1352,7 +956,7 @@
 # define zfopen fopen
 # define zfdopen fdopen
 
-# if defined(UNIX) || defined(VMS) || defined(WIN32)
+# if defined(UNIX) || defined(WIN32)
     /* For these systems, implement "64bit file vs. 32bit prog" check  */
 #   ifndef DO_SAFECHECK_2GB
 #     define DO_SAFECHECK_2GB
