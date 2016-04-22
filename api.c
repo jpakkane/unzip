@@ -160,12 +160,6 @@ unsigned UZ_EXP UzpVersion2(UzpVer2 *version)
     version->windll.minor = UZ_MINORVER;
     version->windll.patchlevel = UZ_PATCHLEVEL;
 
-#ifdef OS2DLL
-    /* os2dll API minimum compatible version*/
-    version->dllapimin.major = UZ_OS2API_COMP_MAJOR;
-    version->dllapimin.minor = UZ_OS2API_COMP_MINOR;
-    version->dllapimin.patchlevel = UZ_OS2API_COMP_REVIS;
-#else /* !OS2DLL */
 #ifdef WINDLL
     /* windll API minimum compatible version*/
     version->dllapimin.major = UZ_WINAPI_COMP_MAJOR;
@@ -177,7 +171,6 @@ unsigned UZ_EXP UzpVersion2(UzpVer2 *version)
     version->dllapimin.minor = UZ_GENAPI_COMP_MINOR;
     version->dllapimin.patchlevel = UZ_GENAPI_COMP_REVIS;
 #endif /* ?WINDLL */
-#endif /* ?OS2DLL */
     return 0;
 }
 

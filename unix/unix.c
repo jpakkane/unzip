@@ -30,22 +30,6 @@
 #define UNZIP_INTERNAL
 #include "unzip.h"
 
-#ifdef SCO_XENIX
-#  define SYSNDIR
-#else  /* SCO Unix, AIX, DNIX, TI SysV, Coherent 4.x, ... */
-#  if defined(__convexc__) || defined(SYSV) || defined(CRAY) || defined(BSD4_4)
-#    define DIRENT
-#  endif
-#endif
-#if defined(_AIX) || defined(__mpexl)
-#  define DIRENT
-#endif
-#ifdef COHERENT
-#  if defined(_I386) || (defined(__COHERENT__) && (__COHERENT__ >= 0x420))
-#    define DIRENT
-#  endif
-#endif
-
 #ifdef _POSIX_VERSION
 #  ifndef DIRENT
 #    define DIRENT
@@ -86,19 +70,6 @@ typedef struct uxdirattr {      /* struct for holding unix style directory */
 } uxdirattr;
 #define UxAtt(d)  ((uxdirattr *)d)    /* typecast shortcut */
 #endif /* SET_DIR_ATTRIB */
-
-#ifdef ACORN_FTYPE_NFS
-/* Acorn bits for NFS filetyping */
-typedef struct {
-  uch ID[2];
-  uch size[2];
-  uch ID_2[4];
-  uch loadaddr[4];
-  uch execaddr[4];
-  uch attr[4];
-} RO_extra_block;
-
-#endif /* ACORN_FTYPE_NFS */
 
 /* static int created_dir;      */      /* used in mapname(), checkdir() */
 /* static int renamed_fullpath; */      /* ditto */
@@ -328,9 +299,7 @@ char *do_wild(__G__ wildspec)
  * file as the user or group.  The new option -K bypasses this check.
  */
 
-static unsigned filtattr(__G__ perms)
-    __GDEF
-    unsigned perms;
+static unsigned filtattr(unsigned int perms)
 {
     /* keep setuid/setgid/tacky perms? */
     if (!uO.K_flag)

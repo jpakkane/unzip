@@ -50,10 +50,6 @@
 #  define GLOBAL(g) G.g
 #endif
 
-#if (defined(__ATHEOS__) || defined(__BEOS__))  /* why yes, we do */
-#  define HAVE_TERMIOS_H
-#endif
-
 #ifdef _POSIX_VERSION
 #  ifndef USE_POSIX_TERMIOS
 #    define USE_POSIX_TERMIOS  /* use POSIX style termio (termios) */
@@ -182,114 +178,6 @@
 
 #ifndef HAVE_WORKING_GETCH
 #ifdef VMS
-
-static struct dsc$descriptor_s DevDesc =
-        {11, DSC$K_DTYPE_T, DSC$K_CLASS_S, "SYS$COMMAND"};
-     /* {dsc$w_length, dsc$b_dtype, dsc$b_class, dsc$a_pointer}; */
-
-/*
- * Turn keyboard echoing on or off (VMS).  Loosely based on VMSmunch.c
- * and hence on Joe Meadows' file.c code.
- */
-int echo(opt)
-    int opt;
-{
-    /*
-     * For VMS v5.x:
-     *   IO$_SENSEMODE/SETMODE info:  Programming, Vol. 7A, System Programming,
-     *     I/O User's: Part I, sec. 8.4.1.1, 8.4.3, 8.4.5, 8.6
-     *   sys$assign(), sys$qio() info:  Programming, Vol. 4B, System Services,
-     *     System Services Reference Manual, pp. sys-23, sys-379
-     *   fixed-length descriptor info:  Programming, Vol. 3, System Services,
-     *     Intro to System Routines, sec. 2.9.2
-     * Greg Roelofs, 15 Aug 91
-     */
-
-    short           DevChan, iosb[4];
-    long            status;
-    unsigned long   ttmode[2];  /* space for 8 bytes */
-
-
-    /* assign a channel to standard input */
-    status = sys$assign(&DevDesc, &DevChan, 0, 0);
-    if (!(status & 1))
-        return status;
-
-    /* use sys$qio and the IO$_SENSEMODE function to determine the current
-     * tty status (for password reading, could use IO$_READVBLK function
-     * instead, but echo on/off will be more general)
-     */
-    status = sys$qiow(0, DevChan, IO$_SENSEMODE, &iosb, 0, 0,
-                     ttmode, 8, 0, 0, 0, 0);
-    if (!(status & 1))
-        return status;
-    status = iosb[0];
-    if (!(status & 1))
-        return status;
-
-    /* modify mode buffer to be either NOECHO or ECHO
-     * (depending on function argument opt)
-     */
-    if (opt == 0)   /* off */
-        ttmode[1] |= TT$M_NOECHO;                       /* set NOECHO bit */
-    else
-        ttmode[1] &= ~((unsigned long) TT$M_NOECHO);    /* clear NOECHO bit */
-
-    /* use the IO$_SETMODE function to change the tty status */
-    status = sys$qiow(0, DevChan, IO$_SETMODE, &iosb, 0, 0,
-                     ttmode, 8, 0, 0, 0, 0);
-    if (!(status & 1))
-        return status;
-    status = iosb[0];
-    if (!(status & 1))
-        return status;
-
-    /* deassign the sys$input channel by way of clean-up */
-    status = sys$dassgn(DevChan);
-    if (!(status & 1))
-        return status;
-
-    return SS$_NORMAL;   /* we be happy */
-
-} /* end function echo() */
-
-
-/*
- * Read a single character from keyboard in non-echoing mode (VMS).
- * (returns EOF in case of errors)
- */
-int tt_getch()
-{
-    short           DevChan, iosb[4];
-    long            status;
-    char            kbbuf[16];  /* input buffer with - some - excess length */
-
-    /* assign a channel to standard input */
-    status = sys$assign(&DevDesc, &DevChan, 0, 0);
-    if (!(status & 1))
-        return EOF;
-
-    /* read a single character from SYS$COMMAND (no-echo) and
-     * wait for completion
-     */
-    status = sys$qiow(0,DevChan,
-                      IO$_READVBLK|IO$M_NOECHO|IO$M_NOFILTR,
-                      &iosb, 0, 0,
-                      &kbbuf, 1, 0, 0, 0, 0);
-    if ((status&1) == 1)
-        status = iosb[0];
-
-    /* deassign the sys$input channel by way of clean-up
-     * (for this step, we do not need to check the completion status)
-     */
-    sys$dassgn(DevChan);
-
-    /* return the first char read, or EOF in case the read request failed */
-    return (int)(((status&1) == 1) ? (uch)kbbuf[0] : EOF);
-
-} /* end function tt_getch() */
-
-
 #else /* !VMS:  basically Unix */
 
 
