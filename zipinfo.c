@@ -124,316 +124,316 @@ static int   zi_long   OF((__GPRO__ zusz_t *pEndprev, int error_in_archive));
 static int   zi_short  OF((__GPRO));
 static void  zi_showMacTypeCreator
                        OF((__GPRO__ uch *ebfield));
-static char *zi_time   OF((__GPRO__ ZCONST ulg *datetimez,
-                           ZCONST time_t *modtimez, char *d_t_str));
+static char *zi_time   OF((__GPRO__ const ulg *datetimez,
+                           const time_t *modtimez, char *d_t_str));
 
 
 /**********************************************/
 /*  Strings used in zipinfo.c (ZipInfo half)  */
 /**********************************************/
 
-static ZCONST char nullStr[] = "";
-static ZCONST char PlurSufx[] = "s";
+static const char nullStr[] = "";
+static const char PlurSufx[] = "s";
 
-static ZCONST char Far ZipInfHeader2[] =
+static const char Far ZipInfHeader2[] =
   "Zip file size: %s bytes, number of entries: %s\n";
-static ZCONST char Far EndCentDirRec[] = "\nEnd-of-central-directory record:\n";
-static ZCONST char Far LineSeparators[] = "-------------------------------\n\n";
-static ZCONST char Far ZipFSizeVerbose[] = "\
+static const char Far EndCentDirRec[] = "\nEnd-of-central-directory record:\n";
+static const char Far LineSeparators[] = "-------------------------------\n\n";
+static const char Far ZipFSizeVerbose[] = "\
   Zip archive file size:               %s (%sh)\n";
-static ZCONST char Far ActOffsetCentDir[] = "\
+static const char Far ActOffsetCentDir[] = "\
   Actual end-cent-dir record offset:   %s (%sh)\n\
   Expected end-cent-dir record offset: %s (%sh)\n\
   (based on the length of the central directory and its expected offset)\n\n";
-static ZCONST char Far SinglePartArchive1[] = "\
+static const char Far SinglePartArchive1[] = "\
   This zipfile constitutes the sole disk of a single-part archive; its\n\
   central directory contains %s %s.\n\
   The central directory is %s (%sh) bytes long,\n";
-static ZCONST char Far SinglePartArchive2[] = "\
+static const char Far SinglePartArchive2[] = "\
   and its (expected) offset in bytes from the beginning of the zipfile\n\
   is %s (%sh).\n\n";
-static ZCONST char Far MultiPartArchive1[] = "\
+static const char Far MultiPartArchive1[] = "\
   This zipfile constitutes disk %lu of a multi-part archive.  The central\n\
   directory starts on disk %lu at an offset within that archive part\n";
-static ZCONST char Far MultiPartArchive2[] = "\
+static const char Far MultiPartArchive2[] = "\
   of %s (%sh) bytes.  The entire\n\
   central directory is %s (%sh) bytes long.\n";
-static ZCONST char Far MultiPartArchive3[] = "\
+static const char Far MultiPartArchive3[] = "\
   %s of the archive entries %s contained within this zipfile volume,\n\
   out of a total of %s %s.\n\n";
 
-static ZCONST char Far CentralDirEntry[] =
+static const char Far CentralDirEntry[] =
   "\nCentral directory entry #%lu:\n---------------------------\n\n";
-static ZCONST char Far ZipfileStats[] =
+static const char Far ZipfileStats[] =
   "%lu file%s, %s bytes uncompressed, %s bytes compressed:  %s%d.%d%%\n";
 
 /* zi_long() strings */
-static ZCONST char Far OS_FAT[] = "MS-DOS, OS/2 or NT FAT";
-static ZCONST char Far OS_Amiga[] = "Amiga";
-static ZCONST char Far OS_VMS[] = "VMS";
-static ZCONST char Far OS_Unix[] = "Unix";
-static ZCONST char Far OS_VMCMS[] = "VM/CMS";
-static ZCONST char Far OS_AtariST[] = "Atari ST";
-static ZCONST char Far OS_HPFS[] = "OS/2 or NT HPFS";
-static ZCONST char Far OS_Macintosh[] = "Macintosh HFS";
-static ZCONST char Far OS_ZSystem[] = "Z-System";
-static ZCONST char Far OS_CPM[] = "CP/M";
-static ZCONST char Far OS_TOPS20[] = "TOPS-20";
-static ZCONST char Far OS_NTFS[] = "NTFS";
-static ZCONST char Far OS_QDOS[] = "SMS/QDOS";
-static ZCONST char Far OS_Acorn[] = "Acorn RISC OS";
-static ZCONST char Far OS_MVS[] = "MVS";
-static ZCONST char Far OS_VFAT[] = "Win32 VFAT";
-static ZCONST char Far OS_AtheOS[] = "AtheOS";
-static ZCONST char Far OS_BeOS[] = "BeOS";
-static ZCONST char Far OS_Tandem[] = "Tandem NSK";
-static ZCONST char Far OS_Theos[] = "Theos";
-static ZCONST char Far OS_MacDarwin[] = "Mac OS/X (Darwin)";
+static const char Far OS_FAT[] = "MS-DOS, OS/2 or NT FAT";
+static const char Far OS_Amiga[] = "Amiga";
+static const char Far OS_VMS[] = "VMS";
+static const char Far OS_Unix[] = "Unix";
+static const char Far OS_VMCMS[] = "VM/CMS";
+static const char Far OS_AtariST[] = "Atari ST";
+static const char Far OS_HPFS[] = "OS/2 or NT HPFS";
+static const char Far OS_Macintosh[] = "Macintosh HFS";
+static const char Far OS_ZSystem[] = "Z-System";
+static const char Far OS_CPM[] = "CP/M";
+static const char Far OS_TOPS20[] = "TOPS-20";
+static const char Far OS_NTFS[] = "NTFS";
+static const char Far OS_QDOS[] = "SMS/QDOS";
+static const char Far OS_Acorn[] = "Acorn RISC OS";
+static const char Far OS_MVS[] = "MVS";
+static const char Far OS_VFAT[] = "Win32 VFAT";
+static const char Far OS_AtheOS[] = "AtheOS";
+static const char Far OS_BeOS[] = "BeOS";
+static const char Far OS_Tandem[] = "Tandem NSK";
+static const char Far OS_Theos[] = "Theos";
+static const char Far OS_MacDarwin[] = "Mac OS/X (Darwin)";
 #ifdef OLD_THEOS_EXTRA
-  static ZCONST char Far OS_TheosOld[] = "Theos (Old)";
+  static const char Far OS_TheosOld[] = "Theos (Old)";
 #endif /* OLD_THEOS_EXTRA */
 
-static ZCONST char Far MthdNone[] = "none (stored)";
-static ZCONST char Far MthdShrunk[] = "shrunk";
-static ZCONST char Far MthdRedF1[] = "reduced (factor 1)";
-static ZCONST char Far MthdRedF2[] = "reduced (factor 2)";
-static ZCONST char Far MthdRedF3[] = "reduced (factor 3)";
-static ZCONST char Far MthdRedF4[] = "reduced (factor 4)";
-static ZCONST char Far MthdImplode[] = "imploded";
-static ZCONST char Far MthdToken[] = "tokenized";
-static ZCONST char Far MthdDeflate[] = "deflated";
-static ZCONST char Far MthdDeflat64[] = "deflated (enhanced-64k)";
-static ZCONST char Far MthdDCLImplode[] = "imploded (PK DCL)";
-static ZCONST char Far MthdBZip2[] = "bzipped";
-static ZCONST char Far MthdLZMA[] = "LZMA-ed";
-static ZCONST char Far MthdTerse[] = "tersed (IBM)";
-static ZCONST char Far MthdLZ77[] = "LZ77-compressed (IBM)";
-static ZCONST char Far MthdWavPack[] = "WavPacked";
-static ZCONST char Far MthdPPMd[] = "PPMd-ed";
+static const char Far MthdNone[] = "none (stored)";
+static const char Far MthdShrunk[] = "shrunk";
+static const char Far MthdRedF1[] = "reduced (factor 1)";
+static const char Far MthdRedF2[] = "reduced (factor 2)";
+static const char Far MthdRedF3[] = "reduced (factor 3)";
+static const char Far MthdRedF4[] = "reduced (factor 4)";
+static const char Far MthdImplode[] = "imploded";
+static const char Far MthdToken[] = "tokenized";
+static const char Far MthdDeflate[] = "deflated";
+static const char Far MthdDeflat64[] = "deflated (enhanced-64k)";
+static const char Far MthdDCLImplode[] = "imploded (PK DCL)";
+static const char Far MthdBZip2[] = "bzipped";
+static const char Far MthdLZMA[] = "LZMA-ed";
+static const char Far MthdTerse[] = "tersed (IBM)";
+static const char Far MthdLZ77[] = "LZ77-compressed (IBM)";
+static const char Far MthdWavPack[] = "WavPacked";
+static const char Far MthdPPMd[] = "PPMd-ed";
 
-static ZCONST char Far DeflNorm[] = "normal";
-static ZCONST char Far DeflMax[] = "maximum";
-static ZCONST char Far DeflFast[] = "fast";
-static ZCONST char Far DeflSFast[] = "superfast";
+static const char Far DeflNorm[] = "normal";
+static const char Far DeflMax[] = "maximum";
+static const char Far DeflFast[] = "fast";
+static const char Far DeflSFast[] = "superfast";
 
-static ZCONST char Far ExtraBytesPreceding[] =
+static const char Far ExtraBytesPreceding[] =
   "  There are an extra %s bytes preceding this file.\n\n";
 
-static ZCONST char Far UnknownNo[] = "unknown (%d)";
+static const char Far UnknownNo[] = "unknown (%d)";
 
 #ifdef ZIP64_SUPPORT
-  static ZCONST char Far LocalHeaderOffset[] =
+  static const char Far LocalHeaderOffset[] =
     "\n  offset of local header from start of archive:   %s\n\
                                                   (%sh) bytes\n";
 #else
-  static ZCONST char Far LocalHeaderOffset[] =
+  static const char Far LocalHeaderOffset[] =
     "\n  offset of local header from start of archive:   %s (%sh) bytes\n";
 #endif
-static ZCONST char Far HostOS[] =
+static const char Far HostOS[] =
   "  file system or operating system of origin:      %s\n";
-static ZCONST char Far EncodeSWVer[] =
+static const char Far EncodeSWVer[] =
   "  version of encoding software:                   %u.%u\n";
-static ZCONST char Far MinOSCompReq[] =
+static const char Far MinOSCompReq[] =
   "  minimum file system compatibility required:     %s\n";
-static ZCONST char Far MinSWVerReq[] =
+static const char Far MinSWVerReq[] =
   "  minimum software version required to extract:   %u.%u\n";
-static ZCONST char Far CompressMethod[] =
+static const char Far CompressMethod[] =
   "  compression method:                             %s\n";
-static ZCONST char Far SlideWindowSizeImplode[] =
+static const char Far SlideWindowSizeImplode[] =
   "  size of sliding dictionary (implosion):         %cK\n";
-static ZCONST char Far ShannonFanoTrees[] =
+static const char Far ShannonFanoTrees[] =
   "  number of Shannon-Fano trees (implosion):       %c\n";
-static ZCONST char Far CompressSubtype[] =
+static const char Far CompressSubtype[] =
   "  compression sub-type (deflation):               %s\n";
-static ZCONST char Far FileSecurity[] =
+static const char Far FileSecurity[] =
   "  file security status:                           %sencrypted\n";
-static ZCONST char Far ExtendedLocalHdr[] =
+static const char Far ExtendedLocalHdr[] =
   "  extended local header:                          %s\n";
-static ZCONST char Far FileModDate[] =
+static const char Far FileModDate[] =
   "  file last modified on (DOS date/time):          %s\n";
 #ifdef USE_EF_UT_TIME
-  static ZCONST char Far UT_FileModDate[] =
+  static const char Far UT_FileModDate[] =
     "  file last modified on (UT extra field modtime): %s %s\n";
-  static ZCONST char Far LocalTime[] = "local";
+  static const char Far LocalTime[] = "local";
 #ifndef NO_GMTIME
-  static ZCONST char Far GMTime[] = "UTC";
+  static const char Far GMTime[] = "UTC";
 #endif
 #endif /* USE_EF_UT_TIME */
-static ZCONST char Far CRC32Value[] =
+static const char Far CRC32Value[] =
   "  32-bit CRC value (hex):                         %.8lx\n";
-static ZCONST char Far CompressedFileSize[] =
+static const char Far CompressedFileSize[] =
   "  compressed size:                                %s bytes\n";
-static ZCONST char Far UncompressedFileSize[] =
+static const char Far UncompressedFileSize[] =
   "  uncompressed size:                              %s bytes\n";
-static ZCONST char Far FilenameLength[] =
+static const char Far FilenameLength[] =
   "  length of filename:                             %u characters\n";
-static ZCONST char Far ExtraFieldLength[] =
+static const char Far ExtraFieldLength[] =
   "  length of extra field:                          %u bytes\n";
-static ZCONST char Far FileCommentLength[] =
+static const char Far FileCommentLength[] =
   "  length of file comment:                         %u characters\n";
-static ZCONST char Far FileDiskNum[] =
+static const char Far FileDiskNum[] =
   "  disk number on which file begins:               disk %lu\n";
-static ZCONST char Far ApparentFileType[] =
+static const char Far ApparentFileType[] =
   "  apparent file type:                             %s\n";
-static ZCONST char Far VMSFileAttributes[] =
+static const char Far VMSFileAttributes[] =
   "  VMS file attributes (%06o octal):             %s\n";
-static ZCONST char Far AmigaFileAttributes[] =
+static const char Far AmigaFileAttributes[] =
   "  Amiga file attributes (%06o octal):           %s\n";
-static ZCONST char Far UnixFileAttributes[] =
+static const char Far UnixFileAttributes[] =
   "  Unix file attributes (%06o octal):            %s\n";
-static ZCONST char Far NonMSDOSFileAttributes[] =
+static const char Far NonMSDOSFileAttributes[] =
   "  non-MSDOS external file attributes:             %06lX hex\n";
-static ZCONST char Far MSDOSFileAttributes[] =
+static const char Far MSDOSFileAttributes[] =
   "  MS-DOS file attributes (%02X hex):                none\n";
-static ZCONST char Far MSDOSFileAttributesRO[] =
+static const char Far MSDOSFileAttributesRO[] =
   "  MS-DOS file attributes (%02X hex):                read-only\n";
-static ZCONST char Far MSDOSFileAttributesAlpha[] =
+static const char Far MSDOSFileAttributesAlpha[] =
   "  MS-DOS file attributes (%02X hex):                %s%s%s%s%s%s%s%s\n";
-static ZCONST char Far TheosFileAttributes[] =
+static const char Far TheosFileAttributes[] =
   "  Theos file attributes (%04X hex):               %s\n";
 
-static ZCONST char Far TheosFTypLib[] = "Library     ";
-static ZCONST char Far TheosFTypDir[] = "Directory   ";
-static ZCONST char Far TheosFTypReg[] = "Sequential  ";
-static ZCONST char Far TheosFTypRel[] = "Direct      ";
-static ZCONST char Far TheosFTypKey[] = "Keyed       ";
-static ZCONST char Far TheosFTypInd[] = "Indexed     ";
-static ZCONST char Far TheosFTypR16[] = " 86 program ";
-static ZCONST char Far TheosFTypP16[] = "286 program ";
-static ZCONST char Far TheosFTypP32[] = "386 program ";
-static ZCONST char Far TheosFTypUkn[] = "???         ";
+static const char Far TheosFTypLib[] = "Library     ";
+static const char Far TheosFTypDir[] = "Directory   ";
+static const char Far TheosFTypReg[] = "Sequential  ";
+static const char Far TheosFTypRel[] = "Direct      ";
+static const char Far TheosFTypKey[] = "Keyed       ";
+static const char Far TheosFTypInd[] = "Indexed     ";
+static const char Far TheosFTypR16[] = " 86 program ";
+static const char Far TheosFTypP16[] = "286 program ";
+static const char Far TheosFTypP32[] = "386 program ";
+static const char Far TheosFTypUkn[] = "???         ";
 
-static ZCONST char Far ExtraFieldTrunc[] = "\n\
+static const char Far ExtraFieldTrunc[] = "\n\
   error: EF data block (type 0x%04x) size %u exceeds remaining extra field\n\
          space %u; block length has been truncated.\n";
-static ZCONST char Far ExtraFields[] = "\n\
+static const char Far ExtraFields[] = "\n\
   The central-directory extra field contains:";
-static ZCONST char Far ExtraFieldType[] = "\n\
+static const char Far ExtraFieldType[] = "\n\
   - A subfield with ID 0x%04x (%s) and %u data bytes";
-static ZCONST char Far efPKSZ64[] = "PKWARE 64-bit sizes";
-static ZCONST char Far efAV[] = "PKWARE AV";
-static ZCONST char Far efOS2[] = "OS/2";
-static ZCONST char Far efPKVMS[] = "PKWARE VMS";
-static ZCONST char Far efPKWin32[] = "PKWARE Win32";
-static ZCONST char Far efPKUnix[] = "PKWARE Unix";
-static ZCONST char Far efIZVMS[] = "Info-ZIP VMS";
-static ZCONST char Far efIZUnix[] = "old Info-ZIP Unix/OS2/NT";
-static ZCONST char Far efIZUnix2[] = "Unix UID/GID (16-bit)";
-static ZCONST char Far efIZUnix3[] = "Unix UID/GID (any size)";
-static ZCONST char Far efTime[] = "universal time";
-static ZCONST char Far efU8Path[] = "UTF8 path name";
-static ZCONST char Far efU8Commnt[] = "UTF8 entry comment";
-static ZCONST char Far efJLMac[] = "old Info-ZIP Macintosh";
-static ZCONST char Far efMac3[] = "new Info-ZIP Macintosh";
-static ZCONST char Far efZipIt[] = "ZipIt Macintosh";
-static ZCONST char Far efSmartZip[] = "SmartZip Macintosh";
-static ZCONST char Far efZipIt2[] = "ZipIt Macintosh (short)";
-static ZCONST char Far efVMCMS[] = "VM/CMS";
-static ZCONST char Far efMVS[] = "MVS";
-static ZCONST char Far efACL[] = "OS/2 ACL";
-static ZCONST char Far efNTSD[] = "Security Descriptor";
-static ZCONST char Far efAtheOS[] = "AtheOS";
-static ZCONST char Far efBeOS[] = "BeOS";
-static ZCONST char Far efQDOS[] = "SMS/QDOS";
-static ZCONST char Far efAOSVS[] = "AOS/VS";
-static ZCONST char Far efSpark[] = "Acorn SparkFS";
-static ZCONST char Far efMD5[] = "Fred Kantor MD5";
-static ZCONST char Far efASiUnix[] = "ASi Unix";
-static ZCONST char Far efTandem[] = "Tandem NSK";
-static ZCONST char Far efTheos[] = "Theos";
-static ZCONST char Far efUnknown[] = "unknown";
+static const char Far efPKSZ64[] = "PKWARE 64-bit sizes";
+static const char Far efAV[] = "PKWARE AV";
+static const char Far efOS2[] = "OS/2";
+static const char Far efPKVMS[] = "PKWARE VMS";
+static const char Far efPKWin32[] = "PKWARE Win32";
+static const char Far efPKUnix[] = "PKWARE Unix";
+static const char Far efIZVMS[] = "Info-ZIP VMS";
+static const char Far efIZUnix[] = "old Info-ZIP Unix/OS2/NT";
+static const char Far efIZUnix2[] = "Unix UID/GID (16-bit)";
+static const char Far efIZUnix3[] = "Unix UID/GID (any size)";
+static const char Far efTime[] = "universal time";
+static const char Far efU8Path[] = "UTF8 path name";
+static const char Far efU8Commnt[] = "UTF8 entry comment";
+static const char Far efJLMac[] = "old Info-ZIP Macintosh";
+static const char Far efMac3[] = "new Info-ZIP Macintosh";
+static const char Far efZipIt[] = "ZipIt Macintosh";
+static const char Far efSmartZip[] = "SmartZip Macintosh";
+static const char Far efZipIt2[] = "ZipIt Macintosh (short)";
+static const char Far efVMCMS[] = "VM/CMS";
+static const char Far efMVS[] = "MVS";
+static const char Far efACL[] = "OS/2 ACL";
+static const char Far efNTSD[] = "Security Descriptor";
+static const char Far efAtheOS[] = "AtheOS";
+static const char Far efBeOS[] = "BeOS";
+static const char Far efQDOS[] = "SMS/QDOS";
+static const char Far efAOSVS[] = "AOS/VS";
+static const char Far efSpark[] = "Acorn SparkFS";
+static const char Far efMD5[] = "Fred Kantor MD5";
+static const char Far efASiUnix[] = "ASi Unix";
+static const char Far efTandem[] = "Tandem NSK";
+static const char Far efTheos[] = "Theos";
+static const char Far efUnknown[] = "unknown";
 
-static ZCONST char Far OS2EAs[] = ".\n\
+static const char Far OS2EAs[] = ".\n\
     The local extra field has %lu bytes of OS/2 extended attributes.\n\
     (May not match OS/2 \"dir\" amount due to storage method)";
-static ZCONST char Far izVMSdata[] = ".  The extra\n\
+static const char Far izVMSdata[] = ".  The extra\n\
     field is %s and has %u bytes of VMS %s information%s";
-static ZCONST char Far izVMSstored[] = "stored";
-static ZCONST char Far izVMSrleenc[] = "run-length encoded";
-static ZCONST char Far izVMSdeflat[] = "deflated";
-static ZCONST char Far izVMScunknw[] = "compressed(?)";
-static ZCONST char Far *izVMScomp[4] =
+static const char Far izVMSstored[] = "stored";
+static const char Far izVMSrleenc[] = "run-length encoded";
+static const char Far izVMSdeflat[] = "deflated";
+static const char Far izVMScunknw[] = "compressed(?)";
+static const char Far *izVMScomp[4] =
   {izVMSstored, izVMSrleenc, izVMSdeflat, izVMScunknw};
-static ZCONST char Far ACLdata[] = ".\n\
+static const char Far ACLdata[] = ".\n\
     The local extra field has %lu bytes of access control list information";
-static ZCONST char Far NTSDData[] = ".\n\
+static const char Far NTSDData[] = ".\n\
     The local extra field has %lu bytes of NT security descriptor data";
-static ZCONST char Far UTdata[] = ".\n\
+static const char Far UTdata[] = ".\n\
     The local extra field has UTC/GMT %s time%s";
-static ZCONST char Far UTmodification[] = "modification";
-static ZCONST char Far UTaccess[] = "access";
-static ZCONST char Far UTcreation[] = "creation";
-static ZCONST char Far U8PthCmnComplete[] = ".\n\
+static const char Far UTmodification[] = "modification";
+static const char Far UTaccess[] = "access";
+static const char Far UTcreation[] = "creation";
+static const char Far U8PthCmnComplete[] = ".\n\
     The UTF8 data of the extra field (V%u, ASCII name CRC `%.8lx') are:\n   ";
-static ZCONST char Far U8PthCmnF24[] = ". The first\n\
+static const char Far U8PthCmnF24[] = ". The first\n\
     24 UTF8 bytes in the extra field (V%u, ASCII name CRC `%.8lx') are:\n   ";
-static ZCONST char Far ZipItFname[] = ".\n\
+static const char Far ZipItFname[] = ".\n\
     The Mac long filename is %s";
-static ZCONST char Far Mac3data[] = ".\n\
+static const char Far Mac3data[] = ".\n\
     The local extra field has %lu bytes of %scompressed Macintosh\n\
     finder attributes";
  /* MacOSdata[] is used by EF_MAC3, EF_ZIPIT, EF_ZIPIT2 and EF_JLEE e. f. */
-static ZCONST char Far MacOSdata[] = ".\n\
+static const char Far MacOSdata[] = ".\n\
     The associated file has type code `%c%c%c%c' and creator code `%c%c%c%c'";
-static ZCONST char Far MacOSdata1[] = ".\n\
+static const char Far MacOSdata1[] = ".\n\
     The associated file has type code `0x%lx' and creator code `0x%lx'";
-static ZCONST char Far MacOSJLEEflags[] = ".\n    File is marked as %s";
-static ZCONST char Far MacOS_RF[] = "Resource-fork";
-static ZCONST char Far MacOS_DF[] = "Data-fork";
-static ZCONST char Far MacOSMAC3flags[] = ".\n\
+static const char Far MacOSJLEEflags[] = ".\n    File is marked as %s";
+static const char Far MacOS_RF[] = "Resource-fork";
+static const char Far MacOS_DF[] = "Data-fork";
+static const char Far MacOSMAC3flags[] = ".\n\
     File is marked as %s, File Dates are in %d Bit";
-static ZCONST char Far AtheOSdata[] = ".\n\
+static const char Far AtheOSdata[] = ".\n\
     The local extra field has %lu bytes of %scompressed AtheOS file attributes";
-static ZCONST char Far BeOSdata[] = ".\n\
+static const char Far BeOSdata[] = ".\n\
     The local extra field has %lu bytes of %scompressed BeOS file attributes";
  /* The associated file has type code `%c%c%c%c' and creator code `%c%c%c%c'" */
-static ZCONST char Far QDOSdata[] = ".\n\
+static const char Far QDOSdata[] = ".\n\
     The QDOS extra field subtype is `%c%c%c%c'";
-static ZCONST char Far AOSVSdata[] = ".\n\
+static const char Far AOSVSdata[] = ".\n\
     The AOS/VS extra field revision is %d.%d";
-static ZCONST char Far TandemUnstr[] = "Unstructured";
-static ZCONST char Far TandemRel[]   = "Relative";
-static ZCONST char Far TandemEntry[] = "Entry Sequenced";
-static ZCONST char Far TandemKey[]   = "Key Sequenced";
-static ZCONST char Far TandemEdit[]  = "Edit";
-static ZCONST char Far TandemObj[]  = "Object";
-static ZCONST char Far *TandemFileformat[6] =
+static const char Far TandemUnstr[] = "Unstructured";
+static const char Far TandemRel[]   = "Relative";
+static const char Far TandemEntry[] = "Entry Sequenced";
+static const char Far TandemKey[]   = "Key Sequenced";
+static const char Far TandemEdit[]  = "Edit";
+static const char Far TandemObj[]  = "Object";
+static const char Far *TandemFileformat[6] =
   {TandemUnstr, TandemRel, TandemEntry, TandemKey, TandemEdit, TandemObj};
-static ZCONST char Far Tandemdata[] = ".\n\
+static const char Far Tandemdata[] = ".\n\
     The file was originally a Tandem %s file, with file code %u";
-static ZCONST char Far MD5data[] = ".\n\
+static const char Far MD5data[] = ".\n\
     The 128-bit MD5 signature is %s";
 #ifdef CMS_MVS
-   static ZCONST char Far VmMvsExtraField[] = ".\n\
+   static const char Far VmMvsExtraField[] = ".\n\
     The stored file open mode (FLDATA TYPE) is \"%s\"";
-   static ZCONST char Far VmMvsInvalid[] = "[invalid]";
+   static const char Far VmMvsInvalid[] = "[invalid]";
 #endif /* CMS_MVS */
 
-static ZCONST char Far First20[] = ".  The first\n    20 are:  ";
-static ZCONST char Far ColonIndent[] = ":\n   ";
-static ZCONST char Far efFormat[] = " %02x";
+static const char Far First20[] = ".  The first\n    20 are:  ";
+static const char Far ColonIndent[] = ":\n   ";
+static const char Far efFormat[] = " %02x";
 
-static ZCONST char Far lExtraFieldType[] = "\n\
+static const char Far lExtraFieldType[] = "\n\
   There %s a local extra field with ID 0x%04x (%s) and\n\
   %u data bytes (%s).\n";
-static ZCONST char Far efIZuid[] =
+static const char Far efIZuid[] =
   "GMT modification/access times and Unix UID/GID";
-static ZCONST char Far efIZnouid[] = "GMT modification/access times only";
+static const char Far efIZnouid[] = "GMT modification/access times only";
 
 
-static ZCONST char Far NoFileComment[] = "\n  There is no file comment.\n";
-static ZCONST char Far FileCommBegin[] = "\n\
+static const char Far NoFileComment[] = "\n  There is no file comment.\n";
+static const char Far FileCommBegin[] = "\n\
 ------------------------- file comment begins ----------------------------\n";
-static ZCONST char Far FileCommEnd[] = "\
+static const char Far FileCommEnd[] = "\
 -------------------------- file comment ends -----------------------------\n";
 
 /* zi_time() strings */
-static ZCONST char Far BogusFmt[] = "%03d";
-static ZCONST char Far shtYMDHMTime[] = "%02u-%s-%02u %02u:%02u";
-static ZCONST char Far lngYMDHMSTime[] = "%u %s %u %02u:%02u:%02u";
-static ZCONST char Far DecimalTime[] = "%04u%02u%02u.%02u%02u%02u";
+static const char Far BogusFmt[] = "%03d";
+static const char Far shtYMDHMTime[] = "%02u-%s-%02u %02u:%02u";
+static const char Far lngYMDHMSTime[] = "%u %s %u %02u:%02u:%02u";
+static const char Far DecimalTime[] = "%04u%02u%02u.%02u%02u%02u";
 #ifdef USE_EF_UT_TIME
-  static ZCONST char Far lngYMDHMSTimeError[] = "???? ??? ?? ??:??:??";
+  static const char Far lngYMDHMSTimeError[] = "???? ??? ?? ??:??:??";
 #endif
 
 
@@ -998,21 +998,21 @@ static int zi_long(__G__ pEndprev, error_in_archive)
     int  error;
     unsigned  hostnum, hostver, extnum, extver, methid, methnum, xattr;
     char workspace[12], attribs[22];
-    ZCONST char *varmsg_str;
+    const char *varmsg_str;
     char unkn[16];
-    static ZCONST char Far *os[NUM_HOSTS] = {
+    static const char Far *os[NUM_HOSTS] = {
         OS_FAT, OS_Amiga, OS_VMS, OS_Unix, OS_VMCMS, OS_AtariST, OS_HPFS,
         OS_Macintosh, OS_ZSystem, OS_CPM, OS_TOPS20, OS_NTFS, OS_QDOS,
         OS_Acorn, OS_VFAT, OS_MVS, OS_BeOS, OS_Tandem, OS_Theos, OS_MacDarwin,
         NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
         OS_AtheOS
     };
-    static ZCONST char Far *method[NUM_METHODS] = {
+    static const char Far *method[NUM_METHODS] = {
         MthdNone, MthdShrunk, MthdRedF1, MthdRedF2, MthdRedF3, MthdRedF4,
         MthdImplode, MthdToken, MthdDeflate, MthdDeflat64, MthdDCLImplode,
         MthdBZip2, MthdLZMA, MthdTerse, MthdLZ77, MthdWavPack, MthdPPMd
     };
-    static ZCONST char Far *dtypelng[4] = {
+    static const char Far *dtypelng[4] = {
         DeflNorm, DeflMax, DeflFast, DeflSFast
     };
 
@@ -1227,7 +1227,7 @@ static int zi_long(__G__ pEndprev, error_in_archive)
           xattr, attribs));
 
     } else if (hostnum == THEOS_) {
-        ZCONST char Far *fpFtyp;
+        const char Far *fpFtyp;
 
         switch (xattr & THS_IFMT) {
             case THS_IFLIB:  fpFtyp = TheosFTypLib;  break;
@@ -1257,7 +1257,7 @@ static int zi_long(__G__ pEndprev, error_in_archive)
 #ifdef OLD_THEOS_EXTRA
     } else if (hostnum == FS_VFAT_ && hostver == 20) {
         /* process old non-official THEOS port zip archive */
-        ZCONST char Far *fpFtyp;
+        const char Far *fpFtyp;
 
         switch (xattr & _THS_IFMT) {
             case _THS_IFLIB:  fpFtyp = TheosFTypLib;  break;
@@ -1358,7 +1358,7 @@ static int zi_long(__G__ pEndprev, error_in_archive)
         uch *ef_ptr = G.extra_field;
         ush ef_len = G.crec.extra_field_length;
         ush eb_id, eb_datalen;
-        ZCONST char Far *ef_fieldname;
+        const char Far *ef_fieldname;
 
         if (error_in_archive > PK_WARN)   /* fatal:  can't continue */
             /* delayed "fatal error" return from extra field reading */
@@ -1885,17 +1885,17 @@ static int zi_short(__G)   /* return PK-type error code */
     unsigned    hostnum, hostver, methid, methnum, xattr;
     char        *p, workspace[12], attribs[16];
     char        methbuf[5];
-    static ZCONST char dtype[5]="NXFS"; /* normal, maximum, fast, superfast */
-    static ZCONST char Far os[NUM_HOSTS+1][4] = {
+    static const char dtype[5]="NXFS"; /* normal, maximum, fast, superfast */
+    static const char Far os[NUM_HOSTS+1][4] = {
         "fat", "ami", "vms", "unx", "cms", "atr", "hpf", "mac", "zzz",
         "cpm", "t20", "ntf", "qds", "aco", "vft", "mvs", "be ", "nsk",
         "ths", "osx", "???", "???", "???", "???", "???", "???", "???",
         "???", "???", "???", "ath", "???"
     };
 #ifdef OLD_THEOS_EXTRA
-    static ZCONST char Far os_TheosOld[] = "tho";
+    static const char Far os_TheosOld[] = "tho";
 #endif
-    static ZCONST char Far method[NUM_METHODS+1][5] = {
+    static const char Far method[NUM_METHODS+1][5] = {
         "stor", "shrk", "re:1", "re:2", "re:3", "re:4", "i#:#", "tokn",
         "def#", "d64#", "dcli", "bzp2", "lzma", "ters", "lz77", "wavp",
         "ppmd", "u###"
@@ -2235,14 +2235,14 @@ static void zi_showMacTypeCreator(__G__ ebfield)
 
 static char *zi_time(__G__ datetimez, modtimez, d_t_str)
     __GDEF
-    ZCONST ulg *datetimez;
-    ZCONST time_t *modtimez;
+    const ulg *datetimez;
+    const time_t *modtimez;
     char *d_t_str;
 {
     unsigned yr, mo, dy, hh, mm, ss;
     char monthbuf[4];
-    ZCONST char *monthstr;
-    static ZCONST char Far month[12][4] = {
+    const char *monthstr;
+    static const char Far month[12][4] = {
         "Jan", "Feb", "Mar", "Apr", "May", "Jun",
         "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
     };

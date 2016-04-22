@@ -34,7 +34,7 @@ char end_central64_sig[4] = {0, 0, 0x06, 0x06};
 char end_centloc64_sig[4] = {0, 0, 0x06, 0x07};
 /* extern char extd_local_sig[4] = {0, 0, 0x07, 0x08};  NOT USED YET */
 
-ZCONST char *fnames[2] = {"*", NULL};   /* default filenames vector */
+const char *fnames[2] = {"*", NULL};   /* default filenames vector */
 #endif
 
 
@@ -56,13 +56,13 @@ ZCONST char *fnames[2] = {"*", NULL};   /* default filenames vector */
          0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0
      };
 
-     static ZCONST char Far TooManyThreads[] =
+     static const char Far TooManyThreads[] =
        "error:  more than %d simultaneous threads.\n\
         Some threads are probably not calling DESTROYTHREAD()\n";
-     static ZCONST char Far EntryNotFound[] =
+     static const char Far EntryNotFound[] =
        "error:  couldn't find global pointer in table.\n\
         Maybe somebody accidentally called DESTROYTHREAD() twice.\n";
-     static ZCONST char Far GlobalPointerMismatch[] =
+     static const char Far GlobalPointerMismatch[] =
        "error:  global pointer in table does not match pointer passed as\
  parameter\n";
 
@@ -80,7 +80,7 @@ static void registerGlobalPointer(__G)
         scan++;
 
     if (scan == THREADID_ENTRIES) {
-        ZCONST char *tooMany = LoadFarString(TooManyThreads);
+        const char *tooMany = LoadFarString(TooManyThreads);
         Info(slide, 0x421, ((char *)slide, tooMany, THREADID_ENTRIES));
         free(pG);
         EXIT(PK_MEM);   /* essentially memory error before we've started */
@@ -111,7 +111,7 @@ void deregisterGlobalPointer(__G)
   ---------------------------------------------------------------------------*/
 
     if (scan == THREADID_ENTRIES || threadPtrTable[scan] != pG) {
-        ZCONST char *noEntry;
+        const char *noEntry;
         if (scan == THREADID_ENTRIES)
             noEntry = LoadFarString(EntryNotFound);
         else
@@ -143,7 +143,7 @@ Uz_Globs *getGlobalPointer()
   ---------------------------------------------------------------------------*/
 
     if (scan == THREADID_ENTRIES) {
-        ZCONST char *noEntry = LoadFarString(EntryNotFound);
+        const char *noEntry = LoadFarString(EntryNotFound);
         fprintf(stderr, noEntry);  /* can't use Info w/o a global pointer */
         EXIT(PK_ERR);   /* programming error while still working */
     }

@@ -13,7 +13,7 @@
   This module supplies an UnZip engine for use directly from C/C++
   programs.  The functions are:
 
-    ZCONST UzpVer *UzpVersion(void);
+    const UzpVer *UzpVersion(void);
     unsigned UzpVersion2(UzpVer2 *version)
     int UzpMain(int argc, char *argv[]);
     int UzpAltMain(int argc, char *argv[], UzpInit *init);
@@ -63,9 +63,9 @@ jmp_buf dll_error_return;
   ---------------------------------------------------------------------------*/
 
 
-ZCONST UzpVer * UZ_EXP UzpVersion()     /* returns pointer to const struct */
+const UzpVer * UZ_EXP UzpVersion()     /* returns pointer to const struct */
 {
-    static ZCONST UzpVer version = {    /* doesn't change between calls */
+    static const UzpVer version = {    /* doesn't change between calls */
         /* structure size */
         UZPVER_LEN,
         /* version flags */
@@ -475,7 +475,7 @@ int redirect_outfile(__G)
 
 
 
-int writeToMemory(__GPRO__ ZCONST uch *rawbuf, extent size)
+int writeToMemory(__GPRO__ const uch *rawbuf, extent size)
 {
     int errflg = FALSE;
 

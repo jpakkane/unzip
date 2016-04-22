@@ -30,8 +30,8 @@
 #  define __GPRO__
 #endif
 
-#ifndef ZCONST      /* UnZip only (until have configure script like Zip) */
-#  define ZCONST const
+#ifndef const      /* UnZip only (until have configure script like Zip) */
+#  define const const
 #endif
 
 #if (defined(MSDOS) || defined(OS2) || defined(WIN32))
@@ -211,7 +211,7 @@
 #endif /* UNZIP && !FUNZIP */
 
 #if (CRYPT && !defined(WINDLL))
-   char *getp OF((__GPRO__ ZCONST char *m, char *p, int n));
+   char *getp OF((__GPRO__ const char *m, char *p, int n));
 #endif
 
 #else /* !(CRYPT || (UNZIP && !FUNZIP)) */

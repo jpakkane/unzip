@@ -29,7 +29,7 @@
 
 int main(int argc, char *argv[])
 {
-    static ZCONST UzpVer *pVersion;     /* no pervert jokes, please... */
+    static const UzpVer *pVersion;     /* no pervert jokes, please... */
 
     pVersion = UzpVersion();
 

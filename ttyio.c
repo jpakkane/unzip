@@ -549,7 +549,7 @@ int zgetch(__G__ f)
  */
 char *getp(__G__ m, p, n)
     __GDEF
-    ZCONST char *m;             /* prompt for password */
+    const char *m;             /* prompt for password */
     char *p;                    /* return value: line input */
     int n;                      /* bytes available in p[] */
 {
@@ -601,7 +601,7 @@ char *getp(__G__ m, p, n)
 
 char *getp(__G__ m, p, n)
     __GDEF
-    ZCONST char *m;             /* prompt for password */
+    const char *m;             /* prompt for password */
     char *p;                    /* return value: line input */
     int n;                      /* bytes available in p[] */
 {
@@ -654,7 +654,7 @@ char *getp(__G__ m, p, n)
 
 char *getp(__G__ m, p, n)
     __GDEF
-    ZCONST char *m;             /* prompt for password */
+    const char *m;             /* prompt for password */
     char *p;                    /* return value: line input */
     int n;                      /* bytes available in p[] */
 {

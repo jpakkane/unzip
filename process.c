@@ -57,91 +57,91 @@ static int    find_ecrec         OF((__GPRO__ zoff_t searchlen));
 static int    process_zip_cmmnt  OF((__GPRO));
 static int    get_cdir_ent       OF((__GPRO));
 #ifdef IZ_HAVE_UXUIDGID
-static int    read_ux3_value     OF((ZCONST uch *dbuf, unsigned uidgid_sz,
+static int    read_ux3_value     OF((const uch *dbuf, unsigned uidgid_sz,
                                      ulg *p_uidgid));
 #endif /* IZ_HAVE_UXUIDGID */
 
 
-static ZCONST char Far CannotAllocateBuffers[] =
+static const char Far CannotAllocateBuffers[] =
   "error:  cannot allocate unzip buffers\n";
 
 #ifdef SFX
-   static ZCONST char Far CannotFindMyself[] =
+   static const char Far CannotFindMyself[] =
      "unzipsfx:  cannot find myself! [%s]\n";
 # ifdef CHEAP_SFX_AUTORUN
-   static ZCONST char Far AutorunPrompt[] =
+   static const char Far AutorunPrompt[] =
      "\nAuto-run command: %s\nExecute this command? [y/n] ";
-   static ZCONST char Far NotAutoRunning[] =
+   static const char Far NotAutoRunning[] =
      "Not executing auto-run command.";
 # endif
 
 #else /* !SFX */
    /* process_zipfiles() strings */
 # if (defined(IZ_CHECK_TZ) && defined(USE_EF_UT_TIME))
-     static ZCONST char Far WarnInvalidTZ[] =
+     static const char Far WarnInvalidTZ[] =
        "Warning: TZ environment variable not found, cannot use UTC times!!\n";
 # endif
 # if !(defined(UNIX) || defined(AMIGA))
-   static ZCONST char Far CannotFindWildcardMatch[] =
+   static const char Far CannotFindWildcardMatch[] =
      "%s:  cannot find any matches for wildcard specification \"%s\".\n";
 # endif /* !(UNIX || AMIGA) */
-   static ZCONST char Far FilesProcessOK[] =
+   static const char Far FilesProcessOK[] =
      "%d archive%s successfully processed.\n";
-   static ZCONST char Far ArchiveWarning[] =
+   static const char Far ArchiveWarning[] =
      "%d archive%s had warnings but no fatal errors.\n";
-   static ZCONST char Far ArchiveFatalError[] =
+   static const char Far ArchiveFatalError[] =
      "%d archive%s had fatal errors.\n";
-   static ZCONST char Far FileHadNoZipfileDir[] =
+   static const char Far FileHadNoZipfileDir[] =
      "%d file%s had no zipfile directory.\n";
-   static ZCONST char Far ZipfileWasDir[] = "1 \"zipfile\" was a directory.\n";
-   static ZCONST char Far ManyZipfilesWereDir[] =
+   static const char Far ZipfileWasDir[] = "1 \"zipfile\" was a directory.\n";
+   static const char Far ManyZipfilesWereDir[] =
      "%d \"zipfiles\" were directories.\n";
-   static ZCONST char Far NoZipfileFound[] = "No zipfiles found.\n";
+   static const char Far NoZipfileFound[] = "No zipfiles found.\n";
 
    /* do_seekable() strings */
 # ifdef UNIX
-   static ZCONST char Far CannotFindZipfileDirMsg[] =
+   static const char Far CannotFindZipfileDirMsg[] =
      "%s:  cannot find zipfile directory in one of %s or\n\
         %s%s.zip, and cannot find %s, period.\n";
-   static ZCONST char Far CannotFindEitherZipfile[] =
+   static const char Far CannotFindEitherZipfile[] =
      "%s:  cannot find or open %s, %s.zip or %s.\n";
 # else /* !UNIX */
-   static ZCONST char Far CannotFindZipfileDirMsg[] =
+   static const char Far CannotFindZipfileDirMsg[] =
      "%s:  cannot find zipfile directory in %s,\n\
         %sand cannot find %s, period.\n";
 # ifdef VMS
-   static ZCONST char Far CannotFindEitherZipfile[] =
+   static const char Far CannotFindEitherZipfile[] =
      "%s:  cannot find %s (%s).\n";
 # else /* !VMS */
-   static ZCONST char Far CannotFindEitherZipfile[] =
+   static const char Far CannotFindEitherZipfile[] =
      "%s:  cannot find either %s or %s.\n";
 # endif /* ?VMS */
 # endif /* ?UNIX */
-   extern ZCONST char Far Zipnfo[];       /* in unzip.c */
+   extern const char Far Zipnfo[];       /* in unzip.c */
 #ifndef WINDLL
-   static ZCONST char Far Unzip[] = "unzip";
+   static const char Far Unzip[] = "unzip";
 #else
-   static ZCONST char Far Unzip[] = "UnZip DLL";
+   static const char Far Unzip[] = "UnZip DLL";
 #endif
 #ifdef DO_SAFECHECK_2GB
-   static ZCONST char Far ZipfileTooBig[] =
+   static const char Far ZipfileTooBig[] =
      "Trying to read large file (> 2 GiB) without large file support\n";
 #endif /* DO_SAFECHECK_2GB */
-   static ZCONST char Far MaybeExe[] =
+   static const char Far MaybeExe[] =
      "note:  %s may be a plain executable, not an archive\n";
-   static ZCONST char Far CentDirNotInZipMsg[] = "\n\
+   static const char Far CentDirNotInZipMsg[] = "\n\
    [%s]:\n\
      Zipfile is disk %lu of a multi-disk archive, and this is not the disk on\n\
      which the central zipfile directory begins (disk %lu).\n";
-   static ZCONST char Far EndCentDirBogus[] =
+   static const char Far EndCentDirBogus[] =
      "\nwarning [%s]:  end-of-central-directory record claims this\n\
   is disk %lu but that the central directory starts on disk %lu; this is a\n\
   contradiction.  Attempting to process anyway.\n";
 # ifdef NO_MULTIPART
-   static ZCONST char Far NoMultiDiskArcSupport[] =
+   static const char Far NoMultiDiskArcSupport[] =
      "\nerror [%s]:  zipfile is part of multi-disk archive\n\
   (sorry, not yet supported).\n";
-   static ZCONST char Far MaybePakBug[] = "warning [%s]:\
+   static const char Far MaybePakBug[] = "warning [%s]:\
   zipfile claims to be 2nd disk of a 2-part archive;\n\
   attempting to process anyway.  If no further errors occur, this archive\n\
   was probably created by PAK v2.51 or earlier.  This bug was reported to\n\
@@ -150,77 +150,77 @@ static ZCONST char Far CannotAllocateBuffers[] =
   was probably created by PKZIP 2.04c or later; UnZip does not yet support\n\
   multi-part archives.)\n";
 # else
-   static ZCONST char Far MaybePakBug[] = "warning [%s]:\
+   static const char Far MaybePakBug[] = "warning [%s]:\
   zipfile claims to be last disk of a multi-part archive;\n\
   attempting to process anyway, assuming all parts have been concatenated\n\
   together in order.  Expect \"errors\" and warnings...true multi-part support\
 \n  doesn't exist yet (coming soon).\n";
 # endif
-   static ZCONST char Far ExtraBytesAtStart[] =
+   static const char Far ExtraBytesAtStart[] =
      "warning [%s]:  %s extra byte%s at beginning or within zipfile\n\
   (attempting to process anyway)\n";
 #endif /* ?SFX */
 
 #if ((!defined(WINDLL) && !defined(SFX)) || !defined(NO_ZIPINFO))
-   static ZCONST char Far LogInitline[] = "Archive:  %s\n";
+   static const char Far LogInitline[] = "Archive:  %s\n";
 #endif
 
-static ZCONST char Far MissingBytes[] =
+static const char Far MissingBytes[] =
   "error [%s]:  missing %s bytes in zipfile\n\
   (attempting to process anyway)\n";
-static ZCONST char Far NullCentDirOffset[] =
+static const char Far NullCentDirOffset[] =
   "error [%s]:  NULL central directory offset\n\
   (attempting to process anyway)\n";
-static ZCONST char Far ZipfileEmpty[] = "warning [%s]:  zipfile is empty\n";
-static ZCONST char Far CentDirStartNotFound[] =
+static const char Far ZipfileEmpty[] = "warning [%s]:  zipfile is empty\n";
+static const char Far CentDirStartNotFound[] =
   "error [%s]:  start of central directory not found;\n\
   zipfile corrupt.\n%s";
-static ZCONST char Far Cent64EndSigSearchErr[] =
+static const char Far Cent64EndSigSearchErr[] =
   "fatal error: read failure while seeking for End-of-centdir-64 signature.\n\
   This zipfile is corrupt.\n";
-static ZCONST char Far Cent64EndSigSearchOff[] =
+static const char Far Cent64EndSigSearchOff[] =
   "error: End-of-centdir-64 signature not where expected (prepended bytes?)\n\
   (attempting to process anyway)\n";
 #ifndef SFX
-   static ZCONST char Far CentDirTooLong[] =
+   static const char Far CentDirTooLong[] =
      "error [%s]:  reported length of central directory is\n\
   %s bytes too long (Atari STZip zipfile?  J.H.Holm ZIPSPLIT 1.1\n\
   zipfile?).  Compensating...\n";
-   static ZCONST char Far CentDirEndSigNotFound[] = "\
+   static const char Far CentDirEndSigNotFound[] = "\
   End-of-central-directory signature not found.  Either this file is not\n\
   a zipfile, or it constitutes one disk of a multi-part archive.  In the\n\
   latter case the central directory and zipfile comment will be found on\n\
   the last disk(s) of this archive.\n";
 #else /* SFX */
-   static ZCONST char Far CentDirEndSigNotFound[] =
+   static const char Far CentDirEndSigNotFound[] =
      "  End-of-central-directory signature not found.\n";
 #endif /* ?SFX */
 #ifdef TIMESTAMP
-   static ZCONST char Far ZipTimeStampFailed[] =
+   static const char Far ZipTimeStampFailed[] =
      "warning:  cannot set time for %s\n";
-   static ZCONST char Far ZipTimeStampSuccess[] =
+   static const char Far ZipTimeStampSuccess[] =
      "Updated time stamp for %s.\n";
 #endif
-static ZCONST char Far ZipfileCommTrunc1[] =
+static const char Far ZipfileCommTrunc1[] =
   "\ncaution:  zipfile comment truncated\n";
 #ifndef NO_ZIPINFO
-   static ZCONST char Far NoZipfileComment[] =
+   static const char Far NoZipfileComment[] =
      "There is no zipfile comment.\n";
-   static ZCONST char Far ZipfileCommentDesc[] =
+   static const char Far ZipfileCommentDesc[] =
      "The zipfile comment is %u bytes long and contains the following text:\n";
-   static ZCONST char Far ZipfileCommBegin[] =
+   static const char Far ZipfileCommBegin[] =
      "======================== zipfile comment begins\
  ==========================\n";
-   static ZCONST char Far ZipfileCommEnd[] =
+   static const char Far ZipfileCommEnd[] =
      "========================= zipfile comment ends\
  ===========================\n";
-   static ZCONST char Far ZipfileCommTrunc2[] =
+   static const char Far ZipfileCommTrunc2[] =
      "\n  The zipfile comment is truncated.\n";
 #endif /* !NO_ZIPINFO */
 #ifdef UNICODE_SUPPORT
-   static ZCONST char Far UnicodeVersionError[] =
+   static const char Far UnicodeVersionError[] =
      "\nwarning:  Unicode Path version > 1\n";
-   static ZCONST char Far UnicodeMismatchError[] =
+   static const char Far UnicodeMismatchError[] =
      "\nwarning:  Unicode Path checksum invalid\n";
 #endif
 
@@ -1876,7 +1876,7 @@ int process_local_file_hdr(__G)    /* return PK-type error code */
 
 int getZip64Data(__G__ ef_buf, ef_len)
     __GDEF
-    ZCONST uch *ef_buf; /* buffer containing extra field */
+    const uch *ef_buf; /* buffer containing extra field */
     unsigned ef_len;    /* total length of extra field */
 {
     unsigned eb_id;
@@ -1946,7 +1946,7 @@ int getZip64Data(__G__ ef_buf, ef_len)
 
 int getUnicodeData(__G__ ef_buf, ef_len)
     __GDEF
-    ZCONST uch *ef_buf; /* buffer containing extra field */
+    const uch *ef_buf; /* buffer containing extra field */
     unsigned ef_len;    /* total length of extra field */
 {
     unsigned eb_id;
@@ -2034,7 +2034,7 @@ int getUnicodeData(__G__ ef_buf, ef_len)
           } else {
             /* UTF-8 path */
             strncpy(G.unipath_filename,
-                    (ZCONST char *)(offset + ef_buf), ULen);
+                    (const char *)(offset + ef_buf), ULen);
             G.unipath_filename[ULen] = '\0';
           }
         }
@@ -2077,9 +2077,9 @@ int getUnicodeData(__G__ ef_buf, ef_len)
    encoded as UTF-8.
 */
 
-static int utf8_char_bytes OF((ZCONST char *utf8));
-static ulg ucs4_char_from_utf8 OF((ZCONST char **utf8));
-static int utf8_to_ucs4_string OF((ZCONST char *utf8, ulg *ucs4buf,
+static int utf8_char_bytes OF((const char *utf8));
+static ulg ucs4_char_from_utf8 OF((const char **utf8));
+static int utf8_to_ucs4_string OF((const char *utf8, ulg *ucs4buf,
                                    int buflen));
 
 /* utility functions for managing UTF-8 and UCS-4 strings */
@@ -2091,7 +2091,7 @@ static int utf8_to_ucs4_string OF((ZCONST char *utf8, ulg *ucs4buf,
  * string, or -1 if the UTF-8 is invalid or null.
  */
 static int utf8_char_bytes(utf8)
-  ZCONST char *utf8;
+  const char *utf8;
 {
   int      t, r;
   unsigned lead;
@@ -2130,7 +2130,7 @@ static int utf8_char_bytes(utf8)
  * pointer when input is ill-formed.
  */
 static ulg ucs4_char_from_utf8(utf8)
-  ZCONST char **utf8;
+  const char **utf8;
 {
   ulg  ret;
   int  t, bytes;
@@ -2198,7 +2198,7 @@ static int utf8_from_ucs4_char(utf8buf, ch)
  * Return UCS count.  Now returns int so can return -1.
  */
 static int utf8_to_ucs4_string(utf8, ucs4buf, buflen)
-  ZCONST char *utf8;
+  const char *utf8;
   ulg *ucs4buf;
   int buflen;
 {
@@ -2227,7 +2227,7 @@ static int utf8_to_ucs4_string(utf8, ucs4buf, buflen)
  *
  */
 static int ucs4_string_to_utf8(ucs4, utf8buf, buflen)
-  ZCONST ulg *ucs4;
+  const ulg *ucs4;
   char *utf8buf;
   int buflen;
 {
@@ -2261,7 +2261,7 @@ static int ucs4_string_to_utf8(ucs4, utf8buf, buflen)
  * Wrapper: counts the actual unicode characters in a UTF-8 string.
  */
 static int utf8_chars(utf8)
-  ZCONST char *utf8;
+  const char *utf8;
 {
   return utf8_to_ucs4_string(utf8, NULL, 0);
 }
@@ -2287,7 +2287,7 @@ static int utf8_chars(utf8)
  * Checks if a string is all ascii
  */
 int is_ascii_string(mbstring)
-  ZCONST char *mbstring;
+  const char *mbstring;
 {
   char *p;
   uch c;
@@ -2302,7 +2302,7 @@ int is_ascii_string(mbstring)
 
 /* local to UTF-8 */
 char *local_to_utf8_string(local_string)
-  ZCONST char *local_string;
+  const char *local_string;
 {
   return wide_to_utf8_string(local_to_wide_string(local_string));
 }
@@ -2381,13 +2381,13 @@ char *wide_to_escape_string(wide_char)
 #if 0 /* currently unused */
 /* returns the wide character represented by the escape string */
 zwchar escape_string_to_wide(escape_string)
-  ZCONST char *escape_string;
+  const char *escape_string;
 {
   int i;
   zwchar w;
   char c;
   int len;
-  ZCONST char *e = escape_string;
+  const char *e = escape_string;
 
   if (e == NULL) {
     return 0;
@@ -2431,7 +2431,7 @@ zwchar escape_string_to_wide(escape_string)
 #ifndef WIN32  /* WIN32 supplies a special variant of this function */
 /* convert wide character string to multi-byte character string */
 char *wide_to_local_string(wide_string, escape_all)
-  ZCONST zwchar *wide_string;
+  const zwchar *wide_string;
   int escape_all;
 {
   int i;
@@ -2504,7 +2504,7 @@ char *wide_to_local_string(wide_string, escape_all)
 #if 0 /* currently unused */
 /* convert local string to display character set string */
 char *local_to_display_string(local_string)
-  ZCONST char *local_string;
+  const char *local_string;
 {
   char *display_string;
 
@@ -2537,7 +2537,7 @@ char *local_to_display_string(local_string)
 
 /* UTF-8 to local */
 char *utf8_to_local_string(utf8_string, escape_all)
-  ZCONST char *utf8_string;
+  const char *utf8_string;
   int escape_all;
 {
   zwchar *wide = utf8_to_wide_string(utf8_string);
@@ -2549,7 +2549,7 @@ char *utf8_to_local_string(utf8_string, escape_all)
 #if 0 /* currently unused */
 /* convert multi-byte character string to wide character string */
 zwchar *local_to_wide_string(local_string)
-  ZCONST char *local_string;
+  const char *local_string;
 {
   int wsize;
   wchar_t *wc_string;
@@ -2583,7 +2583,7 @@ zwchar *local_to_wide_string(local_string)
 
 /* convert wide string to UTF-8 */
 char *wide_to_utf8_string(wide_string)
-  ZCONST zwchar *wide_string;
+  const zwchar *wide_string;
 {
   int mbcount;
   char *utf8_string;
@@ -2605,7 +2605,7 @@ char *wide_to_utf8_string(wide_string)
 
 /* convert UTF-8 string to wide string */
 zwchar *utf8_to_wide_string(utf8_string)
-  ZCONST char *utf8_string;
+  const char *utf8_string;
 {
   int wcount;
   zwchar *wide_string;
@@ -2633,7 +2633,7 @@ zwchar *utf8_to_wide_string(utf8_string)
 
 #ifdef IZ_HAVE_UXUIDGID
 static int read_ux3_value(dbuf, uidgid_sz, p_uidgid)
-    ZCONST uch *dbuf;   /* buffer a uid or gid value */
+    const uch *dbuf;   /* buffer a uid or gid value */
     unsigned uidgid_sz; /* size of uid/gid value */
     ulg *p_uidgid;      /* return storage: uid or gid value */
 {
@@ -2668,7 +2668,7 @@ static int read_ux3_value(dbuf, uidgid_sz, p_uidgid)
 
 unsigned ef_scan_for_izux(ef_buf, ef_len, ef_is_c, dos_mdatetime,
                           z_utim, z_uidgid)
-    ZCONST uch *ef_buf; /* buffer containing extra field */
+    const uch *ef_buf; /* buffer containing extra field */
     unsigned ef_len;    /* total length of extra field */
     int ef_is_c;        /* flag indicating "is central extra field" */
     ulg dos_mdatetime;  /* last_mod_file_date_time in DOS format */
@@ -3039,7 +3039,7 @@ unsigned ef_scan_for_izux(ef_buf, ef_len, ef_is_c, dos_mdatetime,
 /*******************************/
 
 zvoid *getRISCOSexfield(ef_buf, ef_len)
-    ZCONST uch *ef_buf; /* buffer containing extra field */
+    const uch *ef_buf; /* buffer containing extra field */
     unsigned ef_len;    /* total length of extra field */
 {
     unsigned eb_id;

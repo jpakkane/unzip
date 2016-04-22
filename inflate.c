@@ -422,7 +422,7 @@ int UZinflate(__G__ is_defl64)
 
     if (!G.inflInit) {
         /* local buffer for efficiency */
-        ZCONST char *zlib_RtVersion = zlibVersion();
+        const char *zlib_RtVersion = zlibVersion();
 
         /* only need to test this stuff once */
         if ((zlib_RtVersion[0] != ZLIB_VERSION[0]) ||
@@ -578,7 +578,7 @@ int UZinflate(__G__ is_defl64)
         unsigned i;
         int windowBits;
         /* local buffer for efficiency */
-        ZCONST char *zlib_RtVersion = zlibVersion();
+        const char *zlib_RtVersion = zlibVersion();
 
         /* only need to test this stuff once */
         if (zlib_RtVersion[0] != ZLIB_VERSION[0]) {
@@ -746,36 +746,36 @@ static int inflate_block OF((__GPRO__ int *e));
 
 /* Tables for deflate from PKZIP's appnote.txt. */
 /* - Order of the bit length code lengths */
-static ZCONST unsigned border[] = {
+static const unsigned border[] = {
         16, 17, 18, 0, 8, 7, 9, 6, 10, 5, 11, 4, 12, 3, 13, 2, 14, 1, 15};
 
 /* - Copy lengths for literal codes 257..285 */
 #ifdef USE_DEFLATE64
-static ZCONST ush cplens64[] = {
+static const ush cplens64[] = {
         3, 4, 5, 6, 7, 8, 9, 10, 11, 13, 15, 17, 19, 23, 27, 31,
         35, 43, 51, 59, 67, 83, 99, 115, 131, 163, 195, 227, 3, 0, 0};
         /* For Deflate64, the code 285 is defined differently. */
 #else
 #  define cplens32 cplens
 #endif
-static ZCONST ush cplens32[] = {
+static const ush cplens32[] = {
         3, 4, 5, 6, 7, 8, 9, 10, 11, 13, 15, 17, 19, 23, 27, 31,
         35, 43, 51, 59, 67, 83, 99, 115, 131, 163, 195, 227, 258, 0, 0};
         /* note: see note #13 above about the 258 in this list. */
 /* - Extra bits for literal codes 257..285 */
 #ifdef USE_DEFLATE64
-static ZCONST uch cplext64[] = {
+static const uch cplext64[] = {
         0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2,
         3, 3, 3, 3, 4, 4, 4, 4, 5, 5, 5, 5, 16, INVALID_CODE, INVALID_CODE};
 #else
 #  define cplext32 cplext
 #endif
-static ZCONST uch cplext32[] = {
+static const uch cplext32[] = {
         0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2,
         3, 3, 3, 3, 4, 4, 4, 4, 5, 5, 5, 5, 0, INVALID_CODE, INVALID_CODE};
 
 /* - Copy offsets for distance codes 0..29 (0..31 for Deflate64) */
-static ZCONST ush cpdist[] = {
+static const ush cpdist[] = {
         1, 2, 3, 4, 5, 7, 9, 13, 17, 25, 33, 49, 65, 97, 129, 193,
         257, 385, 513, 769, 1025, 1537, 2049, 3073, 4097, 6145,
 #if (defined(USE_DEFLATE64) || defined(PKZIP_BUG_WORKAROUND))
@@ -786,14 +786,14 @@ static ZCONST ush cpdist[] = {
 
 /* - Extra bits for distance codes 0..29 (0..31 for Deflate64) */
 #ifdef USE_DEFLATE64
-static ZCONST uch cpdext64[] = {
+static const uch cpdext64[] = {
         0, 0, 0, 0, 1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6,
         7, 7, 8, 8, 9, 9, 10, 10, 11, 11,
         12, 12, 13, 13, 14, 14};
 #else
 #  define cpdext32 cpdext
 #endif
-static ZCONST uch cpdext32[] = {
+static const uch cpdext32[] = {
         0, 0, 0, 0, 1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6,
         7, 7, 8, 8, 9, 9, 10, 10, 11, 11,
 #ifdef PKZIP_BUG_WORKAROUND
@@ -817,7 +817,7 @@ static ZCONST uch cpdext32[] = {
 /* moved to consts.h (included in unzip.c), resp. funzip.c */
 #if 0
 /* And'ing with mask_bits[n] masks the lower n bits */
-ZCONST unsigned near mask_bits[17] = {
+const unsigned near mask_bits[17] = {
     0x0000,
     0x0001, 0x0003, 0x0007, 0x000f, 0x001f, 0x003f, 0x007f, 0x00ff,
     0x01ff, 0x03ff, 0x07ff, 0x0fff, 0x1fff, 0x3fff, 0x7fff, 0xffff
@@ -922,9 +922,9 @@ unsigned bk;                    /* bits in bit buffer */
 
 
 /* bits in base literal/length lookup table */
-static ZCONST unsigned lbits = 9;
+static const unsigned lbits = 9;
 /* bits in base distance lookup table */
-static ZCONST unsigned dbits = 6;
+static const unsigned dbits = 6;
 
 
 #ifndef ASM_INFLATECODES
@@ -1550,11 +1550,11 @@ int inflate_free(__G)
 
 int huft_build(__G__ b, n, s, d, e, t, m)
   __GDEF
-  ZCONST unsigned *b;   /* code lengths in bits (all assumed <= BMAX) */
+  const unsigned *b;   /* code lengths in bits (all assumed <= BMAX) */
   unsigned n;           /* number of codes (assumed <= N_MAX) */
   unsigned s;           /* number of simple-valued codes (0..s-1) */
-  ZCONST ush *d;        /* list of base values for non-simple codes */
-  ZCONST uch *e;        /* list of extra bits for non-simple codes */
+  const ush *d;        /* list of base values for non-simple codes */
+  const uch *e;        /* list of extra bits for non-simple codes */
   struct huft **t;      /* result: starting table */
   unsigned *m;          /* maximum lookup bits, returns actual */
 /* Given a list of code lengths and a maximum table size, make a set of

@@ -302,7 +302,7 @@
     char lastRootPath[4];\
     int lastVolOldFAT, lastVolLocTim;\
     char *rootpath, *buildpathHPFS, *buildpathFAT, *endHPFS, *endFAT;\
-    ZCONST char *wildname;\
+    const char *wildname;\
     char *dirname, matchname[FILNAMSIZ];\
     int rootlen, have_dirname, dirnamelen, notfirstcall;\
     zvoid *wild_dir;

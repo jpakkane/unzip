@@ -216,7 +216,7 @@ typedef struct stat z_stat;
 #define SYSTEM_SPECIFIC_GLOBALS \
     int created_dir, renamed_fullpath;\
     char *rootpath, *buildpath, *end;\
-    ZCONST char *wildname;\
+    const char *wildname;\
     char *dirname, matchname[FILNAMSIZ];\
     int rootlen, have_dirname, dirnamelen, notfirstcall;\
     zvoid *wild_dir;

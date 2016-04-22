@@ -21,22 +21,22 @@
 #ifndef OF
 #  define OF(a) a
 #endif
-#ifndef ZCONST
-#  define ZCONST const
+#ifndef const
+#  define const const
 #endif
 
 #ifdef DYNALLOC_CRCTAB
    void     free_crc_table  OF((void));
 #endif
 #ifndef USE_ZLIB
-   ZCONST ulg near *get_crc_table  OF((void));
+   const ulg near *get_crc_table  OF((void));
 #endif
 #if (defined(USE_ZLIB) || defined(CRC_TABLE_ONLY))
 #  ifdef IZ_CRC_BE_OPTIMIZ
 #    undef IZ_CRC_BE_OPTIMIZ
 #  endif
 #else /* !(USE_ZLIB || CRC_TABLE_ONLY) */
-   ulg      crc32           OF((ulg crc, ZCONST uch *buf, extent len));
+   ulg      crc32           OF((ulg crc, const uch *buf, extent len));
 #endif /* ?(USE_ZLIB || CRC_TABLE_ONLY) */
 
 #ifndef CRC_32_TAB

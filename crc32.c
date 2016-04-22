@@ -25,8 +25,8 @@
 
 #if (!defined(USE_ZLIB) || defined(USE_OWN_CRCTAB))
 
-#ifndef ZCONST
-#  define ZCONST const
+#ifndef const
+#  define const const
 #endif
 
 #include "crc32.h"
@@ -131,7 +131,7 @@ local void make_crc_table()
    */
   ulg xor;              /* polynomial exclusive-or pattern */
   /* terms of polynomial defining this crc (except x^32): */
-  static ZCONST uch p[] = {0,1,2,4,5,7,8,10,11,12,16,22,23,26};
+  static const uch p[] = {0,1,2,4,5,7,8,10,11,12,16,22,23,26};
 
   /* make exclusive-or pattern from polynomial (0xedb88320L) */
   xor = 0L;
@@ -179,7 +179,7 @@ local void make_crc_table()
 /* ========================================================================
  * Table of CRC-32's of all single-byte values (made by make_crc_table)
  */
-local ZCONST ulg near crc_table[CRC_TBLS*256] = {
+local const ulg near crc_table[CRC_TBLS*256] = {
 # ifdef IZ_CRC_BE_OPTIMIZ
     0x00000000L, 0x96300777L, 0x2c610eeeL, 0xba510999L, 0x19c46d07L,
     0x8ff46a70L, 0x35a563e9L, 0xa395649eL, 0x3288db0eL, 0xa4b8dc79L,
@@ -614,9 +614,9 @@ local ZCONST ulg near crc_table[CRC_TBLS*256] = {
 
 /* use "OF((void))" here to work around a Borland TC++ 1.0 problem */
 #ifdef USE_ZLIB
-ZCONST uLongf *get_crc_table OF((void))
+const uLongf *get_crc_table OF((void))
 #else
-ZCONST ulg near *get_crc_table OF((void))
+const ulg near *get_crc_table OF((void))
 #endif
 {
 #ifdef DYNAMIC_CRC_TABLE
@@ -624,7 +624,7 @@ ZCONST ulg near *get_crc_table OF((void))
     make_crc_table();
 #endif
 #ifdef USE_ZLIB
-  return (ZCONST uLongf *)crc_table;
+  return (const uLongf *)crc_table;
 #else
   return crc_table;
 #endif
@@ -679,14 +679,14 @@ void free_crc_table()
 /* ========================================================================= */
 ulg crc32(crc, buf, len)
     ulg crc;                    /* crc shift register */
-    register ZCONST uch *buf;   /* pointer to bytes to pump through */
+    register const uch *buf;   /* pointer to bytes to pump through */
     extent len;                 /* number of bytes in buf[] */
 /* Run a set of bytes through the crc shift register.  If buf is a NULL
    pointer, then initialize the crc shift register contents instead.
    Return the current crc in either case. */
 {
   register z_uint4 c;
-  register ZCONST ulg near *crc_32_tab;
+  register const ulg near *crc_32_tab;
 
   if (buf == NULL) return 0L;
 
@@ -701,7 +701,7 @@ ulg crc32(crc, buf, len)
     len--;
   }
   {
-    ZCONST z_uint4 *buf4 = (ZCONST z_uint4 *)buf;
+    const z_uint4 *buf4 = (const z_uint4 *)buf;
     while (len >= 16) {
       DO_OPT16(c, buf4);
       len -= 16;
@@ -710,7 +710,7 @@ ulg crc32(crc, buf, len)
       DO_OPT4(c, buf4);
       len -= 4;
     }
-    buf = (ZCONST uch *)buf4;
+    buf = (const uch *)buf4;
   }
 #else /* !(IZ_CRC_BE_OPTIMIZ || IZ_CRC_LE_OPTIMIZ) */
 #ifndef NO_UNROLLED_LOOPS

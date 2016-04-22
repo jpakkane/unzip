@@ -684,7 +684,7 @@ static void utime2VFatFileTime(time_t ut, FILETIME *pft, int clipDosMin)
  /* number of leap years from 1970 to `y' (not including `y' itself) */
 #define nleap(y) (((y)-1969)/4 - ((y)-1901)/100 + ((y)-1601)/400)
 
-extern ZCONST ush ydays[];              /* defined in fileio.c */
+extern const ush ydays[];              /* defined in fileio.c */
 
 #if (defined(W32_STAT_BANDAID) && !defined(NO_W32TIMES_IZFIX))
 /*********************************/
@@ -1332,7 +1332,7 @@ int set_direc_attribs(__G__ d)
 /* Function stamp_file() */
 /*************************/
 
-int stamp_file(__GPRO__ ZCONST char *fname, time_t modtime)
+int stamp_file(__GPRO__ const char *fname, time_t modtime)
 {
     FILETIME Modft;    /* File time type defined in NT, `last modified' time */
     HANDLE hFile;      /* File handle defined in NT    */
@@ -1488,11 +1488,11 @@ static int IsVolumeOldFAT(__GPRO__ const char *name)
 
 char *do_wild(__G__ wildspec)
     __GDEF
-    ZCONST char *wildspec;  /* only used first time on a given dir */
+    const char *wildspec;  /* only used first time on a given dir */
 {
 /* these statics are now declared in SYSTEM_SPECIFIC_GLOBALS in w32cfg.h:
     static zDIR *wild_dir = NULL;
-    static ZCONST char *wildname;
+    static const char *wildname;
     static char *dirname, matchname[FILNAMSIZ];
     static int notfirstcall=FALSE, have_dirname, dirnamelen;
 */
@@ -1515,8 +1515,8 @@ char *do_wild(__G__ wildspec)
         }
 
         /* break the wildspec into a directory part and a wildcard filename */
-        if ((G.wildname = MBSRCHR(wildspec, '/')) == (ZCONST char *)NULL &&
-            (G.wildname = MBSRCHR(wildspec, ':')) == (ZCONST char *)NULL) {
+        if ((G.wildname = MBSRCHR(wildspec, '/')) == (const char *)NULL &&
+            (G.wildname = MBSRCHR(wildspec, ':')) == (const char *)NULL) {
             G.dirname = ".";
             G.dirnamelen = 1;
             G.have_dirname = FALSE;
@@ -2823,9 +2823,9 @@ int zstat_win32(__W32STAT_GLOBALS__ const char *path, z_stat *buf)
 #define SECSPERMIN      60
 #define MINSPERHOUR     60
 #define SECSPERHOUR     (SECSPERMIN * MINSPERHOUR)
-static void conv_to_rule(LPSYSTEMTIME lpw32tm, struct rule * ZCONST ptrule);
+static void conv_to_rule(LPSYSTEMTIME lpw32tm, struct rule * const ptrule);
 
-static void conv_to_rule(LPSYSTEMTIME lpw32tm, struct rule * ZCONST ptrule)
+static void conv_to_rule(LPSYSTEMTIME lpw32tm, struct rule * const ptrule)
 {
     if (lpw32tm->wYear != 0) {
         ptrule->r_type = JULIAN_DAY;
@@ -2841,10 +2841,10 @@ static void conv_to_rule(LPSYSTEMTIME lpw32tm, struct rule * ZCONST ptrule)
                      (long)lpw32tm->wSecond;
 }
 
-int GetPlatformLocalTimezone(register struct state * ZCONST sp,
-        void (*fill_tzstate_from_rules)(struct state * ZCONST sp_res,
-                                        ZCONST struct rule * ZCONST start,
-                                        ZCONST struct rule * ZCONST end))
+int GetPlatformLocalTimezone(register struct state * const sp,
+        void (*fill_tzstate_from_rules)(struct state * const sp_res,
+                                        const struct rule * const start,
+                                        const struct rule * const end))
 {
     TIME_ZONE_INFORMATION tzinfo;
     DWORD res;
@@ -2947,7 +2947,7 @@ int getch_win32(void)
 #if (defined(UNICODE_SUPPORT) && !defined(FUNZIP))
 /* convert wide character string to multi-byte character string */
 char *wide_to_local_string(wide_string, escape_all)
-  ZCONST zwchar *wide_string;
+  const zwchar *wide_string;
   int escape_all;
 {
   int i;

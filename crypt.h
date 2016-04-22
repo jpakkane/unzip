@@ -131,13 +131,13 @@
 
 int  decrypt_byte OF((__GPRO));
 int  update_keys OF((__GPRO__ int c));
-void init_keys OF((__GPRO__ ZCONST char *passwd));
+void init_keys OF((__GPRO__ const char *passwd));
 
 #ifdef ZIP
-   void crypthead OF((ZCONST char *, ulg, FILE *));
+   void crypthead OF((const char *, ulg, FILE *));
 #  ifdef UTIL
-     int zipcloak OF((struct zlist far *, FILE *, FILE *, ZCONST char *));
-     int zipbare OF((struct zlist far *, FILE *, FILE *, ZCONST char *));
+     int zipcloak OF((struct zlist far *, FILE *, FILE *, const char *));
+     int zipbare OF((struct zlist far *, FILE *, FILE *, const char *));
 #  else
      unsigned zfwrite OF((zvoid *, extent, extent, FILE *));
      extern char *key;
@@ -145,7 +145,7 @@ void init_keys OF((__GPRO__ ZCONST char *passwd));
 #endif /* ZIP */
 
 #if (defined(UNZIP) && !defined(FUNZIP))
-   int  decrypt OF((__GPRO__ ZCONST char *passwrd));
+   int  decrypt OF((__GPRO__ const char *passwrd));
 #endif
 
 #ifdef FUNZIP

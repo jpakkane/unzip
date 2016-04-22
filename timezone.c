@@ -89,18 +89,18 @@ int real_timezone_is_set = FALSE;       /* set by tzset() */
 
 /* internal module-level constants */
 #ifndef IZ_MKTIME_ONLY
-static ZCONST char  gmt[] = "GMT";
-static ZCONST int    mon_lengths[2][MONSPERYEAR] = {
+static const char  gmt[] = "GMT";
+static const int    mon_lengths[2][MONSPERYEAR] = {
     { 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 },
     { 31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 }
 };
 #endif /* !IZ_MKTIME_ONLY */
-static ZCONST int    yr_days[2][MONSPERYEAR+1] = {
+static const int    yr_days[2][MONSPERYEAR+1] = {
     { 0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334, 365 },
     { 0, 31, 60, 91, 121, 152, 182, 213, 244, 274, 305, 335, 366 }
 };
 #ifndef IZ_MKTIME_ONLY
-static ZCONST int   year_lengths[2] = {
+static const int   year_lengths[2] = {
     DAYSPERNYEAR, DAYSPERLYEAR
 };
 
@@ -109,26 +109,26 @@ static struct state statism;
 
 
 /* prototypes of static functions */
-static time_t transtime OF((ZCONST time_t janfirst, ZCONST int year,
-                            ZCONST struct rule * ZCONST rulep,
-                            ZCONST long offset));
-static void generate_transitions OF((register struct state * ZCONST sp,
-                                     ZCONST struct rule * ZCONST start,
-                                     ZCONST struct rule * ZCONST end));
-static ZCONST char *getzname OF((ZCONST char *strp));
-static ZCONST char *getnum OF((ZCONST char *strp, int * ZCONST nump,
-                               ZCONST int min, ZCONST int max));
-static ZCONST char *getsecs OF((ZCONST char *strp, long * ZCONST secsp));
-static ZCONST char *getoffset OF((ZCONST char *strp, long * ZCONST offsetp));
-static ZCONST char *getrule OF((ZCONST char *strp, struct rule * ZCONST rulep));
-static int Parse_TZ OF((ZCONST char *name, register struct state * ZCONST sp));
+static time_t transtime OF((const time_t janfirst, const int year,
+                            const struct rule * const rulep,
+                            const long offset));
+static void generate_transitions OF((register struct state * const sp,
+                                     const struct rule * const start,
+                                     const struct rule * const end));
+static const char *getzname OF((const char *strp));
+static const char *getnum OF((const char *strp, int * const nump,
+                               const int min, const int max));
+static const char *getsecs OF((const char *strp, long * const secsp));
+static const char *getoffset OF((const char *strp, long * const offsetp));
+static const char *getrule OF((const char *strp, struct rule * const rulep));
+static int Parse_TZ OF((const char *name, register struct state * const sp));
 
 
 static time_t transtime(janfirst, year, rulep, offset)
-     ZCONST time_t janfirst;
-     ZCONST int year;
-     ZCONST struct rule * ZCONST rulep;
-     ZCONST long offset;
+     const time_t janfirst;
+     const int year;
+     const struct rule * const rulep;
+     const long offset;
 {
     register int    leapyear;
     register time_t value;
@@ -216,9 +216,9 @@ static time_t transtime(janfirst, year, rulep, offset)
 }
 
 static void generate_transitions(sp, start, end)
-     register struct state * ZCONST sp;
-     ZCONST struct rule * ZCONST start;
-     ZCONST struct rule * ZCONST end;
+     register struct state * const sp;
+     const struct rule * const start;
+     const struct rule * const end;
 {
     register int             year;
     register time_t          janfirst;
@@ -254,8 +254,8 @@ static void generate_transitions(sp, start, end)
     }
 }
 
-static ZCONST char *getzname(strp)
-     ZCONST char *strp;
+static const char *getzname(strp)
+     const char *strp;
 {
     register char   c;
 
@@ -265,11 +265,11 @@ static ZCONST char *getzname(strp)
     return strp;
 }
 
-static ZCONST char *getnum(strp, nump, min, max)
-     ZCONST char *strp;
-     int * ZCONST nump;
-     ZCONST int min;
-     ZCONST int max;
+static const char *getnum(strp, nump, min, max)
+     const char *strp;
+     int * const nump;
+     const int min;
+     const int max;
 {
     register char   c;
     register int    num;
@@ -289,9 +289,9 @@ static ZCONST char *getnum(strp, nump, min, max)
     return strp;
 }
 
-static ZCONST char *getsecs(strp, secsp)
-     ZCONST char *strp;
-     long * ZCONST secsp;
+static const char *getsecs(strp, secsp)
+     const char *strp;
+     long * const secsp;
 {
     int num;
 
@@ -323,9 +323,9 @@ static ZCONST char *getsecs(strp, secsp)
     return strp;
 }
 
-static ZCONST char *getoffset(strp, offsetp)
-     ZCONST char *strp;
-     long * ZCONST offsetp;
+static const char *getoffset(strp, offsetp)
+     const char *strp;
+     long * const offsetp;
 {
     register int    neg = 0;
 
@@ -342,9 +342,9 @@ static ZCONST char *getoffset(strp, offsetp)
     return strp;
 }
 
-static ZCONST char *getrule(strp, rulep)
-     ZCONST char *strp;
-     struct rule * ZCONST rulep;
+static const char *getrule(strp, rulep)
+     const char *strp;
+     struct rule * const rulep;
 {
     if (*strp == 'J') {
         /*
@@ -391,11 +391,11 @@ static ZCONST char *getrule(strp, rulep)
 }
 
 static int Parse_TZ(name, sp)
-     ZCONST char *name;
-     register struct state * ZCONST sp;
+     const char *name;
+     register struct state * const sp;
 {
-    ZCONST char *            stdname;
-    ZCONST char *            dstname;
+    const char *            stdname;
+    const char *            dstname;
     size_t                   stdlen;
     size_t                   dstlen;
     long                     stdoffset;
@@ -526,7 +526,7 @@ void __tzset()
 static struct tm _tmbuf;
 
 struct tm *gmtime(when)
-     ZCONST time_t *when;
+     const time_t *when;
 {
     long days = *when / SECSPERDAY;
     long secs = *when % SECSPERDAY;
@@ -554,7 +554,7 @@ struct tm *gmtime(when)
 }
 
 struct tm *localtime(when)
-     ZCONST time_t *when;
+     const time_t *when;
 {
     time_t     localwhen = *when;
     int        timetype;

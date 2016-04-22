@@ -144,67 +144,67 @@ static int disk_error OF((__GPRO));
 /* Strings used in fileio.c */
 /****************************/
 
-static ZCONST char Far CannotOpenZipfile[] =
+static const char Far CannotOpenZipfile[] =
   "error:  cannot open zipfile [ %s ]\n        %s\n";
 
 #if (!defined(VMS) && !defined(AOS_VS) && !defined(CMS_MVS) && !defined(MACOS))
 #if (!defined(TANDEM))
 #if (defined(ATH_BEO_THS_UNX) || defined(DOS_FLX_NLM_OS2_W32))
-   static ZCONST char Far CannotDeleteOldFile[] =
+   static const char Far CannotDeleteOldFile[] =
      "error:  cannot delete old %s\n        %s\n";
 #ifdef UNIXBACKUP
-   static ZCONST char Far CannotRenameOldFile[] =
+   static const char Far CannotRenameOldFile[] =
      "error:  cannot rename old %s\n        %s\n";
-   static ZCONST char Far BackupSuffix[] = "~";
+   static const char Far BackupSuffix[] = "~";
 #endif
 #endif /* ATH_BEO_THS_UNX || DOS_FLX_NLM_OS2_W32 */
 #ifdef NOVELL_BUG_FAILSAFE
-   static ZCONST char Far NovellBug[] =
+   static const char Far NovellBug[] =
      "error:  %s: stat() says does not exist, but fopen() found anyway\n";
 #endif
-   static ZCONST char Far CannotCreateFile[] =
+   static const char Far CannotCreateFile[] =
      "error:  cannot create %s\n        %s\n";
 #endif /* !TANDEM */
 #endif /* !VMS && !AOS_VS && !CMS_MVS && !MACOS */
 
-static ZCONST char Far ReadError[] = "error:  zipfile read error\n";
-static ZCONST char Far FilenameTooLongTrunc[] =
+static const char Far ReadError[] = "error:  zipfile read error\n";
+static const char Far FilenameTooLongTrunc[] =
   "warning:  filename too long--truncating.\n";
 #ifdef UNICODE_SUPPORT
-   static ZCONST char Far UFilenameTooLongTrunc[] =
+   static const char Far UFilenameTooLongTrunc[] =
      "warning:  Converted unicode filename too long--truncating.\n";
 #endif
-static ZCONST char Far ExtraFieldTooLong[] =
+static const char Far ExtraFieldTooLong[] =
   "warning:  extra field too long (%d).  Ignoring...\n";
 
 #ifdef WINDLL
-   static ZCONST char Far DiskFullQuery[] =
+   static const char Far DiskFullQuery[] =
      "%s:  write error (disk full?).\n";
 #else
-   static ZCONST char Far DiskFullQuery[] =
+   static const char Far DiskFullQuery[] =
      "%s:  write error (disk full?).  Continue? (y/n/^C) ";
-   static ZCONST char Far ZipfileCorrupt[] =
+   static const char Far ZipfileCorrupt[] =
      "error:  zipfile probably corrupt (%s)\n";
 #  ifdef SYMLINKS
-     static ZCONST char Far FileIsSymLink[] =
+     static const char Far FileIsSymLink[] =
        "%s exists and is a symbolic link%s.\n";
 #  endif
 #  ifdef MORE
-     static ZCONST char Far MorePrompt[] = "--More--(%lu)";
+     static const char Far MorePrompt[] = "--More--(%lu)";
 #  endif
-   static ZCONST char Far QuitPrompt[] =
+   static const char Far QuitPrompt[] =
      "--- Press `Q' to quit, or any other key to continue ---";
-   static ZCONST char Far HidePrompt[] = /* "\r                       \r"; */
+   static const char Far HidePrompt[] = /* "\r                       \r"; */
      "\r                                                         \r";
 #  if CRYPT
 #    ifdef MACOS
        /* SPC: are names on MacOS REALLY so much longer than elsewhere ??? */
-       static ZCONST char Far PasswPrompt[] = "[%s]\n %s password: ";
+       static const char Far PasswPrompt[] = "[%s]\n %s password: ";
 #    else
-       static ZCONST char Far PasswPrompt[] = "[%s] %s password: ";
+       static const char Far PasswPrompt[] = "[%s] %s password: ";
 #    endif
-     static ZCONST char Far PasswPrompt2[] = "Enter password: ";
-     static ZCONST char Far PasswRetry[] = "password incorrect--reenter: ";
+     static const char Far PasswPrompt2[] = "Enter password: ";
+     static const char Far PasswRetry[] = "password incorrect--reenter: ";
 #  endif /* CRYPT */
 #endif /* !WINDLL */
 
@@ -808,7 +808,7 @@ int flush(__G__ rawbuf, size, unshrink)
 
 static int partflush(__G__ rawbuf, size, unshrink)
     __GDEF
-    uch *rawbuf;        /* cannot be ZCONST, gets passed to (*G.message)() */
+    uch *rawbuf;        /* cannot be const, gets passed to (*G.message)() */
     ulg size;
     int unshrink;
 #endif /* USE_DEFLATE64 && __16BIT__ */
@@ -1508,7 +1508,7 @@ int UZ_EXP UzpInput(pG, buf, size, flag)
 
 void UZ_EXP UzpMorePause(pG, prompt, flag)
     zvoid *pG;            /* globals struct:  always passed */
-    ZCONST char *prompt;  /* "--More--" prompt */
+    const char *prompt;  /* "--More--" prompt */
     int flag;             /* 0 = any char OK; 1 = accept only '\n', ' ', q */
 {
     uch c;
@@ -1573,8 +1573,8 @@ int UZ_EXP UzpPassword (pG, rcnt, pwbuf, size, zfn, efn)
     int *rcnt;         /* retry counter */
     char *pwbuf;       /* buffer for password */
     int size;          /* size of password buffer */
-    ZCONST char *zfn;  /* name of zip archive */
-    ZCONST char *efn;  /* name of archive entry being processed */
+    const char *zfn;  /* name of zip archive */
+    const char *efn;  /* name of archive entry being processed */
 {
 #if CRYPT
     int r = IZ_PW_ENTERED;
@@ -1685,7 +1685,7 @@ void handler(signal)   /* upon interrupt, turn on echo and exit cleanly */
 
 #if (!defined(HAVE_MKTIME) || defined(WIN32))
 /* also used in amiga/filedate.c and win32/win32.c */
-ZCONST ush ydays[] =
+const ush ydays[] =
     { 0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334, 365 };
 #endif
 
@@ -1700,7 +1700,7 @@ time_t dos_to_unix_time(dosdatetime)
 
 #ifdef HAVE_MKTIME
 
-    ZCONST time_t now = time(NULL);
+    const time_t now = time(NULL);
     struct tm *tm;
 #   define YRBASE  1900
 
@@ -2410,7 +2410,7 @@ int do_string(__G__ length, option)   /* return PK-type error code */
 /***********************/
 
 ush makeword(b)
-    ZCONST uch *b;
+    const uch *b;
 {
     /*
      * Convert Intel style 'short' integer to non-Intel non-16-bit
@@ -2428,7 +2428,7 @@ ush makeword(b)
 /***********************/
 
 ulg makelong(sig)
-    ZCONST uch *sig;
+    const uch *sig;
 {
     /*
      * Convert intel style 'long' variable to non-Intel non-16-bit
@@ -2449,7 +2449,7 @@ ulg makelong(sig)
 /************************/
 
 zusz_t makeint64(sig)
-    ZCONST uch *sig;
+    const uch *sig;
 {
 #ifdef LARGE_FILE_SUPPORT
     /*
@@ -2489,8 +2489,8 @@ zusz_t makeint64(sig)
 char *fzofft(__G__ val, pre, post)
     __GDEF
     zoff_t val;
-    ZCONST char *pre;
-    ZCONST char *post;
+    const char *pre;
+    const char *post;
 {
     /* Storage cylinder. (now in globals.h) */
     /*static char fzofft_buf[FZOFFT_NUM][FZOFFT_LEN];*/
@@ -2545,7 +2545,7 @@ char *fzofft(__G__ val, pre, post)
 
 char *str2iso(dst, src)
     char *dst;                          /* destination buffer */
-    register ZCONST char *src;          /* source string */
+    register const char *src;          /* source string */
 {
 #ifdef INTERN_TO_ISO
     INTERN_TO_ISO(src, dst);
@@ -2571,7 +2571,7 @@ char *str2iso(dst, src)
 
 char *str2oem(dst, src)
     char *dst;                          /* destination buffer */
-    register ZCONST char *src;          /* source string */
+    register const char *src;          /* source string */
 {
 #ifdef INTERN_TO_OEM
     INTERN_TO_OEM(src, dst);
@@ -2620,15 +2620,15 @@ zvoid *memset(buf, init, len)
 /*********************/
 
 int memcmp(b1, b2, len)
-    register ZCONST zvoid *b1;
-    register ZCONST zvoid *b2;
+    register const zvoid *b1;
+    register const zvoid *b2;
     register unsigned int len;
 {
     register int c;
 
     if (len > 0) do {
-        if ((c = (int)(*((ZCONST unsigned char *)b1)++) -
-                 (int)(*((ZCONST unsigned char *)b2)++)) != 0)
+        if ((c = (int)(*((const unsigned char *)b1)++) -
+                 (int)(*((const unsigned char *)b2)++)) != 0)
            return c;
     } while (--len > 0)
     return 0;
@@ -2642,14 +2642,14 @@ int memcmp(b1, b2, len)
 
 zvoid *memcpy(dst, src, len)
     register zvoid *dst;
-    register ZCONST zvoid *src;
+    register const zvoid *src;
     register unsigned int len;
 {
     zvoid *start;
 
     start = dst;
     while (len-- > 0)
-        *((char *)dst)++ = *((ZCONST char *)src)++;
+        *((char *)dst)++ = *((const char *)src)++;
     return start;
 }
 
@@ -2665,7 +2665,7 @@ zvoid *memcpy(dst, src, len)
 /************************/
 
 int zstrnicmp(s1, s2, n)
-    register ZCONST char *s1, *s2;
+    register const char *s1, *s2;
     register unsigned n;
 {
     for (; n > 0;  --n, ++s1, ++s2) {
@@ -2693,7 +2693,7 @@ int zstrnicmp(s1, s2, n)
 /********************/
 
 int zstat(p, s)
-    ZCONST char *p;
+    const char *p;
     struct stat *s;
 {
     return (stat((char *)p,s) >= 0? 0 : (-1));
@@ -2716,11 +2716,11 @@ int zstat(p, s)
 /************************/
 
 char *plastchar(ptr, len)
-    ZCONST char *ptr;
+    const char *ptr;
     extent len;
 {
     unsigned clen;
-    ZCONST char *oldptr = ptr;
+    const char *oldptr = ptr;
     while(*ptr != '\0' && len > 0){
         oldptr = ptr;
         clen = CLEN(ptr);
@@ -2737,11 +2737,11 @@ char *plastchar(ptr, len)
 /***********************/
 
 extent uzmbclen(ptr)
-    ZCONST unsigned char *ptr;
+    const unsigned char *ptr;
 {
     int mbl;
 
-    mbl = mblen((ZCONST char *)ptr, MB_CUR_MAX);
+    mbl = mblen((const char *)ptr, MB_CUR_MAX);
     /* For use in code scanning through MBCS strings, we need a strictly
        positive "MB char bytes count".  For our scanning purpose, it is not
        not relevant whether the MB character is valid or not. And, the NUL
@@ -2759,7 +2759,7 @@ extent uzmbclen(ptr)
 /***********************/
 
 unsigned char *uzmbschr(str, c)
-    ZCONST unsigned char *str;
+    const unsigned char *str;
     unsigned int c;
 {
     while(*str != '\0'){
@@ -2777,7 +2777,7 @@ unsigned char *uzmbschr(str, c)
 /************************/
 
 unsigned char *uzmbsrchr(str, c)
-    ZCONST unsigned char *str;
+    const unsigned char *str;
     unsigned int c;
 {
     unsigned char *match = NULL;

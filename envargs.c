@@ -41,7 +41,7 @@
 #if (!defined(RISCOS) && (!defined(MODERN) || defined(NO_STDLIB_H)))
 extern char *getenv();
 #endif
-static int count_args OF((ZCONST char *));
+static int count_args OF((const char *));
 
 
 /* envargs() returns PK-style error code */
@@ -49,7 +49,7 @@ static int count_args OF((ZCONST char *));
 int envargs(Pargc, Pargv, envstr, envstr2)
     int *Pargc;
     char ***Pargv;
-    ZCONST char *envstr, *envstr2;
+    const char *envstr, *envstr2;
 {
     char *envptr;       /* value returned by getenv */
     char *bufptr;       /* copy of env info */
@@ -177,7 +177,7 @@ int envargs(Pargc, Pargv, envstr, envstr2)
 
 
 static int count_args(s)
-    ZCONST char *s;
+    const char *s;
 {
     int count = 0;
     char ch;

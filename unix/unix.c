@@ -113,13 +113,13 @@ static unsigned filtattr OF((__GPRO__ unsigned perms));
 
 #ifndef MTS
 /* messages of code for setting file/directory attributes */
-static ZCONST char CannotSetItemUidGid[] =
+static const char CannotSetItemUidGid[] =
   "warning:  cannot set UID %lu and/or GID %lu for %s\n          %s\n";
-static ZCONST char CannotSetUidGid[] =
+static const char CannotSetUidGid[] =
   " (warning) cannot set UID %lu and/or GID %lu\n          %s";
-static ZCONST char CannotSetItemTimestamps[] =
+static const char CannotSetItemTimestamps[] =
   "warning:  cannot set modif./access times for %s\n          %s\n";
-static ZCONST char CannotSetTimestamps[] =
+static const char CannotSetTimestamps[] =
   " (warning) cannot set modif./access times\n          %s";
 #endif /* !MTS */
 
@@ -134,12 +134,12 @@ typedef struct zdir {
     FILE *dirhandle;
     struct dirent *entry;
 } DIR
-DIR *opendir OF((ZCONST char *dirspec));
+DIR *opendir OF((const char *dirspec));
 void closedir OF((DIR *dirp));
 struct dirent *readdir OF((DIR *dirp));
 
 DIR *opendir(dirspec)
-    ZCONST char *dirspec;
+    const char *dirspec;
 {
     DIR *dirp;
 
@@ -188,11 +188,11 @@ struct dirent *readdir(dirp)
 
 char *do_wild(__G__ wildspec)
     __GDEF
-    ZCONST char *wildspec;  /* only used first time on a given dir */
+    const char *wildspec;  /* only used first time on a given dir */
 {
 /* these statics are now declared in SYSTEM_SPECIFIC_GLOBALS in unxcfg.h:
     static DIR *wild_dir = (DIR *)NULL;
-    static ZCONST char *wildname;
+    static const char *wildname;
     static char *dirname, matchname[FILNAMSIZ];
     static int notfirstcall=FALSE, have_dirname, dirnamelen;
 */
@@ -214,7 +214,7 @@ char *do_wild(__G__ wildspec)
         }
 
         /* break the wildspec into a directory part and a wildcard filename */
-        if ((G.wildname = (ZCONST char *)strrchr(wildspec, '/')) == NULL) {
+        if ((G.wildname = (const char *)strrchr(wildspec, '/')) == NULL) {
             G.dirname = ".";
             G.dirnamelen = 1;
             G.have_dirname = FALSE;
@@ -1016,7 +1016,7 @@ int checkdir(__G__ pathcomp, flag)
 /********************/
 
 int mkdir(path, mode)
-    ZCONST char *path;
+    const char *path;
     int mode;   /* ignored */
 /*
  * returns:   0 - successful
@@ -1316,7 +1316,7 @@ int set_symlnk_attribs(__G__ slnk_entry)
 #ifdef SET_DIR_ATTRIB
 /* messages of code for setting directory attributes */
 #  ifndef NO_CHMOD
-  static ZCONST char DirlistChmodFailed[] =
+  static const char DirlistChmodFailed[] =
     "warning:  cannot set permissions for %s\n          %s\n";
 #  endif
 
@@ -1395,7 +1395,7 @@ int set_direc_attribs(__G__ d)
 /***************************/
 
 int stamp_file(fname, modtime)
-    ZCONST char *fname;
+    const char *fname;
     time_t modtime;
 {
     ztimbuf tp;

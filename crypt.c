@@ -91,8 +91,8 @@
 #ifdef UNZIP
    /* char *key = (char *)NULL; moved to globals.h */
 #  ifndef FUNZIP
-     local int testp OF((__GPRO__ ZCONST uch *h));
-     local int testkey OF((__GPRO__ ZCONST uch *h, ZCONST char *key));
+     local int testp OF((__GPRO__ const uch *h));
+     local int testkey OF((__GPRO__ const uch *h, const char *key));
 #  endif
 #endif /* UNZIP */
 
@@ -182,7 +182,7 @@ int update_keys(__G__ c)
  */
 void init_keys(__G__ passwd)
     __GDEF
-    ZCONST char *passwd;        /* password string with which to modify keys */
+    const char *passwd;        /* password string with which to modify keys */
 {
 #ifdef IZ_CRC_BE_OPTIMIZ
     if (cry_crctb_p == NULL) {
@@ -229,7 +229,7 @@ local z_uint4 near *crytab_init(__G)
  * and the cyclic redundancy check crc.
  */
 void crypthead(passwd, crc, zfile)
-    ZCONST char *passwd;         /* password string */
+    const char *passwd;         /* password string */
     ulg crc;                     /* crc of file being encrypted */
     FILE *zfile;                 /* where to write header */
 {
@@ -271,7 +271,7 @@ void crypthead(passwd, crc, zfile)
 int zipcloak(z, source, dest, passwd)
     struct zlist far *z;    /* zip entry to encrypt */
     FILE *source, *dest;    /* source and destination files */
-    ZCONST char *passwd;    /* password string */
+    const char *passwd;    /* password string */
 {
     int c;                  /* input byte */
     int res;                /* result code */
@@ -326,7 +326,7 @@ int zipcloak(z, source, dest, passwd)
 int zipbare(z, source, dest, passwd)
     struct zlist far *z;  /* zip entry to encrypt */
     FILE *source, *dest;  /* source and destination files */
-    ZCONST char *passwd;  /* password string */
+    const char *passwd;  /* password string */
 {
 #ifdef ZIP10
     int c0                /* byte preceding the last input byte */
@@ -452,7 +452,7 @@ unsigned zfwrite(buf, item_size, nb, f)
  */
 int decrypt(__G__ passwrd)
     __GDEF
-    ZCONST char *passwrd;
+    const char *passwrd;
 {
     ush b;
     int n, r;
@@ -528,7 +528,7 @@ int decrypt(__G__ passwrd)
  */
 local int testp(__G__ h)
     __GDEF
-    ZCONST uch *h;
+    const uch *h;
 {
     int r;
     char *key_translated;
@@ -583,8 +583,8 @@ local int testp(__G__ h)
 
 local int testkey(__G__ h, key)
     __GDEF
-    ZCONST uch *h;      /* decrypted header */
-    ZCONST char *key;   /* decryption password to test */
+    const uch *h;      /* decrypted header */
+    const char *key;   /* decryption password to test */
 {
     ush b;
 #ifdef ZIP10

@@ -36,49 +36,49 @@
 #endif
 
 #ifndef WINDLL
-   static ZCONST char Far CompFactorStr[] = "%c%d%%";
-   static ZCONST char Far CompFactor100[] = "100%%";
+   static const char Far CompFactorStr[] = "%c%d%%";
+   static const char Far CompFactor100[] = "100%%";
 
 #ifdef OS2_EAS
-   static ZCONST char Far HeadersS[]  =
+   static const char Far HeadersS[]  =
      "  Length     EAs   ACLs     Date    Time    Name";
-   static ZCONST char Far HeadersS1[] =
+   static const char Far HeadersS1[] =
      "---------    ---   ----  ---------- -----   ----";
 #else
-   static ZCONST char Far HeadersS[]  =
+   static const char Far HeadersS[]  =
      "  Length      Date    Time    Name";
-   static ZCONST char Far HeadersS1[] =
+   static const char Far HeadersS1[] =
      "---------  ---------- -----   ----";
 #endif
 
-   static ZCONST char Far HeadersL[]  =
+   static const char Far HeadersL[]  =
      " Length   Method    Size  Cmpr    Date    Time   CRC-32   Name";
-   static ZCONST char Far HeadersL1[] =
+   static const char Far HeadersL1[] =
      "--------  ------  ------- ---- ---------- ----- --------  ----";
-   static ZCONST char Far *Headers[][2] =
+   static const char Far *Headers[][2] =
      { {HeadersS, HeadersS1}, {HeadersL, HeadersL1} };
 
-   static ZCONST char Far CaseConversion[] =
+   static const char Far CaseConversion[] =
      "%s (\"^\" ==> case\n%s   conversion)\n";
-   static ZCONST char Far LongHdrStats[] =
+   static const char Far LongHdrStats[] =
      "%s  %-7s%s %4s %02u%c%02u%c%02u %02u:%02u %08lx %c";
-   static ZCONST char Far LongFileTrailer[] =
+   static const char Far LongFileTrailer[] =
      "--------          -------  ---                       \
      -------\n%s         %s %4s                            %lu file%s\n";
 #ifdef OS2_EAS
-   static ZCONST char Far ShortHdrStats[] =
+   static const char Far ShortHdrStats[] =
      "%s %6lu %6lu  %02u%c%02u%c%02u %02u:%02u  %c";
-   static ZCONST char Far ShortFileTrailer[] =
+   static const char Far ShortFileTrailer[] =
      "---------  -----  -----                \
      -------\n%s %6lu %6lu                     %lu file%s\n";
-   static ZCONST char Far OS2ExtAttrTrailer[] =
+   static const char Far OS2ExtAttrTrailer[] =
      "%lu file%s %lu bytes of OS/2 extended attributes attached.\n";
-   static ZCONST char Far OS2ACLTrailer[] =
+   static const char Far OS2ACLTrailer[] =
      "%lu file%s %lu bytes of access control lists attached.\n";
 #else
-   static ZCONST char Far ShortHdrStats[] =
+   static const char Far ShortHdrStats[] =
      "%s  %02u%c%02u%c%02u %02u:%02u  %c";
-   static ZCONST char Far ShortFileTrailer[] =
+   static const char Far ShortFileTrailer[] =
      "---------                     -------\n%s\
                      %lu file%s\n";
 #endif /* ?OS2_EAS */
@@ -117,8 +117,8 @@ int list_files(__G)    /* return PK-type error code */
 #endif
     min_info info;
     char methbuf[8];
-    static ZCONST char dtype[]="NXFS";  /* see zi_short() */
-    static ZCONST char Far method[NUM_METHODS+1][8] =
+    static const char dtype[]="NXFS";  /* see zi_short() */
+    static const char Far method[NUM_METHODS+1][8] =
         {"Stored", "Shrunk", "Reduce1", "Reduce2", "Reduce3", "Reduce4",
          "Implode", "Token", "Defl:#", "Def64#", "ImplDCL", "BZip2",
          "LZMA", "Terse", "IBMLZ77", "WavPack", "PPMd", "Unk:###"};

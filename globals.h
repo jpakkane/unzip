@@ -224,9 +224,9 @@ typedef struct Globals {
     union work area;                /* see unzpriv.h for definition of work */
 
 #if (!defined(USE_ZLIB) || defined(USE_OWN_CRCTAB))
-    ZCONST ulg near *crc_32_tab;
+    const ulg near *crc_32_tab;
 #else
-    ZCONST ulg Far *crc_32_tab;
+    const ulg Far *crc_32_tab;
 #endif
     ulg       crc32val;             /* CRC shift reg. (was static in funzip) */
 
@@ -337,9 +337,9 @@ typedef struct Globals {
     struct huft *fixed_tl32;            /* inflate static */
     struct huft *fixed_td32;            /* inflate static */
     unsigned fixed_bl32, fixed_bd32;    /* inflate static */
-    ZCONST ush *cplens;                 /* inflate static */
-    ZCONST uch *cplext;                 /* inflate static */
-    ZCONST uch *cpdext;                 /* inflate static */
+    const ush *cplens;                 /* inflate static */
+    const uch *cplext;                 /* inflate static */
+    const uch *cpdext;                 /* inflate static */
 #endif
     unsigned wp;              /* inflate static: current position in slide */
     ulg bb;                   /* inflate static: bit buffer */
