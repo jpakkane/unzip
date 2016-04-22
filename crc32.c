@@ -89,7 +89,7 @@ local void make_crc_table OF((void));
 #endif /* DYNALLOC_CRCTAB && REENTRANT */
 
 #ifdef DYNALLOC_CRCTAB
-   local ulg near *crc_table = NULL;
+   local ulg *crc_table = NULL;
 # if 0          /* not used, since sizeof("near *") <= sizeof(int) */
    /* Use this section when access to a "local int" is faster than access to
       a "local pointer" (e.g.: i86 16bit code with far pointers). */
@@ -105,7 +105,7 @@ local void make_crc_table OF((void));
 #  define MARK_CRCTAB_EMPTY     crc_table = NULL
 # endif
 #else /* !DYNALLOC_CRCTAB */
-   local ulg near crc_table[CRC_TBLS*256];
+   local ulg crc_table[CRC_TBLS*256];
    local int crc_table_empty = 1;
 #  define CRC_TABLE_IS_EMPTY    (crc_table_empty != 0)
 #  define MARK_CRCTAB_FILLED    crc_table_empty = 0
@@ -118,7 +118,7 @@ local void make_crc_table()
   int n;                /* counter for all possible eight bit values */
   int k;                /* byte being shifted into crc apparatus */
 #ifdef DYNALLOC_CRCTAB
-  ulg near *crctab_p;   /* temporary pointer to allocated crc_table area */
+  ulg *crctab_p;   /* temporary pointer to allocated crc_table area */
 #else /* !DYNALLOC_CRCTAB */
 # define crctab_p crc_table
 #endif /* DYNALLOC_CRCTAB */
@@ -142,7 +142,7 @@ local void make_crc_table()
 #endif
 
 #ifdef DYNALLOC_CRCTAB
-  crctab_p = (ulg near *) nearmalloc (CRC_TBLS*256*sizeof(ulg));
+  crctab_p = (ulg *) malloc (CRC_TBLS*256*sizeof(ulg));
   if (crctab_p == NULL) {
     ziperr(ZE_MEM, "crc_table allocation");
   }
@@ -179,7 +179,7 @@ local void make_crc_table()
 /* ========================================================================
  * Table of CRC-32's of all single-byte values (made by make_crc_table)
  */
-local const ulg near crc_table[CRC_TBLS*256] = {
+local const ulg crc_table[CRC_TBLS*256] = {
 # ifdef IZ_CRC_BE_OPTIMIZ
     0x00000000L, 0x96300777L, 0x2c610eeeL, 0xba510999L, 0x19c46d07L,
     0x8ff46a70L, 0x35a563e9L, 0xa395649eL, 0x3288db0eL, 0xa4b8dc79L,
@@ -616,7 +616,7 @@ local const ulg near crc_table[CRC_TBLS*256] = {
 #ifdef USE_ZLIB
 const uLongf *get_crc_table OF((void))
 #else
-const ulg near *get_crc_table OF((void))
+const ulg *get_crc_table OF((void))
 #endif
 {
 #ifdef DYNAMIC_CRC_TABLE
@@ -635,7 +635,7 @@ void free_crc_table()
 {
   if (!CRC_TABLE_IS_EMPTY)
   {
-    nearfree((ulg near *)crc_table);
+    free((ulg *)crc_table);
     MARK_CRCTAB_EMPTY;
   }
 }
@@ -685,8 +685,8 @@ ulg crc32(crc, buf, len)
    pointer, then initialize the crc shift register contents instead.
    Return the current crc in either case. */
 {
-  register z_uint4 c;
-  register const ulg near *crc_32_tab;
+  z_uint4 c;
+  const ulg *crc_32_tab;
 
   if (buf == NULL) return 0L;
 

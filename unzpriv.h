@@ -889,23 +889,6 @@
 #  endif                    /*  at least 32K for zip's deflate method */
 #endif
 
-#ifdef __16BIT__
-#  ifndef INT_16BIT
-#    define INT_16BIT       /* on 16-bit systems int size is 16 bits */
-#  endif
-#else
-#  define nearmalloc  malloc
-#  define nearfree    free
-#  if (!defined(__IBMC__) || !defined(OS2))
-#    ifndef near
-#      define near
-#    endif
-#    ifndef far
-#      define far
-#    endif
-#  endif
-#endif
-
 #if (defined(DYNALLOC_CRCTAB) && !defined(DYNAMIC_CRC_TABLE))
 #  undef DYNALLOC_CRCTAB
 #endif
@@ -2716,7 +2699,7 @@ char    *GetLoadPath     OF((__GPRO));                              /* local */
 /*  Global constants  */
 /**********************/
 
-   extern const unsigned near mask_bits[17];
+   extern const unsigned mask_bits[17];
    extern const char *fnames[2];
 
 #ifdef EBCDIC

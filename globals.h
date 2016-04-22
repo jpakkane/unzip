@@ -223,11 +223,7 @@ typedef struct Globals {
 #endif /* !FUNZIP */
     union work area;                /* see unzpriv.h for definition of work */
 
-#if (!defined(USE_ZLIB) || defined(USE_OWN_CRCTAB))
-    const ulg near *crc_32_tab;
-#else
     const ulg *crc_32_tab;
-#endif
     ulg       crc32val;             /* CRC shift reg. (was static in funzip) */
 
 #ifdef FUNZIP
