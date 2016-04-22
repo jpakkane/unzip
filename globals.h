@@ -369,12 +369,6 @@ typedef struct Globals {
     int incnt_leftover;       /* so improved NEXTBYTE does not waste input */
     uch *inptr_leftover;
 
-#ifdef VMS_TEXT_CONV
-    unsigned VMS_line_length; /* so native VMS variable-length text files */
-    int      VMS_line_state;  /*  are readable on other platforms */
-    int      VMS_line_pad;
-#endif
-
 #if (defined(SFX) && defined(CHEAP_SFX_AUTORUN))
     char autorun_command[FILNAMSIZ];
 #endif
