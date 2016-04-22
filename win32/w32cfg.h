@@ -305,7 +305,7 @@
     const char *wildname;\
     char *dirname, matchname[FILNAMSIZ];\
     int rootlen, have_dirname, dirnamelen, notfirstcall;\
-    zvoid *wild_dir;
+    void *wild_dir;
 
 /* created_dir, renamed_fullpath, fnlen, and nLabelDrive are used by   */
 /*    both mapname() and checkdir().                                   */

@@ -585,7 +585,7 @@ unsigned readbuf(__G__ buf, size)   /* return number of bytes read into buf */
                 return (n-size);
             else if (G.incnt < 0) {
                 /* another hack, but no real harm copying same thing twice */
-                (*G.message)((zvoid *)&G,
+                (*G.message)((void *)&G,
                   (uch *)LoadFarString(ReadError),  /* CANNOT use slide */
                   (ulg)strlen(LoadFarString(ReadError)), 0x401);
                 return 0;  /* discarding some data; better than lock-up */
@@ -628,7 +628,7 @@ int readbyte(__G)   /* refill inbuf and return a byte if available, else EOF */
             return EOF;
         } else if (G.incnt < 0) {  /* "fail" (abort, retry, ...) returns this */
             /* another hack, but no real harm copying same thing twice */
-            (*G.message)((zvoid *)&G,
+            (*G.message)((void *)&G,
               (uch *)LoadFarString(ReadError),
               (ulg)strlen(LoadFarString(ReadError)), 0x401);
             echon();
@@ -813,12 +813,9 @@ static int partflush(__G__ rawbuf, size, unshrink)
     int unshrink;
 #endif /* USE_DEFLATE64 && __16BIT__ */
 {
-    register uch *p;
-    register uch *q;
+    uch *p;
+    uch *q;
     uch *transbuf;
-#if (defined(SMALL_MEM) || defined(MED_MEM) || defined(VMS_TEXT_CONV))
-    ulg transbufsiz;
-#endif
     /* static int didCRlast = FALSE;    moved to globals.h */
 
 
@@ -868,23 +865,15 @@ static int partflush(__G__ rawbuf, size, unshrink)
 #endif
         if (!uO.cflag && WriteError(rawbuf, size, G.outfile))
             return disk_error(__G);
-        else if (uO.cflag && (*G.message)((zvoid *)&G, rawbuf, size, 0))
+        else if (uO.cflag && (*G.message)((void *)&G, rawbuf, size, 0))
             return PK_OK;
     } else {   /* textmode:  aflag is true */
         if (unshrink) {
             /* rawbuf = outbuf */
             transbuf = G.outbuf2;
-#if (defined(SMALL_MEM) || defined(MED_MEM) || defined(VMS_TEXT_CONV))
-            transbufsiz = TRANSBUFSIZ;
-#endif
         } else {
             /* rawbuf = slide */
             transbuf = G.outbuf;
-#if (defined(SMALL_MEM) || defined(MED_MEM) || defined(VMS_TEXT_CONV))
-            transbufsiz = OUTBUFSIZ;
-            Trace((stderr, "\ntransbufsiz = OUTBUFSIZ = %u\n",
-                   (unsigned)OUTBUFSIZ));
-#endif
         }
         if (G.newfile) {
             G.didCRlast = FALSE;         /* no previous buffers written */
@@ -931,7 +920,7 @@ static int partflush(__G__ rawbuf, size, unshrink)
                         if (!uO.cflag && WriteError(transbuf,
                             (extent)(q-transbuf), G.outfile))
                             return disk_error(__G);
-                        else if (uO.cflag && (*G.message)((zvoid *)&G,
+                        else if (uO.cflag && (*G.message)((void *)&G,
                                  transbuf, (ulg)(q-transbuf), 0))
                             return PK_OK;
                         q = transbuf;
@@ -957,7 +946,7 @@ static int partflush(__G__ rawbuf, size, unshrink)
             if (!uO.cflag && WriteError(transbuf, (extent)(q-transbuf),
                 G.outfile))
                 return disk_error(__G);
-            else if (uO.cflag && (*G.message)((zvoid *)&G, transbuf,
+            else if (uO.cflag && (*G.message)((void *)&G, transbuf,
                 (ulg)(q-transbuf), 0))
                 return PK_OK;
         }
@@ -967,134 +956,6 @@ static int partflush(__G__ rawbuf, size, unshrink)
 
 } /* end function flush() [resp. partflush() for 16-bit Deflate64 support] */
 
-
-
-
-
-#ifdef VMS_TEXT_CONV
-
-/********************************/
-/* Function is_vms_varlen_txt() */
-/********************************/
-
-static int is_vms_varlen_txt(__G__ ef_buf, ef_len)
-    __GDEF
-    uch *ef_buf;        /* buffer containing extra field */
-    unsigned ef_len;    /* total length of extra field */
-{
-    unsigned eb_id;
-    unsigned eb_len;
-    uch *eb_data;
-    unsigned eb_datlen;
-#define VMSREC_C_UNDEF  0
-#define VMSREC_C_VAR    2
-    uch vms_rectype = VMSREC_C_UNDEF;
- /* uch vms_fileorg = 0; */ /* currently, fileorg is not used... */
-
-#define VMSPK_ITEMID            0
-#define VMSPK_ITEMLEN           2
-#define VMSPK_ITEMHEADSZ        4
-
-#define VMSATR_C_RECATTR        4
-#define VMS_FABSIG              0x42414656      /* "VFAB" */
-/* offsets of interesting fields in VMS fabdef structure */
-#define VMSFAB_B_RFM            31      /* record format byte */
-#define VMSFAB_B_ORG            29      /* file organization byte */
-
-    if (ef_len == 0 || ef_buf == NULL)
-        return FALSE;
-
-    while (ef_len >= EB_HEADSIZE) {
-        eb_id = makeword(EB_ID + ef_buf);
-        eb_len = makeword(EB_LEN + ef_buf);
-
-        if (eb_len > (ef_len - EB_HEADSIZE)) {
-            /* discovered some extra field inconsistency! */
-            Trace((stderr,
-              "is_vms_varlen_txt: block length %u > rest ef_size %u\n", eb_len,
-              ef_len - EB_HEADSIZE));
-            break;
-        }
-
-        switch (eb_id) {
-          case EF_PKVMS:
-            /* The PKVMS e.f. raw data part consists of:
-             * a) 4 bytes CRC checksum
-             * b) list of uncompressed variable-length data items
-             * Each data item is introduced by a fixed header
-             *  - 2 bytes data type ID
-             *  - 2 bytes <size> of data
-             *  - <size> bytes of actual attribute data
-             */
-
-            /* get pointer to start of data and its total length */
-            eb_data = ef_buf+(EB_HEADSIZE+4);
-            eb_datlen = eb_len-4;
-
-            /* test the CRC checksum */
-            if (makelong(ef_buf+EB_HEADSIZE) !=
-                crc32(CRCVAL_INITIAL, eb_data, (extent)eb_datlen))
-            {
-                Info(slide, 1, ((char *)slide,
-                  "[Warning: CRC error, discarding PKWARE extra field]\n"));
-                /* skip over the data analysis code */
-                break;
-            }
-
-            /* scan through the attribute data items */
-            while (eb_datlen > 4)
-            {
-                unsigned fldsize = makeword(&eb_data[VMSPK_ITEMLEN]);
-
-                /* check the item type word */
-                switch (makeword(&eb_data[VMSPK_ITEMID])) {
-                  case VMSATR_C_RECATTR:
-                    /* we have found the (currently only) interesting
-                     * data item */
-                    if (fldsize >= 1) {
-                        vms_rectype = eb_data[VMSPK_ITEMHEADSZ] & 15;
-                     /* vms_fileorg = eb_data[VMSPK_ITEMHEADSZ] >> 4; */
-                    }
-                    break;
-                  default:
-                    break;
-                }
-                /* skip to next data item */
-                eb_datlen -= fldsize + VMSPK_ITEMHEADSZ;
-                eb_data += fldsize + VMSPK_ITEMHEADSZ;
-            }
-            break;
-
-          case EF_IZVMS:
-            if (makelong(ef_buf+EB_HEADSIZE) == VMS_FABSIG) {
-                if ((eb_data = extract_izvms_block(__G__
-                                                   ef_buf+EB_HEADSIZE, eb_len,
-                                                   &eb_datlen, NULL, 0))
-                    != NULL)
-                {
-                    if (eb_datlen >= VMSFAB_B_RFM+1) {
-                        vms_rectype = eb_data[VMSFAB_B_RFM] & 15;
-                     /* vms_fileorg = eb_data[VMSFAB_B_ORG] >> 4; */
-                    }
-                    free(eb_data);
-                }
-            }
-            break;
-
-          default:
-            break;
-        }
-
-        /* Skip this extra field block */
-        ef_buf += (eb_len + EB_HEADSIZE);
-        ef_len -= (eb_len + EB_HEADSIZE);
-    }
-
-    return (vms_rectype == VMSREC_C_VAR);
-
-} /* end function is_vms_varlen_txtfile() */
-
-#endif /* VMS_TEXT_CONV */
 
 
 
@@ -1133,7 +994,7 @@ static int disk_error(__G)
 /*****************************/
 
 int UZ_EXP UzpMessagePrnt(pG, buf, size, flag)
-    zvoid *pG;   /* globals struct:  always passed */
+    void *pG;   /* globals struct:  always passed */
     uch *buf;    /* preformatted string to be printed */
     ulg size;    /* length of string (may include nulls) */
     int flag;    /* flag bits */
@@ -1246,7 +1107,7 @@ int UZ_EXP UzpMessagePrnt(pG, buf, size, flag)
                 ++((Uz_Globs *)pG)->numlines;
                 ++((Uz_Globs *)pG)->lines;
                 if (((Uz_Globs *)pG)->lines >= ((Uz_Globs *)pG)->height)
-                    (*((Uz_Globs *)pG)->mpause)((zvoid *)pG,
+                    (*((Uz_Globs *)pG)->mpause)((void *)pG,
                       LoadFarString(MorePrompt), 1);
             }
 #endif /* MORE */
@@ -1306,7 +1167,7 @@ int UZ_EXP UzpMessagePrnt(pG, buf, size, flag)
                     fflush(outfp);
                     ((Uz_Globs *)pG)->sol = TRUE;
                     q = p + 1;
-                    (*((Uz_Globs *)pG)->mpause)((zvoid *)pG,
+                    (*((Uz_Globs *)pG)->mpause)((void *)pG,
                       LoadFarString(MorePrompt), 1);
                 }
             }
@@ -1356,7 +1217,7 @@ int UZ_EXP UzpMessagePrnt(pG, buf, size, flag)
 /*****************************/
 
 int UZ_EXP UzpMessageNull(pG, buf, size, flag)
-    zvoid *pG;    /* globals struct:  always passed */
+    void *pG;    /* globals struct:  always passed */
     uch *buf;     /* preformatted string to be printed */
     ulg size;     /* length of string (may include nulls) */
     int flag;     /* flag bits */
@@ -1376,7 +1237,7 @@ int UZ_EXP UzpMessageNull(pG, buf, size, flag)
 /***********************/
 
 int UZ_EXP UzpInput(pG, buf, size, flag)
-    zvoid *pG;    /* globals struct:  always passed */
+    void *pG;    /* globals struct:  always passed */
     uch *buf;     /* preformatted string to be printed */
     int *size;    /* (address of) size of buf and of returned string */
     int flag;     /* flag bits (bit 0: no echo) */
@@ -1400,7 +1261,7 @@ int UZ_EXP UzpInput(pG, buf, size, flag)
 /***************************/
 
 void UZ_EXP UzpMorePause(pG, prompt, flag)
-    zvoid *pG;            /* globals struct:  always passed */
+    void *pG;            /* globals struct:  always passed */
     const char *prompt;  /* "--More--" prompt */
     int flag;             /* 0 = any char OK; 1 = accept only '\n', ' ', q */
 {
@@ -1462,7 +1323,7 @@ void UZ_EXP UzpMorePause(pG, prompt, flag)
 /**************************/
 
 int UZ_EXP UzpPassword (pG, rcnt, pwbuf, size, zfn, efn)
-    zvoid *pG;         /* pointer to UnZip's internal global vars */
+    void *pG;         /* pointer to UnZip's internal global vars */
     int *rcnt;         /* retry counter */
     char *pwbuf;       /* buffer for password */
     int size;          /* size of password buffer */
@@ -1528,7 +1389,7 @@ void handler(signal)   /* upon interrupt, turn on echo and exit cleanly */
     GETGLOBALS();
 
 #if !(defined(SIGBUS) || defined(SIGSEGV))      /* add a newline if not at */
-    (*G.message)((zvoid *)&G, slide, 0L, 0x41); /*  start of line (to stderr; */
+    (*G.message)((void *)&G, slide, 0L, 0x41); /*  start of line (to stderr; */
 #endif                                          /*  slide[] should be safe) */
 
     echon();
@@ -2038,12 +1899,12 @@ int do_string(__G__ length, option)   /* return PK-type error code */
 
 #ifdef WINDLL
             /* ran out of local mem -- had to cheat */
-            win_fprintf((zvoid *)&G, stdout, (extent)(q-G.outbuf),
+            win_fprintf((void *)&G, stdout, (extent)(q-G.outbuf),
                         (char *)G.outbuf);
-            win_fprintf((zvoid *)&G, stdout, 2, (char *)"\n\n");
+            win_fprintf((void *)&G, stdout, 2, (char *)"\n\n");
 #else /* !WINDLL */
 #ifdef NOANSIFILT       /* GRR:  can ANSI be used with EBCDIC? */
-            (*G.message)((zvoid *)&G, G.outbuf, (ulg)(q-G.outbuf), 0);
+            (*G.message)((void *)&G, G.outbuf, (ulg)(q-G.outbuf), 0);
 #else /* ASCII, filter out ANSI escape sequences and handle ^S (pause) */
             p = G.outbuf - 1;
             q = slide;
@@ -2064,18 +1925,18 @@ int do_string(__G__ length, option)   /* return PK-type error code */
                 } else
                     *q++ = *p;
                 if ((unsigned)(q-slide) > WSIZE-3 || pause) {   /* flush */
-                    (*G.message)((zvoid *)&G, slide, (ulg)(q-slide), 0);
+                    (*G.message)((void *)&G, slide, (ulg)(q-slide), 0);
                     q = slide;
                     if (pause && G.extract_flag) /* don't pause for list/test */
-                        (*G.mpause)((zvoid *)&G, LoadFarString(QuitPrompt), 0);
+                        (*G.mpause)((void *)&G, LoadFarString(QuitPrompt), 0);
                 }
             }
-            (*G.message)((zvoid *)&G, slide, (ulg)(q-slide), 0);
+            (*G.message)((void *)&G, slide, (ulg)(q-slide), 0);
 #endif /* ?NOANSIFILT */
 #endif /* ?WINDLL */
         }
         /* add '\n' if not at start of line */
-        (*G.message)((zvoid *)&G, slide, 0L, 0x40);
+        (*G.message)((void *)&G, slide, 0L, 0x40);
         break;
 
     /*
@@ -2493,12 +2354,12 @@ char *str2oem(dst, src)
 /* Function memset() */
 /*********************/
 
-zvoid *memset(buf, init, len)
-    register zvoid *buf;        /* buffer location */
+void *memset(buf, init, len)
+    register void *buf;        /* buffer location */
     register int init;          /* initializer character */
     register unsigned int len;  /* length of the buffer */
 {
-    zvoid *start;
+    void *start;
 
     start = buf;
     while (len--)
@@ -2513,8 +2374,8 @@ zvoid *memset(buf, init, len)
 /*********************/
 
 int memcmp(b1, b2, len)
-    register const zvoid *b1;
-    register const zvoid *b2;
+    register const void *b1;
+    register const void *b2;
     register unsigned int len;
 {
     register int c;
@@ -2533,12 +2394,12 @@ int memcmp(b1, b2, len)
 /* Function memcpy() */
 /*********************/
 
-zvoid *memcpy(dst, src, len)
-    register zvoid *dst;
-    register const zvoid *src;
+void *memcpy(dst, src, len)
+    register void *dst;
+    register const void *src;
     register unsigned int len;
 {
-    zvoid *start;
+    void *start;
 
     start = dst;
     while (len-- > 0)

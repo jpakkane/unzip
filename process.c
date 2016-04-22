@@ -396,7 +396,7 @@ int process_zipfiles(__G)    /* return PK-type error code */
             && (!uO.T_flag || uO.zipinfo_mode)
 #endif
             && (NumWinFiles+NumLoseFiles+NumWarnFiles+NumMissFiles) > 0)
-            (*G.message)((zvoid *)&G, (uch *)"\n", 1L, 0);
+            (*G.message)((void *)&G, (uch *)"\n", 1L, 0);
 
         if ((error = do_seekable(__G__ 0)) == PK_WARN)
             ++NumWarnFiles;
@@ -527,7 +527,7 @@ int process_zipfiles(__G)    /* return PK-type error code */
             && !(uO.T_flag && !uO.zipinfo_mode && uO.qflag)
 #endif
             && !(uO.tflag && uO.qflag > 1))
-            (*G.message)((zvoid *)&G, (uch *)"\n", 1L, 0x401);
+            (*G.message)((void *)&G, (uch *)"\n", 1L, 0x401);
         if ((NumWinFiles > 1) ||
             (NumWinFiles == 1 &&
              NumMissDirs + NumMissFiles + NumLoseFiles + NumWarnFiles > 0))
@@ -3038,7 +3038,7 @@ unsigned ef_scan_for_izux(ef_buf, ef_len, ef_is_c, dos_mdatetime,
 /* Function getRISCOSexfield() */
 /*******************************/
 
-zvoid *getRISCOSexfield(ef_buf, ef_len)
+void *getRISCOSexfield(ef_buf, ef_len)
     const uch *ef_buf; /* buffer containing extra field */
     unsigned ef_len;    /* total length of extra field */
 {
@@ -3073,7 +3073,7 @@ zvoid *getRISCOSexfield(ef_buf, ef_len)
         if (eb_id == EF_SPARK && (eb_len == 24 || eb_len == 20)) {
             if (makelong(EB_HEADSIZE + ef_buf) == SPARKID_2) {
                 /* Return a pointer to the valid SPARK filetype ef block */
-                return (zvoid *)ef_buf;
+                return (void *)ef_buf;
             }
         }
 

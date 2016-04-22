@@ -887,7 +887,7 @@ int zipinfo(__G)   /* return PK-type error code */
 #ifdef DLL
             if ((G.statreportcb != NULL) &&
                 (*G.statreportcb)(__G__ UZ_ST_FINISH_MEMBER, G.zipfn,
-                                  G.filename, (zvoid *)&G.crec.ucsize)) {
+                                  G.filename, (void *)&G.crec.ucsize)) {
                 /* cancel operation by user request */
                 error_in_archive = IZ_CTRLC;
                 break;
@@ -936,7 +936,7 @@ int zipinfo(__G)   /* return PK-type error code */
                 if (!fn_matched[j])
                     Info(slide, 0x401, ((char *)slide,
                       LoadFarString(FilenameNotMatched), G.pfnames[j]));
-        free((zvoid *)fn_matched);
+        free((void *)fn_matched);
     }
     if (xn_matched) {
         if (error_in_archive <= PK_WARN)
@@ -944,7 +944,7 @@ int zipinfo(__G)   /* return PK-type error code */
                 if (!xn_matched[j])
                     Info(slide, 0x401, ((char *)slide,
                       LoadFarString(ExclFilenameNotMatched), G.pxnames[j]));
-        free((zvoid *)xn_matched);
+        free((void *)xn_matched);
     }
 
 
@@ -971,7 +971,7 @@ int zipinfo(__G)   /* return PK-type error code */
             error_in_archive = PK_FIND;
 
         if (uO.lflag >= 10)
-            (*G.message)((zvoid *)&G, (uch *)"\n", 1L, 0);
+            (*G.message)((void *)&G, (uch *)"\n", 1L, 0);
     }
 
     return error_in_archive;
@@ -1050,7 +1050,7 @@ static int zi_long(__G__ pEndprev, error_in_archive)
     methid = (unsigned)G.crec.compression_method;
     methnum = find_compr_idx(G.crec.compression_method);
 
-    (*G.message)((zvoid *)&G, (uch *)"  ", 2L, 0);  fnprint(__G);
+    (*G.message)((void *)&G, (uch *)"  ", 2L, 0);  fnprint(__G);
 
     Info(slide, 0, ((char *)slide, LoadFarString(LocalHeaderOffset),
       FmZofft(G.crec.relative_offset_local_header, NULL, "u"),
@@ -1822,12 +1822,12 @@ ef_default_display:
                     }
                     break;
             }
-            (*G.message)((zvoid *)&G, (uch *)".", 1L, 0);
+            (*G.message)((void *)&G, (uch *)".", 1L, 0);
 
             ef_ptr += eb_datalen;
             ef_len -= eb_datalen;
         }
-        (*G.message)((zvoid *)&G, (uch *)"\n", 1L, 0);
+        (*G.message)((void *)&G, (uch *)"\n", 1L, 0);
     }
 
     /* high bit == Unix/OS2/NT GMT times (mtime, atime); next bit == UID/GID */

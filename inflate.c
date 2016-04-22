@@ -97,7 +97,7 @@
    c14s   7 May 95  S. Maxwell      OS/2 DLL globals stuff incorporated;
                     P. Kienitz      "fixed" ASM_INFLATECODES macro/prototype
    c14t  18 Aug 95  G. Roelofs      added UZinflate() to use zlib functions;
-                                    changed voidp to zvoid; moved huft_build()
+                                    changed voidp to void; moved huft_build()
                                     and huft_free() to end of file
    c14u   1 Oct 95  G. Roelofs      moved G into definition of MESSAGE macro
    c14v   8 Nov 95  P. Kienitz      changed ASM_INFLATECODES to use a regular
@@ -248,7 +248,7 @@
 #define PKZIP_BUG_WORKAROUND    /* PKZIP 1.93a problem--live with it */
 
 /*
-    inflate.h must supply the uch slide[WSIZE] array, the zvoid typedef
+    inflate.h must supply the uch slide[WSIZE] array, the void typedef
     (void if (void *) is accepted, else char) and the NEXTBYTE,
     FLUSH() and memzero macros.  If the window size is not 32K, it
     should also define WSIZE.  If INFMOD is defined, it can include
@@ -1768,7 +1768,7 @@ struct huft *t;         /* table to free */
   while (p != (struct huft *)NULL)
   {
     q = (--p)->v.t;
-    free((zvoid *)p);
+    free((void *)p);
     p = q;
   }
   return 0;

@@ -243,13 +243,13 @@ static zDIR *Opendir(n)
     strcpy(p+len, "/*");
 
     if (INVALID_HANDLE_VALUE == (d->d_hFindFile = FindFirstFileA(p, &fd))) {
-        free((zvoid *)d);
-        free((zvoid *)p);
+        free((void *)d);
+        free((void *)p);
         return NULL;
     }
     strcpy(d->d_name, fd.cFileName);
 
-    free((zvoid *)p);
+    free((void *)p);
     d->d_first = 1;
     return d;
 
@@ -1537,7 +1537,7 @@ char *do_wild(__G__ wildspec)
         }
         Trace((stderr, "do_wild:  dirname = [%s]\n", FnFilter1(G.dirname)));
 
-        if ((G.wild_dir = (zvoid *)Opendir(G.dirname)) != NULL) {
+        if ((G.wild_dir = (void *)Opendir(G.dirname)) != NULL) {
             if (G.have_dirname) {
                 strcpy(G.matchname, G.dirname);
                 fnamestart = G.matchname + G.dirnamelen;
@@ -2639,7 +2639,7 @@ void version(__G)
 #endif
     );
 
-    (*G.message)((zvoid *)&G, slide, (ulg)len, 0);
+    (*G.message)((void *)&G, slide, (ulg)len, 0);
 
     return;
 

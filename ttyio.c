@@ -108,7 +108,7 @@
 #if (defined(UNZIP) && !defined(FUNZIP) && defined(UNIX) && defined(MORE))
 #  include <sys/ioctl.h>
 #  define GOT_IOCTL_H
-   /* int ioctl OF((int, int, zvoid *));   GRR: may need for some systems */
+   /* int ioctl OF((int, int, void *));   GRR: may need for some systems */
 #endif
 
 #ifndef HAVE_WORKING_GETCH
@@ -129,8 +129,8 @@
 #      include <termios.h>
 #      define sgttyb termios
 #      define sg_flags c_lflag
-#      define GTTY(f, s) tcgetattr(f, (zvoid *) s)
-#      define STTY(f, s) tcsetattr(f, TCSAFLUSH, (zvoid *) s)
+#      define GTTY(f, s) tcgetattr(f, (void *) s)
+#      define STTY(f, s) tcsetattr(f, TCSAFLUSH, (void *) s)
 #    else /* !HAVE_TERMIOS_H */
 #      ifdef USE_SYSV_TERMIO           /* Amdahl, Cray, all SysV? */
 #        ifdef HAVE_TERMIO_H
@@ -145,8 +145,8 @@
 #        endif
 #        define sgttyb termio
 #        define sg_flags c_lflag
-#        define GTTY(f,s) ioctl(f,TCGETA,(zvoid *)s)
-#        define STTY(f,s) ioctl(f,TCSETAW,(zvoid *)s)
+#        define GTTY(f,s) ioctl(f,TCGETA,(void *)s)
+#        define STTY(f,s) ioctl(f,TCSETAW,(void *)s)
 #      else /* !USE_SYSV_TERMIO */
 #        ifndef CMS_MVS
 #          if (!defined(MINIX) && !defined(GOT_IOCTL_H))

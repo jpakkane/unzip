@@ -420,7 +420,7 @@ int zipbare(z, source, dest, passwd)
  * for details and the fix.
  */
 unsigned zfwrite(buf, item_size, nb, f)
-    zvoid *buf;                 /* data buffer */
+    void *buf;                 /* data buffer */
     extent item_size;           /* size of each item in bytes */
     extent nb;                  /* number of items */
     FILE *f;                    /* file to write to */
@@ -500,7 +500,7 @@ int decrypt(__G__ passwrd)
     /* try a few keys */
     n = 0;
     do {
-        r = (*G.decr_passwd)((zvoid *)&G, &n, GLOBAL(key), IZ_PWLEN+1,
+        r = (*G.decr_passwd)((void *)&G, &n, GLOBAL(key), IZ_PWLEN+1,
                              GLOBAL(zipfn), GLOBAL(filename));
         if (r == IZ_PW_ERROR) {         /* internal error in fetch of PW */
             free (GLOBAL(key));

@@ -233,10 +233,10 @@ void UZ_EXP UzpFreeMemBuffer(UzpBuffer *retstr)
 
 #ifndef WINDLL
 
-static int UzpDLL_Init OF((zvoid *pG, UzpCB *UsrFuncts));
+static int UzpDLL_Init OF((void *pG, UzpCB *UsrFuncts));
 
 static int UzpDLL_Init(pG, UsrFuncts)
-zvoid *pG;
+void *pG;
 UzpCB *UsrFuncts;
 {
     int (*dummyfn)();
@@ -301,7 +301,7 @@ int UZ_EXP UzpUnzipToMemory(char *zip, char *file, UzpOpts *optflgs,
     uO.C_flag = optflgs->C_flag;
     uO.qflag = optflgs->qflag;  /* currently,  overridden in unzipToMemory */
 
-    if (!UzpDLL_Init((zvoid *)&G, UsrFuncts)) {
+    if (!UzpDLL_Init((void *)&G, UsrFuncts)) {
        DESTROYGLOBALS();
        return PK_BADERR;
     }

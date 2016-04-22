@@ -153,7 +153,7 @@
 
 typedef struct Globals {
 #ifdef DLL
-    zvoid *callerglobs; /* pointer to structure of pass-through global vars */
+    void *callerglobs; /* pointer to structure of pass-through global vars */
 #endif
 
     /* command options of general use */

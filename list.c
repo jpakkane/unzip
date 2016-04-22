@@ -727,7 +727,7 @@ void fnprint(__G)    /* print filename (after filtering) and newline */
 {
     char *name = fnfilter(G.filename, slide, (extent)(WSIZE>>1));
 
-    (*G.message)((zvoid *)&G, (uch *)name, (ulg)strlen(name), 0);
-    (*G.message)((zvoid *)&G, (uch *)"\n", 1L, 0);
+    (*G.message)((void *)&G, (uch *)name, (ulg)strlen(name), 0);
+    (*G.message)((void *)&G, (uch *)"\n", 1L, 0);
 
 } /* end function fnprint() */
