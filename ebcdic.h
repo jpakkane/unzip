@@ -236,7 +236,7 @@ const uch ascii[] = {
   ---------------------------------------------------------------------------*/
 
 #ifdef IZ_ISO2OEM_ARRAY
-const uch Far iso2oem_850[] = {
+const uch iso2oem_850[] = {
     0x3F, 0x3F, 0x27, 0x9F, 0x22, 0x2E, 0xC5, 0xCE,  /* 80 - 87 */
     0x5E, 0x25, 0x53, 0x3C, 0x4F, 0x3F, 0x3F, 0x3F,  /* 88 - 8F */
     0x3F, 0x27, 0x27, 0x22, 0x22, 0x07, 0x2D, 0x2D,  /* 90 - 97 */
@@ -257,7 +257,7 @@ const uch Far iso2oem_850[] = {
 #endif /* IZ_ISO2OEM_ARRAY */
 
 #ifdef IZ_OEM2ISO_ARRAY
-const uch Far oem2iso_850[] = {
+const uch oem2iso_850[] = {
     0xC7, 0xFC, 0xE9, 0xE2, 0xE4, 0xE0, 0xE5, 0xE7,  /* 80 - 87 */
     0xEA, 0xEB, 0xE8, 0xEF, 0xEE, 0xEC, 0xC4, 0xC5,  /* 88 - 8F */
     0xC9, 0xE6, 0xC6, 0xF4, 0xF6, 0xF2, 0xFB, 0xF9,  /* 90 - 97 */
@@ -288,10 +288,10 @@ const uch Far oem2iso_850[] = {
    pointers should get moved into UnZip's thread-safe global data structure.
  */
 #ifdef IZ_ISO2OEM_ARRAY
-const uch Far *iso2oem = iso2oem_850;  /* backward compatibility default */
+const uch *iso2oem = iso2oem_850;  /* backward compatibility default */
 #endif /* IZ_ISO2OEM_ARRAY */
 #ifdef IZ_OEM2ISO_ARRAY
-const uch Far *oem2iso = oem2iso_850;  /* backward compatibility default */
+const uch *oem2iso = oem2iso_850;  /* backward compatibility default */
 #endif /* IZ_OEM2ISO_ARRAY */
 
 #if defined(THEOS) || defined(THEOS_SUPPORT)

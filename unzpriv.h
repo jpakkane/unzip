@@ -986,7 +986,7 @@
 #    endif
 #  endif /* !(SFX || FUNZIP) */
 #  ifndef Far
-#    define Far far  /* __far only works for MSC 6.00, not 6.0a or Borland */
+#    define far  /* __far only works for MSC 6.00, not 6.0a or Borland */
 #  endif
 #  define OUTBUFSIZ INBUFSIZ
 #  if (lenEOL == 1)
@@ -2032,7 +2032,7 @@ typedef struct min_info {
     unsigned GPFIsUTF8: 1;   /* crec gen_purpose_flag UTF-8 bit 11 is set */
 #endif
 #ifndef SFX
-    char Far *cfilname;      /* central header version of filename */
+    char *cfilname;      /* central header version of filename */
 #endif
 } min_info;
 
@@ -2357,14 +2357,14 @@ char    *fzofft               OF((__GPRO__ zoff_t val,
    unsigned char *uzmbsrchr OF((const unsigned char *str, unsigned int c));
 #endif
 #ifdef SMALL_MEM
-   char *fLoadFarString       OF((__GPRO__ const char Far *sz));
-   char *fLoadFarStringSmall  OF((__GPRO__ const char Far *sz));
-   char *fLoadFarStringSmall2 OF((__GPRO__ const char Far *sz));
+   char *fLoadFarString       OF((__GPRO__ const char *sz));
+   char *fLoadFarStringSmall  OF((__GPRO__ const char *sz));
+   char *fLoadFarStringSmall2 OF((__GPRO__ const char *sz));
    #ifndef zfstrcpy
-     char Far * Far zfstrcpy  OF((char Far *s1, const char Far *s2));
+     char * zfstrcpy  OF((char *s1, const char *s2));
    #endif
    #if (!defined(SFX) && !defined(zfstrcmp))
-     int Far zfstrcmp         OF((const char Far *s1, const char Far *s2));
+     int zfstrcmp         OF((const char *s1, const char *s2));
    #endif
 #endif
 
@@ -3028,27 +3028,27 @@ char    *GetLoadPath     OF((__GPRO));                              /* local */
    extern const uch ebcdic[];
 #endif
 #ifdef IZ_ISO2OEM_ARRAY
-   extern const uch Far *iso2oem;
-   extern const uch Far iso2oem_850[];
+   extern const uch *iso2oem;
+   extern const uch iso2oem_850[];
 #endif
 #ifdef IZ_OEM2ISO_ARRAY
-   extern const uch Far *oem2iso;
-   extern const uch Far oem2iso_850[];
+   extern const uch *oem2iso;
+   extern const uch oem2iso_850[];
 #endif
 
-   extern const char Far  VersionDate[];
-   extern const char Far  CentSigMsg[];
+   extern const char  VersionDate[];
+   extern const char  CentSigMsg[];
 #ifndef SFX
-   extern const char Far  EndSigMsg[];
+   extern const char  EndSigMsg[];
 #endif
-   extern const char Far  SeekMsg[];
-   extern const char Far  FilenameNotMatched[];
-   extern const char Far  ExclFilenameNotMatched[];
-   extern const char Far  ReportMsg[];
+   extern const char  SeekMsg[];
+   extern const char  FilenameNotMatched[];
+   extern const char  ExclFilenameNotMatched[];
+   extern const char  ReportMsg[];
 
 #ifndef SFX
-   extern const char Far  Zipnfo[];
-   extern const char Far  CompiledWith[];
+   extern const char  Zipnfo[];
+   extern const char  CompiledWith[];
 #endif /* !SFX */
 
 

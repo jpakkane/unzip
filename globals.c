@@ -56,13 +56,13 @@ const char *fnames[2] = {"*", NULL};   /* default filenames vector */
          0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0
      };
 
-     static const char Far TooManyThreads[] =
+     static const char TooManyThreads[] =
        "error:  more than %d simultaneous threads.\n\
         Some threads are probably not calling DESTROYTHREAD()\n";
-     static const char Far EntryNotFound[] =
+     static const char EntryNotFound[] =
        "error:  couldn't find global pointer in table.\n\
         Maybe somebody accidentally called DESTROYTHREAD() twice.\n";
-     static const char Far GlobalPointerMismatch[] =
+     static const char GlobalPointerMismatch[] =
        "error:  global pointer in table does not match pointer passed as\
  parameter\n";
 

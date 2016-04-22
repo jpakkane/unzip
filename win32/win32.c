@@ -179,7 +179,7 @@ typedef struct {
 /* static int fnlen;            */     /* ditto */
 /* static unsigned nLabelDrive; */     /* ditto */
 
-extern char Far TruncNTSD[];    /* in extract.c */
+extern char TruncNTSD[];    /* in extract.c */
 
 
 

@@ -144,67 +144,67 @@ static int disk_error OF((__GPRO));
 /* Strings used in fileio.c */
 /****************************/
 
-static const char Far CannotOpenZipfile[] =
+static const char CannotOpenZipfile[] =
   "error:  cannot open zipfile [ %s ]\n        %s\n";
 
 #if (!defined(VMS) && !defined(AOS_VS) && !defined(CMS_MVS) && !defined(MACOS))
 #if (!defined(TANDEM))
 #if (defined(ATH_BEO_THS_UNX) || defined(DOS_FLX_NLM_OS2_W32))
-   static const char Far CannotDeleteOldFile[] =
+   static const char CannotDeleteOldFile[] =
      "error:  cannot delete old %s\n        %s\n";
 #ifdef UNIXBACKUP
-   static const char Far CannotRenameOldFile[] =
+   static const char CannotRenameOldFile[] =
      "error:  cannot rename old %s\n        %s\n";
-   static const char Far BackupSuffix[] = "~";
+   static const char BackupSuffix[] = "~";
 #endif
 #endif /* ATH_BEO_THS_UNX || DOS_FLX_NLM_OS2_W32 */
 #ifdef NOVELL_BUG_FAILSAFE
-   static const char Far NovellBug[] =
+   static const char NovellBug[] =
      "error:  %s: stat() says does not exist, but fopen() found anyway\n";
 #endif
-   static const char Far CannotCreateFile[] =
+   static const char CannotCreateFile[] =
      "error:  cannot create %s\n        %s\n";
 #endif /* !TANDEM */
 #endif /* !VMS && !AOS_VS && !CMS_MVS && !MACOS */
 
-static const char Far ReadError[] = "error:  zipfile read error\n";
-static const char Far FilenameTooLongTrunc[] =
+static const char ReadError[] = "error:  zipfile read error\n";
+static const char FilenameTooLongTrunc[] =
   "warning:  filename too long--truncating.\n";
 #ifdef UNICODE_SUPPORT
-   static const char Far UFilenameTooLongTrunc[] =
+   static const char UFilenameTooLongTrunc[] =
      "warning:  Converted unicode filename too long--truncating.\n";
 #endif
-static const char Far ExtraFieldTooLong[] =
+static const char ExtraFieldTooLong[] =
   "warning:  extra field too long (%d).  Ignoring...\n";
 
 #ifdef WINDLL
-   static const char Far DiskFullQuery[] =
+   static const char DiskFullQuery[] =
      "%s:  write error (disk full?).\n";
 #else
-   static const char Far DiskFullQuery[] =
+   static const char DiskFullQuery[] =
      "%s:  write error (disk full?).  Continue? (y/n/^C) ";
-   static const char Far ZipfileCorrupt[] =
+   static const char ZipfileCorrupt[] =
      "error:  zipfile probably corrupt (%s)\n";
 #  ifdef SYMLINKS
-     static const char Far FileIsSymLink[] =
+     static const char FileIsSymLink[] =
        "%s exists and is a symbolic link%s.\n";
 #  endif
 #  ifdef MORE
-     static const char Far MorePrompt[] = "--More--(%lu)";
+     static const char MorePrompt[] = "--More--(%lu)";
 #  endif
-   static const char Far QuitPrompt[] =
+   static const char QuitPrompt[] =
      "--- Press `Q' to quit, or any other key to continue ---";
-   static const char Far HidePrompt[] = /* "\r                       \r"; */
+   static const char HidePrompt[] = /* "\r                       \r"; */
      "\r                                                         \r";
 #  if CRYPT
 #    ifdef MACOS
        /* SPC: are names on MacOS REALLY so much longer than elsewhere ??? */
-       static const char Far PasswPrompt[] = "[%s]\n %s password: ";
+       static const char PasswPrompt[] = "[%s]\n %s password: ";
 #    else
-       static const char Far PasswPrompt[] = "[%s] %s password: ";
+       static const char PasswPrompt[] = "[%s] %s password: ";
 #    endif
-     static const char Far PasswPrompt2[] = "Enter password: ";
-     static const char Far PasswRetry[] = "password incorrect--reenter: ";
+     static const char PasswPrompt2[] = "Enter password: ";
+     static const char PasswRetry[] = "password incorrect--reenter: ";
 #  endif /* CRYPT */
 #endif /* !WINDLL */
 
@@ -2800,19 +2800,19 @@ unsigned char *uzmbsrchr(str, c)
 /*  Function fLoadFarString()  */   /* (and friends...) */
 /*******************************/
 
-char *fLoadFarString(__GPRO__ const char Far *sz)
+char *fLoadFarString(__GPRO__ const char *sz)
 {
     (void)zfstrcpy(G.rgchBigBuffer, sz);
     return G.rgchBigBuffer;
 }
 
-char *fLoadFarStringSmall(__GPRO__ const char Far *sz)
+char *fLoadFarStringSmall(__GPRO__ const char *sz)
 {
     (void)zfstrcpy(G.rgchSmallBuffer, sz);
     return G.rgchSmallBuffer;
 }
 
-char *fLoadFarStringSmall2(__GPRO__ const char Far *sz)
+char *fLoadFarStringSmall2(__GPRO__ const char *sz)
 {
     (void)zfstrcpy(G.rgchSmallBuffer2, sz);
     return G.rgchSmallBuffer2;
@@ -2826,9 +2826,9 @@ char *fLoadFarStringSmall2(__GPRO__ const char Far *sz)
 /*  Function zfstrcpy()  */   /* portable clone of _fstrcpy() */
 /*************************/
 
-char Far * Far zfstrcpy(char Far *s1, const char Far *s2)
+char * zfstrcpy(char *s1, const char *s2)
 {
-    char Far *p = s1;
+    char *p = s1;
 
     while ((*s1++ = *s2++) != '\0');
     return p;
@@ -2839,7 +2839,7 @@ char Far * Far zfstrcpy(char Far *s1, const char Far *s2)
 /*  Function zfstrcmp()  */   /* portable clone of _fstrcmp() */
 /*************************/
 
-int Far zfstrcmp(const char Far *s1, const char Far *s2)
+int zfstrcmp(const char *s1, const char *s2)
 {
     int ret;
 

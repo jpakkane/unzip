@@ -62,86 +62,86 @@ static int    read_ux3_value     OF((const uch *dbuf, unsigned uidgid_sz,
 #endif /* IZ_HAVE_UXUIDGID */
 
 
-static const char Far CannotAllocateBuffers[] =
+static const char CannotAllocateBuffers[] =
   "error:  cannot allocate unzip buffers\n";
 
 #ifdef SFX
-   static const char Far CannotFindMyself[] =
+   static const char CannotFindMyself[] =
      "unzipsfx:  cannot find myself! [%s]\n";
 # ifdef CHEAP_SFX_AUTORUN
-   static const char Far AutorunPrompt[] =
+   static const char AutorunPrompt[] =
      "\nAuto-run command: %s\nExecute this command? [y/n] ";
-   static const char Far NotAutoRunning[] =
+   static const char NotAutoRunning[] =
      "Not executing auto-run command.";
 # endif
 
 #else /* !SFX */
    /* process_zipfiles() strings */
 # if (defined(IZ_CHECK_TZ) && defined(USE_EF_UT_TIME))
-     static const char Far WarnInvalidTZ[] =
+     static const char WarnInvalidTZ[] =
        "Warning: TZ environment variable not found, cannot use UTC times!!\n";
 # endif
 # if !(defined(UNIX) || defined(AMIGA))
-   static const char Far CannotFindWildcardMatch[] =
+   static const char CannotFindWildcardMatch[] =
      "%s:  cannot find any matches for wildcard specification \"%s\".\n";
 # endif /* !(UNIX || AMIGA) */
-   static const char Far FilesProcessOK[] =
+   static const char FilesProcessOK[] =
      "%d archive%s successfully processed.\n";
-   static const char Far ArchiveWarning[] =
+   static const char ArchiveWarning[] =
      "%d archive%s had warnings but no fatal errors.\n";
-   static const char Far ArchiveFatalError[] =
+   static const char ArchiveFatalError[] =
      "%d archive%s had fatal errors.\n";
-   static const char Far FileHadNoZipfileDir[] =
+   static const char FileHadNoZipfileDir[] =
      "%d file%s had no zipfile directory.\n";
-   static const char Far ZipfileWasDir[] = "1 \"zipfile\" was a directory.\n";
-   static const char Far ManyZipfilesWereDir[] =
+   static const char ZipfileWasDir[] = "1 \"zipfile\" was a directory.\n";
+   static const char ManyZipfilesWereDir[] =
      "%d \"zipfiles\" were directories.\n";
-   static const char Far NoZipfileFound[] = "No zipfiles found.\n";
+   static const char NoZipfileFound[] = "No zipfiles found.\n";
 
    /* do_seekable() strings */
 # ifdef UNIX
-   static const char Far CannotFindZipfileDirMsg[] =
+   static const char CannotFindZipfileDirMsg[] =
      "%s:  cannot find zipfile directory in one of %s or\n\
         %s%s.zip, and cannot find %s, period.\n";
-   static const char Far CannotFindEitherZipfile[] =
+   static const char CannotFindEitherZipfile[] =
      "%s:  cannot find or open %s, %s.zip or %s.\n";
 # else /* !UNIX */
-   static const char Far CannotFindZipfileDirMsg[] =
+   static const char CannotFindZipfileDirMsg[] =
      "%s:  cannot find zipfile directory in %s,\n\
         %sand cannot find %s, period.\n";
 # ifdef VMS
-   static const char Far CannotFindEitherZipfile[] =
+   static const char CannotFindEitherZipfile[] =
      "%s:  cannot find %s (%s).\n";
 # else /* !VMS */
-   static const char Far CannotFindEitherZipfile[] =
+   static const char CannotFindEitherZipfile[] =
      "%s:  cannot find either %s or %s.\n";
 # endif /* ?VMS */
 # endif /* ?UNIX */
-   extern const char Far Zipnfo[];       /* in unzip.c */
+   extern const char Zipnfo[];       /* in unzip.c */
 #ifndef WINDLL
-   static const char Far Unzip[] = "unzip";
+   static const char Unzip[] = "unzip";
 #else
-   static const char Far Unzip[] = "UnZip DLL";
+   static const char Unzip[] = "UnZip DLL";
 #endif
 #ifdef DO_SAFECHECK_2GB
-   static const char Far ZipfileTooBig[] =
+   static const char ZipfileTooBig[] =
      "Trying to read large file (> 2 GiB) without large file support\n";
 #endif /* DO_SAFECHECK_2GB */
-   static const char Far MaybeExe[] =
+   static const char MaybeExe[] =
      "note:  %s may be a plain executable, not an archive\n";
-   static const char Far CentDirNotInZipMsg[] = "\n\
+   static const char CentDirNotInZipMsg[] = "\n\
    [%s]:\n\
      Zipfile is disk %lu of a multi-disk archive, and this is not the disk on\n\
      which the central zipfile directory begins (disk %lu).\n";
-   static const char Far EndCentDirBogus[] =
+   static const char EndCentDirBogus[] =
      "\nwarning [%s]:  end-of-central-directory record claims this\n\
   is disk %lu but that the central directory starts on disk %lu; this is a\n\
   contradiction.  Attempting to process anyway.\n";
 # ifdef NO_MULTIPART
-   static const char Far NoMultiDiskArcSupport[] =
+   static const char NoMultiDiskArcSupport[] =
      "\nerror [%s]:  zipfile is part of multi-disk archive\n\
   (sorry, not yet supported).\n";
-   static const char Far MaybePakBug[] = "warning [%s]:\
+   static const char MaybePakBug[] = "warning [%s]:\
   zipfile claims to be 2nd disk of a 2-part archive;\n\
   attempting to process anyway.  If no further errors occur, this archive\n\
   was probably created by PAK v2.51 or earlier.  This bug was reported to\n\
@@ -150,77 +150,77 @@ static const char Far CannotAllocateBuffers[] =
   was probably created by PKZIP 2.04c or later; UnZip does not yet support\n\
   multi-part archives.)\n";
 # else
-   static const char Far MaybePakBug[] = "warning [%s]:\
+   static const char MaybePakBug[] = "warning [%s]:\
   zipfile claims to be last disk of a multi-part archive;\n\
   attempting to process anyway, assuming all parts have been concatenated\n\
   together in order.  Expect \"errors\" and warnings...true multi-part support\
 \n  doesn't exist yet (coming soon).\n";
 # endif
-   static const char Far ExtraBytesAtStart[] =
+   static const char ExtraBytesAtStart[] =
      "warning [%s]:  %s extra byte%s at beginning or within zipfile\n\
   (attempting to process anyway)\n";
 #endif /* ?SFX */
 
 #if ((!defined(WINDLL) && !defined(SFX)) || !defined(NO_ZIPINFO))
-   static const char Far LogInitline[] = "Archive:  %s\n";
+   static const char LogInitline[] = "Archive:  %s\n";
 #endif
 
-static const char Far MissingBytes[] =
+static const char MissingBytes[] =
   "error [%s]:  missing %s bytes in zipfile\n\
   (attempting to process anyway)\n";
-static const char Far NullCentDirOffset[] =
+static const char NullCentDirOffset[] =
   "error [%s]:  NULL central directory offset\n\
   (attempting to process anyway)\n";
-static const char Far ZipfileEmpty[] = "warning [%s]:  zipfile is empty\n";
-static const char Far CentDirStartNotFound[] =
+static const char ZipfileEmpty[] = "warning [%s]:  zipfile is empty\n";
+static const char CentDirStartNotFound[] =
   "error [%s]:  start of central directory not found;\n\
   zipfile corrupt.\n%s";
-static const char Far Cent64EndSigSearchErr[] =
+static const char Cent64EndSigSearchErr[] =
   "fatal error: read failure while seeking for End-of-centdir-64 signature.\n\
   This zipfile is corrupt.\n";
-static const char Far Cent64EndSigSearchOff[] =
+static const char Cent64EndSigSearchOff[] =
   "error: End-of-centdir-64 signature not where expected (prepended bytes?)\n\
   (attempting to process anyway)\n";
 #ifndef SFX
-   static const char Far CentDirTooLong[] =
+   static const char CentDirTooLong[] =
      "error [%s]:  reported length of central directory is\n\
   %s bytes too long (Atari STZip zipfile?  J.H.Holm ZIPSPLIT 1.1\n\
   zipfile?).  Compensating...\n";
-   static const char Far CentDirEndSigNotFound[] = "\
+   static const char CentDirEndSigNotFound[] = "\
   End-of-central-directory signature not found.  Either this file is not\n\
   a zipfile, or it constitutes one disk of a multi-part archive.  In the\n\
   latter case the central directory and zipfile comment will be found on\n\
   the last disk(s) of this archive.\n";
 #else /* SFX */
-   static const char Far CentDirEndSigNotFound[] =
+   static const char CentDirEndSigNotFound[] =
      "  End-of-central-directory signature not found.\n";
 #endif /* ?SFX */
 #ifdef TIMESTAMP
-   static const char Far ZipTimeStampFailed[] =
+   static const char ZipTimeStampFailed[] =
      "warning:  cannot set time for %s\n";
-   static const char Far ZipTimeStampSuccess[] =
+   static const char ZipTimeStampSuccess[] =
      "Updated time stamp for %s.\n";
 #endif
-static const char Far ZipfileCommTrunc1[] =
+static const char ZipfileCommTrunc1[] =
   "\ncaution:  zipfile comment truncated\n";
 #ifndef NO_ZIPINFO
-   static const char Far NoZipfileComment[] =
+   static const char NoZipfileComment[] =
      "There is no zipfile comment.\n";
-   static const char Far ZipfileCommentDesc[] =
+   static const char ZipfileCommentDesc[] =
      "The zipfile comment is %u bytes long and contains the following text:\n";
-   static const char Far ZipfileCommBegin[] =
+   static const char ZipfileCommBegin[] =
      "======================== zipfile comment begins\
  ==========================\n";
-   static const char Far ZipfileCommEnd[] =
+   static const char ZipfileCommEnd[] =
      "========================= zipfile comment ends\
  ===========================\n";
-   static const char Far ZipfileCommTrunc2[] =
+   static const char ZipfileCommTrunc2[] =
      "\n  The zipfile comment is truncated.\n";
 #endif /* !NO_ZIPINFO */
 #ifdef UNICODE_SUPPORT
-   static const char Far UnicodeVersionError[] =
+   static const char UnicodeVersionError[] =
      "\nwarning:  Unicode Path version > 1\n";
-   static const char Far UnicodeMismatchError[] =
+   static const char UnicodeMismatchError[] =
      "\nwarning:  Unicode Path checksum invalid\n";
 #endif
 
@@ -623,9 +623,9 @@ void free_G_buffers(__G)     /* releases all memory allocated in global vars */
 
 #ifndef SFX
     for (i = 0; i < DIR_BLKSIZ; i++) {
-        if (G.info[i].cfilname != (char Far *)NULL) {
+        if (G.info[i].cfilname != (char *)NULL) {
             zffree(G.info[i].cfilname);
-            G.info[i].cfilname = (char Far *)NULL;
+            G.info[i].cfilname = (char *)NULL;
         }
     }
 #endif
