@@ -3,6 +3,9 @@ project('unzip', 'c')
 zdep = dependency('zlib')
 #bzdep = dependency('bz2')
 
+add_global_arguments('-DUSE_DEFLATE64=1', language : 'c')
+
+
 unziplib = static_library('unziplib',
   'crc32.c',
   'crypt.c',
@@ -24,4 +27,7 @@ unziplib = static_library('unziplib',
 )
 
 unzip = executable('unzip', 'unzip.c',
+  link_with : unziplib)
+
+funzip = executable('funzip', 'funzip.c',
   link_with : unziplib)

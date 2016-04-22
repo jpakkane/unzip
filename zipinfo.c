@@ -582,7 +582,9 @@ int zi_opts(__G__ pargc, pargv)
     if ((argc-- == 0) || error) {
         *pargc = argc;
         *pargv = argv;
-        return USAGE(error);
+        printf("FAIL!\n");
+        return 1;
+        /*return USAGE(error);*/
     }
 
 #ifdef MORE

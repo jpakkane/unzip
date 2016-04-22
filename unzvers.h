@@ -10,8 +10,7 @@
    unzvers.h (for UnZip) by Info-ZIP.
  */
 
-#ifndef __unzvers_h     /* don't include more than once */
-#define __unzvers_h
+#pragma once
 
 #ifdef BETA
 #  undef BETA           /* undefine BETA for public releases */
@@ -85,5 +84,3 @@
 #define UZ_WINAPI_COMP_MAJOR  6
 #define UZ_WINAPI_COMP_MINOR  0
 #define UZ_WINAPI_COMP_REVIS  0
-
-#endif /* !__unzvers_h */

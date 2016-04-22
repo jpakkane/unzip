@@ -111,6 +111,8 @@
 
  */
 
+#include"consts.h"
+
 #ifndef FUNZIP
 #  define FUNZIP
 #endif
@@ -181,13 +183,6 @@ FILE *out;                      /* output file (*in moved to G struct) */
 ulg outsiz;                     /* total bytes written to out */
 int encrypted;                  /* flag to turn on decryption */
 
-/* Masks for inflate.c */
-ZCONST unsigned near mask_bits[17] = {
-    0x0000,
-    0x0001, 0x0003, 0x0007, 0x000f, 0x001f, 0x003f, 0x007f, 0x00ff,
-    0x01ff, 0x03ff, 0x07ff, 0x0fff, 0x1fff, 0x3fff, 0x7fff, 0xffff
-};
-
 
 #ifdef USE_ZLIB
 
@@ -229,60 +224,10 @@ char *m;
 }
 
 
-#if (defined(USE_DEFLATE64) && defined(__16BIT__))
-
-static int partflush(rawbuf, w)
-uch *rawbuf;     /* start of buffer area to flush */
-extent w;       /* number of bytes to flush */
-{
-  G.crc32val = crc32(G.crc32val, rawbuf, (extent)w);
-  if (fwrite((char *)rawbuf,1,(extent)w,out) != (extent)w && !PIPE_ERROR)
-    err(9, "out of space on stdout");
-  outsiz += w;
-  return 0;
-}
 
 
-int flush(w)    /* used by inflate.c (FLUSH macro) */
-ulg w;          /* number of bytes to flush */
-{
-    uch *rawbuf;
-    int ret;
-
-    /* On 16-bit systems (MSDOS, OS/2 1.x), the standard C library functions
-     * cannot handle writes of 64k blocks at once.  For these systems, the
-     * blocks to flush are split into pieces of 32k or less.
-     */
-    rawbuf = slide;
-    while (w > 0x8000L) {
-        ret = partflush(rawbuf, 0x8000);
-        if (ret != PK_OK)
-            return ret;
-        w -= 0x8000L;
-        rawbuf += (unsigned)0x8000;
-    }
-    return partflush(rawbuf, (extent)w);
-} /* end function flush() */
-
-#else /* !(USE_DEFLATE64 && __16BIT__) */
-
-int flush(w)    /* used by inflate.c (FLUSH macro) */
-ulg w;          /* number of bytes to flush */
-{
-  G.crc32val = crc32(G.crc32val, slide, (extent)w);
-  if (fwrite((char *)slide,1,(extent)w,out) != (extent)w && !PIPE_ERROR)
-    err(9, "out of space on stdout");
-  outsiz += w;
-  return 0;
-}
-
-#endif /* ?(USE_DEFLATE64 && __16BIT__) */
-
-
-int main(argc, argv)
-int argc;
-char **argv;
 /* Given a zipfile on stdin, decompress the first entry to stdout. */
+int main(int argc, char **argv)
 {
   ush n;
   uch h[LOCHDR];                /* first local header (GZPHDR < LOCHDR) */
