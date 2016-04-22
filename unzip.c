@@ -866,52 +866,6 @@ int unzip(__G__ argc, argv)
 #endif
 
 /*---------------------------------------------------------------------------
-    Macintosh initialization code.
-  ---------------------------------------------------------------------------*/
-
-#ifdef MACOS
-    {
-        int a;
-
-        for (a = 0;  a < 4;  ++a)
-            G.rghCursor[a] = GetCursor(a+128);
-        G.giCursor = 0;
-    }
-#endif
-
-/*---------------------------------------------------------------------------
-    NetWare initialization code.
-  ---------------------------------------------------------------------------*/
-
-#ifdef NLM
-    InitUnZipConsole();
-#endif
-
-/*---------------------------------------------------------------------------
-    Acorn RISC OS initialization code.
-  ---------------------------------------------------------------------------*/
-
-#ifdef RISCOS
-    set_prefix();
-#endif
-
-/*---------------------------------------------------------------------------
-    Theos initialization code.
-  ---------------------------------------------------------------------------*/
-
-#ifdef THEOS
-    /* The easiest way found to force creation of libraries when selected
-     * members are to be unzipped. Explicitly add libraries names to the
-     * arguments list before the first member of the library.
-     */
-    if (! _setargv(&argc, &argv)) {
-        Info(slide, 0x401, ((char *)slide, "cannot process argv\n"));
-        retcode = PK_MEM;
-        goto cleanup_and_exit;
-    }
-#endif
-
-/*---------------------------------------------------------------------------
     Sanity checks.  Commentary by Otis B. Driftwood and Fiorello:
 
     D:  It's all right.  That's in every contract.  That's what they
@@ -1473,29 +1427,12 @@ int uz_opts(__G__ pargc, pargv)
 #endif /* (!NO_TIMESTAMPS) */
                 case ('e'):    /* just ignore -e, -x options (extract) */
                     break;
-#ifdef MACOS
-                case ('E'): /* -E [MacOS] display Mac e.f. when restoring */
-                    if( negative ) {
-                        uO.E_flag = FALSE, negative = 0;
-                    } else {
-                        uO.E_flag = TRUE;
-                    }
-                    break;
-#endif /* MACOS */
                 case ('f'):    /* "freshen" (extract only newer files) */
                     if (negative)
                         uO.fflag = uO.uflag = FALSE, negative = 0;
                     else
                         uO.fflag = uO.uflag = TRUE;
                     break;
-#if (defined(RISCOS) || defined(ACORN_FTYPE_NFS))
-                case ('F'):    /* Acorn filetype & NFS extension handling */
-                    if (negative)
-                        uO.acorn_nfs_ext = FALSE, negative = 0;
-                    else
-                        uO.acorn_nfs_ext = TRUE;
-                    break;
-#endif /* RISCOS || ACORN_FTYPE_NFS */
                 case ('h'):    /* just print help message and quit */
                     if (showhelp == 0) {
 #ifndef SFX
@@ -1508,39 +1445,12 @@ int uz_opts(__G__ pargc, pargv)
                         }
                     }
                     break;
-#ifdef MACOS
-                case ('i'): /* -i [MacOS] ignore filenames stored in Mac ef */
-                    if( negative ) {
-                        uO.i_flag = FALSE, negative = 0;
-                    } else {
-                        uO.i_flag = TRUE;
-                    }
-                    break;
-#endif  /* MACOS */
                 case ('j'):    /* junk pathnames/directory structure */
                     if (negative)
                         uO.jflag = FALSE, negative = 0;
                     else
                         uO.jflag = TRUE;
                     break;
-#if (defined(ATH_BEO) || defined(MACOS))
-                case ('J'):    /* Junk AtheOS, BeOS or MacOS file attributes */
-                    if( negative ) {
-                        uO.J_flag = FALSE, negative = 0;
-                    } else {
-                        uO.J_flag = TRUE;
-                    }
-                    break;
-#endif /* ATH_BEO || MACOS */
-#ifdef ATH_BEO_UNX
-                case ('K'):
-                    if (negative) {
-                        uO.K_flag = FALSE, negative = 0;
-                    } else {
-                        uO.K_flag = TRUE;
-                    }
-                    break;
-#endif /* ATH_BEO_UNX */
 #ifndef SFX
                 case ('l'):
                     if (negative) {
@@ -1550,19 +1460,7 @@ int uz_opts(__G__ pargc, pargv)
                         ++uO.vflag;
                     break;
 #endif /* !SFX */
-#ifndef CMS_MVS
-                case ('L'):    /* convert (some) filenames to lowercase */
-                    if (negative) {
-                        uO.L_flag = MAX(uO.L_flag-negative,0);
-                        negative = 0;
-                    } else
-                        ++uO.L_flag;
-                    break;
-#endif /* !CMS_MVS */
 #ifdef MORE
-#ifdef CMS_MVS
-                case ('m'):
-#endif
                 case ('M'):    /* send all screen output through "more" fn. */
 /* GRR:  eventually check for numerical argument => height */
                     if (negative)
@@ -1577,14 +1475,6 @@ int uz_opts(__G__ pargc, pargv)
                     else
                         uO.overwrite_none = TRUE;
                     break;
-#ifdef AMIGA
-                case ('N'):    /* restore comments as filenotes */
-                    if (negative)
-                        uO.N_flag = FALSE, negative = 0;
-                    else
-                        uO.N_flag = TRUE;
-                    break;
-#endif /* AMIGA */
                 case ('o'):    /* OK to overwrite files without prompting */
                     if (negative) {
                         uO.overwrite_all = MAX(uO.overwrite_all-negative,0);
@@ -1654,19 +1544,6 @@ int uz_opts(__G__ pargc, pargv)
                     } else
                         ++uO.qflag;
                     break;
-#ifdef QDOS
-                case ('Q'):   /* QDOS flags */
-                    qlflag ^= strtol(s, &s, 10);
-                    break;    /* we XOR this as we can config qlflags */
-#endif
-#ifdef TANDEM
-                case ('r'):    /* remove file extensions */
-                    if (negative)
-                        uO.rflag = FALSE, negative = 0;
-                    else
-                        uO.rflag = TRUE;
-                    break;
-#endif /* TANDEM */
 #ifdef DOS_FLX_NLM_OS2_W32
                 case ('s'):    /* spaces in filenames:  allow by default */
                     if (negative)
@@ -1675,15 +1552,6 @@ int uz_opts(__G__ pargc, pargv)
                         uO.sflag = TRUE;
                     break;
 #endif /* DOS_FLX_NLM_OS2_W32 */
-#ifdef VMS
-                /* VMS:  extract "text" files in Stream_LF format (-a[a]) */
-                case ('S'):
-                    if (negative)
-                        uO.S_flag = FALSE, negative = 0;
-                    else
-                        uO.S_flag = TRUE;
-                    break;
-#endif /* VMS */
                 case ('t'):
                     if (negative)
                         uO.tflag = FALSE, negative = 0;
@@ -1713,14 +1581,6 @@ int uz_opts(__G__ pargc, pargv)
                         uO.U_flag++;
                     break;
 #else /* !UNICODE_SUPPORT */
-#ifndef CMS_MVS
-                case ('U'):    /* obsolete; to be removed in version 6.0 */
-                    if (negative)
-                        uO.L_flag = TRUE, negative = 0;
-                    else
-                        uO.L_flag = FALSE;
-                    break;
-#endif /* !CMS_MVS */
 #endif /* ?UNICODE_SUPPORT */
 #ifndef SFX
                 case ('v'):    /* verbose */
@@ -1773,14 +1633,6 @@ int uz_opts(__G__ pargc, pargv)
                         ++uO.X_flag;
                     break;
 #endif /* RESTORE_UIDGID || RESTORE_ACL */
-#ifdef VMS
-                case ('Y'):    /* Treat ".nnn" as ";nnn" version. */
-                    if (negative)
-                        uO.Y_flag = FALSE, negative = 0;
-                    else
-                        uO.Y_flag = TRUE;
-                    break;
-#endif /* VMS */
                 case ('z'):    /* display only the archive comment */
                     if (negative) {
                         uO.zflag = MAX(uO.zflag-negative,0);
@@ -1794,23 +1646,6 @@ int uz_opts(__G__ pargc, pargv)
                     error = TRUE;
                     break;
 #endif /* !SFX */
-#ifdef VMS
-                case ('2'):    /* Force ODS2-compliant names. */
-                    if (negative)
-                        uO.ods2_flag = FALSE, negative = 0;
-                    else
-                        uO.ods2_flag = TRUE;
-                    break;
-#endif /* VMS */
-#ifdef DOS_H68_OS2_W32
-                case ('$'):
-                    if (negative) {
-                        uO.volflag = MAX(uO.volflag-negative,0);
-                        negative = 0;
-                    } else
-                        ++uO.volflag;
-                    break;
-#endif /* DOS_H68_OS2_W32 */
 #if (!defined(RISCOS) && !defined(CMS_MVS) && !defined(TANDEM))
                 case (':'):    /* allow "parent dir" path components */
                     if (negative) {
@@ -2029,11 +1864,6 @@ int usage(__G__ error)   /* return PK-type error code */
         Info(slide, flag, ((char *)slide, LoadFarString(ZipInfoUsageLine2)));
         Info(slide, flag, ((char *)slide, LoadFarString(ZipInfoUsageLine3),
           LoadFarStringSmall(ZipInfoUsageLine4)));
-#ifdef VMS
-        Info(slide, flag, ((char *)slide, "\n\
-You must quote non-lowercase options and filespecs, unless SET PROC/PARSE=EXT.\
-\n"));
-#endif
 
 #endif /* !NO_ZIPINFO */
 
@@ -2048,10 +1878,6 @@ You must quote non-lowercase options and filespecs, unless SET PROC/PARSE=EXT.\
 
         Info(slide, flag, ((char *)slide, LoadFarString(UnzipUsageLine2),
           ZIPINFO_MODE_OPTION, LoadFarStringSmall(ZipInfoMode)));
-#ifdef VMS
-        if (!error)  /* maybe no command-line tail found; show extra help */
-            Info(slide, flag, ((char *)slide, LoadFarString(VMSusageLine2b)));
-#endif
 
         Info(slide, flag, ((char *)slide, LoadFarString(UnzipUsageLine3),
           LoadFarStringSmall(local1)));
@@ -2322,13 +2148,6 @@ static void help_extended(__G)
 
 
 
-#ifndef _WIN32_WCE /* Win CE does not support environment variables */
-#if (!defined(MODERN) || defined(NO_STDLIB_H))
-/* Declare getenv() to be sure (might be missing in some environments) */
-extern char *getenv();
-#endif
-#endif
-
 /********************************/
 /* Function show_version_info() */
 /********************************/
@@ -2352,11 +2171,6 @@ static void show_version_info(__G)
           LoadFarString(UnzipUsageLine2v)));
         version(__G);
         Info(slide, 0, ((char *)slide, LoadFarString(CompileOptions)));
-#ifdef ACORN_FTYPE_NFS
-        Info(slide, 0, ((char *)slide, LoadFarString(CompileOptFormat),
-          LoadFarStringSmall(AcornFtypeNFS)));
-        ++numopts;
-#endif
 #ifdef ASM_CRC
         Info(slide, 0, ((char *)slide, LoadFarString(CompileOptFormat),
           LoadFarStringSmall(AsmCRC)));
@@ -2392,11 +2206,6 @@ static void show_version_info(__G)
           LoadFarStringSmall(Dll)));
         ++numopts;
 #endif
-#ifdef DOSWILD
-        Info(slide, 0, ((char *)slide, LoadFarString(CompileOptFormat),
-          LoadFarStringSmall(DosWild)));
-        ++numopts;
-#endif
 #ifdef LZW_CLEAN
         Info(slide, 0, ((char *)slide, LoadFarString(CompileOptFormat),
           LoadFarStringSmall(LZW_Clean)));
@@ -2420,16 +2229,6 @@ static void show_version_info(__G)
 #if defined(WIN32) && defined(NO_W32TIMES_IZFIX)
         Info(slide, 0, ((char *)slide, LoadFarString(CompileOptFormat),
           LoadFarStringSmall(W32NoIZTimeFix)));
-        ++numopts;
-#endif
-#ifdef OLD_THEOS_EXTRA
-        Info(slide, 0, ((char *)slide, LoadFarString(CompileOptFormat),
-          LoadFarStringSmall(OldTheosExtra)));
-        ++numopts;
-#endif
-#ifdef OS2_EAS
-        Info(slide, 0, ((char *)slide, LoadFarString(CompileOptFormat),
-          LoadFarStringSmall(OS2ExtAttrib)));
         ++numopts;
 #endif
 #ifdef QLZIP
@@ -2526,18 +2325,6 @@ static void show_version_info(__G)
           LoadFarStringSmall(Use_Zip64)));
         ++numopts;
 #endif
-#if (defined(__DJGPP__) && (__DJGPP__ >= 2))
-#  ifdef USE_DJGPP_ENV
-        Info(slide, 0, ((char *)slide, LoadFarString(CompileOptFormat),
-          LoadFarStringSmall(Use_DJGPP_Env)));
-        ++numopts;
-#  endif
-#  ifdef USE_DJGPP_GLOB
-        Info(slide, 0, ((char *)slide, LoadFarString(CompileOptFormat),
-          LoadFarStringSmall(Use_DJGPP_Glob)));
-        ++numopts;
-#  endif
-#endif /* __DJGPP__ && (__DJGPP__ >= 2) */
 #ifdef USE_VFAT
         Info(slide, 0, ((char *)slide, LoadFarString(CompileOptFormat),
           LoadFarStringSmall(Use_VFAT_support)));
@@ -2565,11 +2352,6 @@ static void show_version_info(__G)
 #ifdef VMSCLI
         Info(slide, 0, ((char *)slide, LoadFarString(CompileOptFormat),
           LoadFarStringSmall(VmsCLI)));
-        ++numopts;
-#endif
-#ifdef VMSWILD
-        Info(slide, 0, ((char *)slide, LoadFarString(CompileOptFormat),
-          LoadFarStringSmall(VmsWild)));
         ++numopts;
 #endif
 #ifdef WILD_STOP_AT_DIR
@@ -2640,13 +2422,6 @@ static void show_version_info(__G)
           LoadFarStringSmall2(None) : envptr));
 #endif /* __GO32__ && !(__DJGPP__ >= 2) */
 #endif /* !__RSXNT__ */
-#ifdef RISCOS
-        envptr = getenv(LoadFarStringSmall(EnvUnZipExts));
-        Info(slide, 0, ((char *)slide, LoadFarString(EnvOptFormat),
-          LoadFarStringSmall(EnvUnZipExts),
-          (envptr == (char *)NULL || *envptr == 0)?
-          LoadFarStringSmall2(None) : envptr));
-#endif /* RISCOS */
 #endif /* !_WIN32_WCE */
     }
 } /* end function show_version() */
