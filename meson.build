@@ -31,3 +31,10 @@ unzip = executable('unzip', 'unzip.c',
 
 funzip = executable('funzip', 'funzip.c',
   link_with : unziplib)
+
+uzexe = '@0@/unzip'.format(meson.build_root())
+testzip = '@0@/testmake.zip'.format(meson.source_root())
+
+test('unzipping', find_program('unziptester.py'), args : [uzexe, testzip])
+
+  
