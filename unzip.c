@@ -562,7 +562,7 @@ See \"unzip -hh\" or unzip.txt for more help.  Examples:\n\
 /*  main() / UzpMain() stub  */
 /*****************************/
 
-int MAIN(int argc, char **argv)   /* return PK-type error code (except under VMS) */
+int main(int argc, char **argv)   /* return PK-type error code (except under VMS) */
 {
     int r;
 

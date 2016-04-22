@@ -388,16 +388,7 @@ extern "C" {
   ---------------------------------------------------------------------------*/
 
 #ifndef _IZ_TYPES_DEFINED
-#ifdef MODERN
-   typedef void zvoid;
-#else /* !MODERN */
-#  ifndef AOS_VS         /* mostly modern? */
-#    ifndef VAXC         /* not fully modern, but has knows 'void' */
-#      define void int
-#    endif /* !VAXC */
-#  endif /* !AOS_VS */
-   typedef char zvoid;
-#endif /* ?MODERN */
+typedef void zvoid;
 typedef unsigned char   uch;    /* code assumes unsigned bytes; these type-  */
 typedef unsigned short  ush;    /*  defs replace byte/UWORD/ULONG (which are */
 typedef unsigned long   ulg;    /*  predefined on some systems) & match zip  */
