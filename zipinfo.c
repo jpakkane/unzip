@@ -1915,7 +1915,7 @@ static int zi_short(__G)   /* return PK-type error code */
     extver = (unsigned)G.crec.version_needed_to_extract[0];
  */
 
-    zfstrcpy(methbuf, method[methnum]);
+    strcpy(methbuf, method[methnum]);
     if (methid == IMPLODED) {
         methbuf[1] = (char)((G.crec.general_purpose_bit_flag & 2)? '8' : '4');
         methbuf[3] = (char)((G.crec.general_purpose_bit_flag & 4)? '3' : '2');

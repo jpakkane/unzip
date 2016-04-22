@@ -124,18 +124,10 @@
    buffer."  Apparently fprintf() buffers the stuff somewhere, and puts
    out a record (only) when it sees a newline.
 */
-#ifdef VMS
-#  define WriteTxtErr(buf,len,strm) \
-   ((extent)fprintf(strm, "%.*s", len, buf) != (extent)(len))
-#else
 #  define WriteTxtErr(buf,len,strm)  WriteError(buf,len,strm)
-#endif
 
 #if (defined(USE_DEFLATE64) && defined(__16BIT__))
 static int partflush OF((__GPRO__ uch *rawbuf, ulg size, int unshrink));
-#endif
-#ifdef VMS_TEXT_CONV
-static int is_vms_varlen_txt OF((__GPRO__ uch *ef_buf, unsigned ef_len));
 #endif
 static int disk_error OF((__GPRO));
 

@@ -969,11 +969,11 @@ static int store_info(__G)   /* return 0 if skipping, 1 if OK */
 
 #ifndef SFX
     /* store a copy of the central header filename for later comparison */
-    if ((G.pInfo->cfilname = zfmalloc(strlen(G.filename) + 1)) == NULL) {
+    if ((G.pInfo->cfilname = malloc(strlen(G.filename) + 1)) == NULL) {
         Info(slide, 0x401, ((char *)slide, LoadFarString(WarnNoMemCFName),
           FnFilter1(G.filename)));
     } else
-        zfstrcpy(G.pInfo->cfilname, G.filename);
+        strcpy(G.pInfo->cfilname, G.filename);
 #endif /* !SFX */
 
     /* map whatever file attributes we have into the local format */
@@ -1227,24 +1227,17 @@ static int extract_or_test_entrylist(__G__ numchunk,
          * been processed.
          */
         if (G.pInfo->cfilname != (char *)NULL) {
-            if (zfstrcmp(G.pInfo->cfilname, G.filename) != 0) {
-#  ifdef SMALL_MEM
-                char *temp_cfilnam = slide + (7 * (WSIZE>>3));
-
-                zfstrcpy((char *)temp_cfilnam, G.pInfo->cfilname);
-#    define  cFile_PrintBuf  temp_cfilnam
-#  else
+            if (strcmp(G.pInfo->cfilname, G.filename) != 0) {
 #    define  cFile_PrintBuf  G.pInfo->cfilname
-#  endif
                 Info(slide, 0x401, ((char *)slide,
                   LoadFarStringSmall2(LvsCFNamMsg),
                   FnFilter2(cFile_PrintBuf), FnFilter1(G.filename)));
 #  undef    cFile_PrintBuf
-                zfstrcpy(G.filename, G.pInfo->cfilname);
+                strcpy(G.filename, G.pInfo->cfilname);
                 if (error_in_archive < PK_WARN)
                     error_in_archive = PK_WARN;
             }
-            zffree(G.pInfo->cfilname);
+            free(G.pInfo->cfilname);
             G.pInfo->cfilname = (char *)NULL;
         }
 #endif /* !SFX */
