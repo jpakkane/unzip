@@ -25,10 +25,6 @@
 
 #if (!defined(USE_ZLIB) || defined(USE_OWN_CRCTAB))
 
-#ifndef const
-#  define const const
-#endif
-
 #include "crc32.h"
 
 /* When only the table of precomputed CRC values is needed, only the basic

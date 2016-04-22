@@ -23,11 +23,7 @@
 #define UNZIP_INTERNAL
 #include "unzip.h"
 #ifdef WINDLL
-#  ifdef POCKET_UNZIP
-#    include "wince/intrface.h"
-#  else
 #    include "windll/windll.h"
-#  endif
 #endif
 
 
@@ -39,17 +35,10 @@
    static const char CompFactorStr[] = "%c%d%%";
    static const char CompFactor100[] = "100%%";
 
-#ifdef OS2_EAS
-   static const char HeadersS[]  =
-     "  Length     EAs   ACLs     Date    Time    Name";
-   static const char HeadersS1[] =
-     "---------    ---   ----  ---------- -----   ----";
-#else
    static const char HeadersS[]  =
      "  Length      Date    Time    Name";
    static const char HeadersS1[] =
      "---------  ---------- -----   ----";
-#endif
 
    static const char HeadersL[]  =
      " Length   Method    Size  Cmpr    Date    Time   CRC-32   Name";
@@ -65,23 +54,11 @@
    static const char LongFileTrailer[] =
      "--------          -------  ---                       \
      -------\n%s         %s %4s                            %lu file%s\n";
-#ifdef OS2_EAS
-   static const char ShortHdrStats[] =
-     "%s %6lu %6lu  %02u%c%02u%c%02u %02u:%02u  %c";
-   static const char ShortFileTrailer[] =
-     "---------  -----  -----                \
-     -------\n%s %6lu %6lu                     %lu file%s\n";
-   static const char OS2ExtAttrTrailer[] =
-     "%lu file%s %lu bytes of OS/2 extended attributes attached.\n";
-   static const char OS2ACLTrailer[] =
-     "%lu file%s %lu bytes of access control lists attached.\n";
-#else
    static const char ShortHdrStats[] =
      "%s  %02u%c%02u%c%02u %02u:%02u  %c";
    static const char ShortFileTrailer[] =
      "---------                     -------\n%s\
                      %lu file%s\n";
-#endif /* ?OS2_EAS */
 #endif /* !WINDLL */
 
 
@@ -111,10 +88,6 @@ int list_files(__G)    /* return PK-type error code */
 #endif
     unsigned yr, mo, dy, hh, mm;
     zusz_t csiz, tot_csize=0L, tot_ucsize=0L;
-#ifdef OS2_EAS
-    ulg ea_size, tot_easize=0L, tot_eafiles=0L;
-    ulg acl_size, tot_aclsize=0L, tot_aclfiles=0L;
-#endif
     min_info info;
     char methbuf[8];
     static const char dtype[]="NXFS";  /* see zi_short() */
@@ -247,36 +220,6 @@ int list_files(__G)    /* return PK-type error code */
 
         if (G.process_all_files || do_this_file) {
 
-#ifdef OS2DLL
-            /* this is used by UzpFileTree() to allow easy processing of lists
-             * of zip directory contents */
-            if (G.processExternally) {
-                if ((G.processExternally)(G.filename, &G.crec))
-                    break;
-                ++members;
-            } else {
-#endif
-#ifdef OS2_EAS
-            {
-                uch *ef_ptr = G.extra_field;
-                int ef_size, ef_len = G.crec.extra_field_length;
-                ea_size = acl_size = 0;
-
-                while (ef_len >= EB_HEADSIZE) {
-                    ef_size = makeword(&ef_ptr[EB_LEN]);
-                    switch (makeword(&ef_ptr[EB_ID])) {
-                        case EF_OS2:
-                            ea_size = makelong(&ef_ptr[EB_HEADSIZE]);
-                            break;
-                        case EF_ACL:
-                            acl_size = makelong(&ef_ptr[EB_HEADSIZE]);
-                            break;
-                    }
-                    ef_ptr += (ef_size + EB_HEADSIZE);
-                    ef_len -= (ef_size + EB_HEADSIZE);
-                }
-            }
-#endif
 #ifdef USE_EF_UT_TIME
             if (G.extra_field &&
 #ifdef IZ_CHECK_TZ
@@ -341,14 +284,6 @@ int list_files(__G)    /* return PK-type error code */
             } else if (methnum >= NUM_METHODS) {
                 sprintf(&methbuf[4], "%03u", G.crec.compression_method);
             }
-
-#if 0       /* GRR/Euro:  add this? */
-#if defined(DOS_FLX_NLM_OS2_W32) || defined(THEOS) || defined(UNIX)
-            for (p = G.filename;  *p;  ++p)
-                if (!isprint(*p))
-                    *p = '?';  /* change non-printable chars to '?' */
-#endif /* DOS_FLX_NLM_OS2_W32 || THEOS || UNIX */
-#endif /* 0 */
 
 #ifdef WINDLL
             /* send data to application for formatting and printing */
