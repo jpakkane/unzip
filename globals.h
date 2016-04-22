@@ -197,11 +197,7 @@ typedef struct Globals {
      int redirect_text;   /* redirect text output to buffer */
 # ifndef NO_SLIDE_REDIR
      int redirect_slide;  /* redirect decompression area to mem buffer */
-#  if (defined(USE_DEFLATE64) && defined(INT_16BIT))
-     ulg _wsize;          /* size of sliding window exceeds "unsigned" range */
-#  else
      unsigned _wsize;     /* sliding window size can be hold in unsigned */
-#  endif
 # endif
      ulg redirect_size;            /* size of redirected output buffer */
      uch *redirect_buffer;         /* pointer to head of allocated buffer */
@@ -272,17 +268,11 @@ typedef struct Globals {
     slinkentry *slink_head;        /* pointer to head of symlinks list */
     slinkentry *slink_last;        /* pointer to last entry in symlinks list */
 #endif
-#ifdef NOVELL_BUG_FAILSAFE
-    int      dne;                  /* true if stat() says file doesn't exist */
-#endif
-
     FILE     *outfile;
     uch      *outbuf;
     uch      *realbuf;
 
-#ifndef VMS                        /* if SMALL_MEM, outbuf2 is initialized in */
     uch      *outbuf2;             /*  process_zipfiles() (never changes); */
-#endif                             /*  else malloc'd ONLY if unshrink and -a */
 #endif /* !FUNZIP */
     uch      *outptr;
     ulg      outcnt;               /* number of chars stored in outbuf */
@@ -301,10 +291,6 @@ typedef struct Globals {
     ulg      unipath_checksum;     /* Unicode field checksum */
     char     *unipath_filename;    /* UTF-8 path */
 #endif /* UNICODE_SUPPORT */
-
-#ifdef CMS_MVS
-    char     *tempfn;              /* temp file used; erase on close */
-#endif
 
     char *key;         /* crypt static: decryption password or NULL */
     int nopwd;         /* crypt static */
@@ -346,12 +332,6 @@ typedef struct Globals {
     /* cylindric buffer space for formatting zoff_t values (fileio static) */
     char fzofft_buf[FZOFFT_NUM][FZOFFT_LEN];
     int fzofft_index;
-
-#ifdef SMALL_MEM
-    char rgchBigBuffer[512];
-    char rgchSmallBuffer[96];
-    char rgchSmallBuffer2[160];  /* boosted to 160 for local3[] in unzip.c */
-#endif
 
     MsgFn *message;
     InputFn *input;

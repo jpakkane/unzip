@@ -652,12 +652,6 @@ int unzip(__G__ argc, argv)
 #endif /* UNICODE_SUPPORT */
 
 
-#if (defined(__IBMC__) && defined(__DEBUG_ALLOC__))
-    extern void DebugMalloc(void);
-
-    atexit(DebugMalloc);
-#endif
-
 #ifdef MALLOC_WORK
     /* The following (rather complex) expression determines the allocation
        size of the decompression work area.  It simulates what the
