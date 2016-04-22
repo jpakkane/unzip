@@ -103,7 +103,7 @@ typedef struct {
 /* static int created_dir;      */      /* used in mapname(), checkdir() */
 /* static int renamed_fullpath; */      /* ditto */
 
-static unsigned filtattr OF((__GPRO__ unsigned perms));
+static unsigned filtattr (__GPRO__ unsigned perms);
 
 
 /*****************************/
@@ -1039,7 +1039,7 @@ int mkdir(path, mode)
 
 
 #if (!defined(MTS) || defined(SET_DIR_ATTRIB))
-static int get_extattribs OF((__GPRO__ iztimes *pzt, ulg z_uidgid[2]));
+static int get_extattribs (__GPRO__ iztimes *pzt, ulg z_uidgid[2]);
 
 static int get_extattribs(__G__ pzt, z_uidgid)
     __GDEF

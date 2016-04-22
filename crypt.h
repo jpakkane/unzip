@@ -129,9 +129,9 @@
 /* decode byte c in place */
 #define zdecode(c)   update_keys(__G__ c ^= decrypt_byte(__G))
 
-int  decrypt_byte OF((__GPRO));
-int  update_keys OF((__GPRO__ int c));
-void init_keys OF((__GPRO__ const char *passwd));
+int  decrypt_byte ();
+int  update_keys (__GPRO__ int c);
+void init_keys (__GPRO__ const char *passwd);
 
 #ifdef ZIP
    void crypthead OF((const char *, ulg, FILE *));
@@ -145,7 +145,7 @@ void init_keys OF((__GPRO__ const char *passwd));
 #endif /* ZIP */
 
 #if (defined(UNZIP) && !defined(FUNZIP))
-   int  decrypt OF((__GPRO__ const char *passwrd));
+   int  decrypt (__GPRO__ const char *passwrd);
 #endif
 
 #ifdef FUNZIP

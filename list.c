@@ -28,7 +28,7 @@
 
 
 #ifdef TIMESTAMP
-   static int  fn_is_dir   OF((__GPRO));
+   static int  fn_is_dir   (__GPRO);
 #endif
 
 #ifndef WINDLL

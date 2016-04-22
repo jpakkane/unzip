@@ -93,8 +93,8 @@ static int setsignalhandler OF((__GPRO__ savsigs_info **p_savedhandler_chain,
                                 int signal_type, void (*newhandler)(int)));
 #endif
 #ifndef SFX
-static void  help_extended      OF((__GPRO));
-static void  show_version_info  OF((__GPRO));
+static void  help_extended      ();
+static void  show_version_info  ();
 #endif
 
 
@@ -1911,8 +1911,7 @@ static void help_extended(__G)
 /* Function show_version_info() */
 /********************************/
 
-static void show_version_info(__G)
-    __GDEF
+static void show_version_info()
 {
     if (uO.qflag > 3)                           /* "unzip -vqqqq" */
         Info(slide, 0, ((char *)slide, "%d\n",

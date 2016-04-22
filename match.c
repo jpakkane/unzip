@@ -114,10 +114,10 @@ int recmatch OF((const uch *pattern, const uch *string,
                  int ignore_case __WDLPRO));
 #endif
 #endif /* 0 */
-static int recmatch OF((const uch *pattern, const uch *string,
-                        int ignore_case __WDLPRO));
-static char *isshexp OF((const char *p));
-static int namecmp OF((const char *s1, const char *s2));
+static int recmatch (const uch *pattern, const uch *string,
+                        int ignore_case __WDLPRO);
+static char *isshexp (const char *p);
+static int namecmp (const char *s1, const char *s2);
 
 
 /* match() is a shell to recmatch() to return only Boolean values. */

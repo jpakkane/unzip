@@ -383,7 +383,7 @@ typedef struct Globals {
 #define CRC_32_TAB      G.crc_32_tab
 
 
-Uz_Globs *globalsCtor   OF((void));
+Uz_Globs *globalsCtor   ();
 
 /* pseudo constant sigs; they are initialized at runtime so unzip executable
  * won't look like a zipfile

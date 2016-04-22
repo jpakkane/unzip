@@ -120,12 +120,12 @@
 
 #define LFLAG  3   /* short "ls -l" type listing */
 
-static int   zi_long   OF((__GPRO__ zusz_t *pEndprev, int error_in_archive));
-static int   zi_short  OF((__GPRO));
+static int   zi_long   (__GPRO__ zusz_t *pEndprev, int error_in_archive);
+static int   zi_short  (__GPRO);
 static void  zi_showMacTypeCreator
-                       OF((__GPRO__ uch *ebfield));
-static char *zi_time   OF((__GPRO__ const ulg *datetimez,
-                           const time_t *modtimez, char *d_t_str));
+                       (__GPRO__ uch *ebfield);
+static char *zi_time   (__GPRO__ const ulg *datetimez,
+                           const time_t *modtimez, char *d_t_str);
 
 
 /**********************************************/
@@ -2198,9 +2198,8 @@ static int zi_short(__G)   /* return PK-type error code */
 /*  Function zi_showMacTypeCreator()  */
 /**************************************/
 
-static void zi_showMacTypeCreator(__G__ ebfield)
-    __GDEF
-    uch *ebfield;
+static void zi_showMacTypeCreator(
+    uch *ebfield)
 {
     /* not every Type / Creator character is printable */
     if (isprint(native(ebfield[0])) && isprint(native(ebfield[1])) &&

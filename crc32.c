@@ -610,9 +610,9 @@ local const ulg crc_table[CRC_TBLS*256] = {
 
 /* use "OF((void))" here to work around a Borland TC++ 1.0 problem */
 #ifdef USE_ZLIB
-const uLongf *get_crc_table OF((void))
+const uLongf *get_crc_table (void)
 #else
-const ulg *get_crc_table OF((void))
+const ulg *get_crc_table (void)
 #endif
 {
 #ifdef DYNAMIC_CRC_TABLE
@@ -673,10 +673,7 @@ void free_crc_table()
 
 
 /* ========================================================================= */
-ulg crc32(crc, buf, len)
-    ulg crc;                    /* crc shift register */
-    register const uch *buf;   /* pointer to bytes to pump through */
-    extent len;                 /* number of bytes in buf[] */
+ulg crc32(ulg crc, const uch *buf, extent len)
 /* Run a set of bytes through the crc shift register.  If buf is a NULL
    pointer, then initialize the crc shift register contents instead.
    Return the current crc in either case. */

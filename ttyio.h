@@ -194,8 +194,8 @@
 #ifndef echoff
 #  define echoff(f)  Echoff(__G__ f)
 #  define echon()    Echon(__G)
-   void Echoff OF((__GPRO__ int f));
-   void Echon OF((__GPRO));
+   void Echoff (__GPRO__ int f);
+   void Echon (__GPRO);
 #endif
 
 /* this stuff is used by MORE and also now by the ctrl-S code; fileio.c only */
@@ -205,13 +205,13 @@
 #  endif
 #  ifndef FGETCH
      /* default for all systems where no getch()-like function is available */
-     int zgetch OF((__GPRO__ int f));
+     int zgetch (__GPRO__ int f);
 #    define FGETCH(f)  zgetch(__G__ f)
 #  endif
 #endif /* UNZIP && !FUNZIP */
 
 #if (CRYPT && !defined(WINDLL))
-   char *getp OF((__GPRO__ const char *m, char *p, int n));
+   char *getp (__GPRO__ const char *m, char *p, int n);
 #endif
 
 #else /* !(CRYPT || (UNZIP && !FUNZIP)) */
