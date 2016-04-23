@@ -385,14 +385,10 @@ static const char ZipInfoUsageLine3[] = "miscellaneous options:\n\
      static const char Use_MultiVol[] =
      "MULT_VOLUME (multi-volume archives supported)";
 #  endif
-#  ifdef LARGE_FILE_SUPPORT
      static const char Use_LFS[] =
      "LARGE_FILE_SUPPORT (large files over 2 GiB supported)";
-#  endif
-#  ifdef ZIP64_SUPPORT
      static const char Use_Zip64[] =
      "ZIP64_SUPPORT (archives using Zip64 for large files supported)";
-#  endif
 #  ifdef USE_VFAT
      static const char Use_VFAT_support[] = "USE_VFAT";
 #  endif
@@ -1791,16 +1787,12 @@ static void show_version_info(Uz_Globs *pG)
           LoadFarStringSmall(Use_MultiVol)));
         ++numopts;
 #endif
-#ifdef LARGE_FILE_SUPPORT
         Info(slide, 0, ((char *)slide, LoadFarString(CompileOptFormat),
           LoadFarStringSmall(Use_LFS)));
         ++numopts;
-#endif
-#ifdef ZIP64_SUPPORT
         Info(slide, 0, ((char *)slide, LoadFarString(CompileOptFormat),
           LoadFarStringSmall(Use_Zip64)));
         ++numopts;
-#endif
 #ifdef USE_VFAT
         Info(slide, 0, ((char *)slide, LoadFarString(CompileOptFormat),
           LoadFarStringSmall(Use_VFAT_support)));

@@ -932,14 +932,14 @@ inflate_codes (
 /* inflate (decompress) the codes in a deflated (compressed) block.
    Return an error code or zero if it all goes ok. */
 {
-  register unsigned e;  /* table entry flag/number of extra bits */
+  unsigned e;  /* table entry flag/number of extra bits */
   unsigned d;           /* index for copy */
   UINT_D64 n;           /* length for copy (deflate64: might be 64k+2) */
   UINT_D64 w;           /* current window position (deflate64: up to 64k) */
   struct huft *t;       /* pointer to table entry */
   unsigned ml, md;      /* masks for bl and bd bits */
   register ulg b;       /* bit buffer */
-  register unsigned k;  /* number of bits in bit buffer */
+  unsigned k;  /* number of bits in bit buffer */
   int retval = 0;       /* error code returned: initialized to "no error" */
 
 

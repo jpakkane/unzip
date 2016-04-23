@@ -29,7 +29,7 @@
  * 9/25/04 EG
  */
 
-#if defined(LARGE_FILE_SUPPORT) && !defined(__CYGWIN__)
+#if !defined(__CYGWIN__)
 # ifdef USE_STRM_INPUT
 
 #  ifndef zftello

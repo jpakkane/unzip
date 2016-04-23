@@ -415,9 +415,7 @@ int unzipToMemory(Uz_Globs *pG, char *zip, char *file, UzpBuffer *retstr)
 int 
 redirect_outfile (Uz_Globs *pG)
 {
-#ifdef ZIP64_SUPPORT
     __int64 check_conversion;
-#endif
 
     if ((*(Uz_Globs *)pG).redirect_size != 0 || (*(Uz_Globs *)pG).redirect_buffer != NULL)
         return FALSE;
@@ -431,35 +429,19 @@ redirect_outfile (Uz_Globs *pG)
         if ((*(Uz_Globs *)pG).redirect_size < (*(Uz_Globs *)pG).lrec.ucsize)
             (*(Uz_Globs *)pG).redirect_size = (ulg)(((*(Uz_Globs *)pG).lrec.ucsize > (ulg)-2L) ?
                                     (*(Uz_Globs *)pG).lrec.ucsize : -2L);
-#ifdef ZIP64_SUPPORT
         check_conversion = (*(Uz_Globs *)pG).lrec.ucsize * lenEOL;
-#endif
     } else
 #endif
     {
         (*(Uz_Globs *)pG).redirect_size = (ulg)(*(Uz_Globs *)pG).lrec.ucsize;
-#ifdef ZIP64_SUPPORT
         check_conversion = (__int64)(*(Uz_Globs *)pG).lrec.ucsize;
-#endif
     }
 
-#ifdef ZIP64_SUPPORT
     if ((__int64)(*(Uz_Globs *)pG).redirect_size != check_conversion)
         return FALSE;
-#endif
 
-#ifdef __16BIT__
-    if ((ulg)((extent)(*(Uz_Globs *)pG).redirect_size) != (*(Uz_Globs *)pG).redirect_size)
-        return FALSE;
-#endif
-#ifdef OS2
-    DosAllocMem((void **)&(*(Uz_Globs *)pG).redirect_buffer, (*(Uz_Globs *)pG).redirect_size+1,
-      PAG_READ|PAG_WRITE|PAG_COMMIT);
-    (*(Uz_Globs *)pG).redirect_pointer = (*(Uz_Globs *)pG).redirect_buffer;
-#else
     (*(Uz_Globs *)pG).redirect_pointer =
       (*(Uz_Globs *)pG).redirect_buffer = malloc((extent)((*(Uz_Globs *)pG).redirect_size+1));
-#endif
     if (!(*(Uz_Globs *)pG).redirect_buffer)
         return FALSE;
     (*(Uz_Globs *)pG).redirect_pointer[(*(Uz_Globs *)pG).redirect_size] = '\0';

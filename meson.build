@@ -5,8 +5,6 @@ zdep = dependency('zlib')
 
 add_global_arguments(
   '-DUSE_DEFLATE64=1',
-  '-DLARGE_FILE_SUPPORT=1',
-  '-DZIP64_SUPPORT=1',
   '-DNO_EXCEPT_SIGNALS=1',
   language : 'c')
 

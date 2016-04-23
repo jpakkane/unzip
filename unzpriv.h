@@ -313,19 +313,11 @@
 /*************/
 
 #define UNZIP_BZ2VERS   46
-#ifdef ZIP64_SUPPORT
 # ifdef USE_BZIP2
 #  define UNZIP_VERSION   UNZIP_BZ2VERS
 # else
 #  define UNZIP_VERSION   45
 # endif
-#else
-#ifdef USE_DEFLATE64
-#  define UNZIP_VERSION   21   /* compatible with PKUNZIP 4.0 */
-#else
-#  define UNZIP_VERSION   20   /* compatible with PKUNZIP 2.0 */
-#endif
-#endif
 #define VMS_UNZIP_VERSION 42   /* if OS-needed-to-extract is VMS:  can do */
 
 #if (defined(OS2) || defined(WIN32))
@@ -749,7 +741,7 @@
  * Updated 1/28/2004
  * Lifted and placed here 6/7/2004 - Myles Bennett
  */
-#ifdef LARGE_FILE_SUPPORT
+
   /* 64-bit Large File Support */
 
 /* ---------------------------- */
@@ -854,27 +846,6 @@
 
 # endif /* WIN32 */
 
-#else
-  /* No Large File Support */
-
-# ifndef REGULUS  /* returns the inode number on success(!)...argh argh argh */
-#   define zstat stat
-# endif
-# define zfstat fstat
-# define zlseek lseek
-# define zfseeko fseek
-# define zftello ftell
-# define zfopen fopen
-# define zfdopen fdopen
-
-# if defined(UNIX) || defined(WIN32)
-    /* For these systems, implement "64bit file vs. 32bit prog" check  */
-#   ifndef DO_SAFECHECK_2GB
-#     define DO_SAFECHECK_2GB
-#   endif
-# endif
-
-#endif
 
 #ifndef SSTAT
 #  ifdef WILD_STAT_BUG
@@ -889,13 +860,8 @@
 
 #ifndef FZOFFT_FMT
 
-#  ifdef LARGE_FILE_SUPPORT
 #    define FZOFFT_FMT "ll"
 #    define FZOFFT_HEX_WID_VALUE "16"
-#  else /* def LARGE_FILE_SUPPORT */
-#    define FZOFFT_FMT "l"
-#    define FZOFFT_HEX_WID_VALUE "8"
-#  endif /* def LARGE_FILE_SUPPORT */
 
 #endif /* ndef FZOFFT_FMT */
 
@@ -1205,16 +1171,15 @@
 /*  Typedefs  */
 /**************/
 
-#ifdef ZIP64_SUPPORT
 # ifndef Z_UINT8_DEFINED
-#   if (defined(__GNUC__) || defined(__hpux) || defined(__SUNPRO_C))
+#   if (defined(__GNUC__))
   typedef unsigned long long    z_uint8;
 #   else
   typedef unsigned __int64      z_uint8;
 #   endif
 #   define Z_UINT8_DEFINED
 # endif
-#endif
+
 #ifndef Z_UINT4_DEFINED
 # if (defined(MODERN) && !defined(NO_LIMITS_H))
 #  if (defined(UINT_MAX) && (UINT_MAX == 0xffffffffUL))
@@ -1250,7 +1215,6 @@
    c) enumeration and counts of zipfile volumes of multivolume archives
       (2 bytes / 4 bytes)
  */
-#ifdef ZIP64_SUPPORT
   typedef  z_uint8              zusz_t;     /* zipentry sizes & offsets */
   typedef  z_uint8              zucn_t;     /* archive entry counts */
   typedef  z_uint4              zuvl_t;     /* multivolume numbers */
@@ -1260,12 +1224,6 @@
      #define MASK_ZUCN64        (~(zucn_t)0 & (zucn_t)0xffffffffffffffffULL)
    for the 64-bit mask.
  */
-#else
-  typedef  ulg                  zusz_t;     /* zipentry sizes & offsets */
-  typedef  unsigned int         zucn_t;     /* archive entry counts */
-  typedef  unsigned short       zuvl_t;     /* multivolume numbers */
-# define MASK_ZUCN64            (~(zucn_t)0)
-#endif
 #define MASK_ZUCN16             ((zucn_t)0xFFFF)
 
 #ifdef NO_UID_GID

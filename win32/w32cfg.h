@@ -528,41 +528,7 @@ int screensize(int *tt_rows, int *tt_cols);
 /* If port has LARGE_FILE_SUPPORT then define here
    to make automatic unless overridden */
 
-#ifndef LARGE_FILE_SUPPORT
-# ifndef NO_LARGE_FILE_SUPPORT
-#   if defined(_MSC_VER) || defined(__MINGW32__)
-#     define LARGE_FILE_SUPPORT
-#   elif defined(__LCC__)
-      /* LCC links against crtdll.dll -> no support of 64-bit offsets :( */
-#   elif defined(__CYGWIN__)
-#     define LARGE_FILE_SUPPORT
-#   elif (defined(__WATCOMC__) && (__WATCOMC__ >= 1100))
-#     define LARGE_FILE_SUPPORT
-#   elif (defined(__BORLANDC__) && (__BORLANDC__ >= 0x0520))
-      /* Borland C RTL lacks any support to get/set 64-bit file pointer :( */
-#   endif
-# endif
-#endif
 
 
-#ifndef LARGE_FILE_SUPPORT
-  /* No Large File Support */
-
-  /* base type for file offsets and file sizes */
-  typedef long zoff_t;
-# define ZOFF_T_DEFINED
-
-  /* stat struct */
-  typedef struct stat z_stat;
-# define Z_STAT_DEFINED
-
-#  define FZOFFT_FMT "l"
-#  define FZOFFT_HEX_WID_VALUE "8"
-
-
-#  define SHORTHDRSTATS "%9lu  %02u%c%02u%c%02u %02u:%02u  %c"
-#  define SHORTFILETRAILER " --------                   -------\n%9lu                   %9lu file%s\n"
-
-#endif /* LARGE_FILE_SUPPORT */
 
 #endif /* !__w32cfg_h */

@@ -221,14 +221,9 @@ static const char ExtraBytesPreceding[] =
 
 static const char UnknownNo[] = "unknown (%d)";
 
-#ifdef ZIP64_SUPPORT
   static const char LocalHeaderOffset[] =
     "\n  offset of local header from start of archive:   %s\n\
                                                   (%sh) bytes\n";
-#else
-  static const char LocalHeaderOffset[] =
-    "\n  offset of local header from start of archive:   %s (%sh) bytes\n";
-#endif
 static const char HostOS[] =
   "  file system or operating system of origin:      %s\n";
 static const char EncodeSWVer[] =

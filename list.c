@@ -301,10 +301,8 @@ list_files (    /* return PK-type error code */
                 unsigned long ucsize_hi=0L, csiz_hi=0L;
                 ucsize_lo = (unsigned long)((*(Uz_Globs *)pG).crec.ucsize);
                 csiz_lo = (unsigned long)(csiz);
-#ifdef ZIP64_SUPPORT
                 ucsize_hi = (unsigned long)((*(Uz_Globs *)pG).crec.ucsize >> 32);
                 csiz_hi = (unsigned long)(csiz >> 32);
-#endif /* ZIP64_SUPPORT */
                 (*(*(Uz_Globs *)pG).lpUserFunctions->SendApplicationMessage_i32)(ucsize_lo,
                     ucsize_hi, csiz_lo, csiz_hi, (unsigned)cfactor,
                     mo, dy, yr, hh, mm,
