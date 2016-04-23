@@ -121,9 +121,9 @@
 #endif                  /* at least 8K for zip's implode method */
 
 #if (defined(DLL) && !defined(NO_SLIDE_REDIR))
-#  define wszimpl (unsigned)((*(Uz_Globs *)pG)._wsize)
+#  define exp_wszimpl (unsigned)((*(Uz_Globs *)pG)._wsize)
 #else
-#    define wszimpl WSIZE
+#    define exp_wszimpl WSIZE
 #endif
 
 /* routines here */
@@ -187,28 +187,28 @@ static const ush cpdist8[] =
 /* Macros for inflate() bit peeking and grabbing.
    The usage is:
 
-        NEEDBITS(j)
+        EXP_NEEDBITS(j)
         x = b & mask_bits[j];
-        DUMPBITS(j)
+        EXP_DUMPBITS(j)
 
-   where NEEDBITS makes sure that b has at least j bits in it, and
-   DUMPBITS removes the bits from b.  The macros use the variable k
+   where EXP_NEEDBITS makes sure that b has at least j bits in it, and
+   EXP_DUMPBITS removes the bits from b.  The macros use the variable k
    for the number of bits in b.  Normally, b and k are register
    variables for speed.
  */
 
-#define NEEDBITS(n) {while(k<(n)){b|=((ulg)NEXTBYTE)<<k;k+=8;}}
-#define DUMPBITS(n) {b>>=(n);k-=(n);}
+#define EXP_NEEDBITS(n) {while(k<(n)){b|=((ulg)NEXTBYTE)<<k;k+=8;}}
+#define EXP_DUMPBITS(n) {b>>=(n);k-=(n);}
 
-#define DECODEHUFT(htab, bits, mask) {\
-  NEEDBITS((unsigned)(bits))\
+#define EXP_DECODEHUFT(htab, bits, mask) {\
+  EXP_NEEDBITS((unsigned)(bits))\
   t = (htab) + ((~(unsigned)b)&(mask));\
   while (1) {\
-    DUMPBITS(t->b)\
+    EXP_DUMPBITS(t->b)\
     if ((e=t->e) <= 32) break;\
     if (IS_INVALID_CODE(e)) return 1;\
     e &= 31;\
-    NEEDBITS(e)\
+    EXP_NEEDBITS(e)\
     t = t->v.t + ((~(unsigned)b)&mask_bits[e]);\
   }\
 }
@@ -284,14 +284,14 @@ explode_lit (
   s = (*(Uz_Globs *)pG).lrec.ucsize;
   while (s > 0)                 /* do until ucsize bytes uncompressed */
   {
-    NEEDBITS(1)
+    EXP_NEEDBITS(1)
     if (b & 1)                  /* then literal--decode it */
     {
-      DUMPBITS(1)
+      EXP_DUMPBITS(1)
       s--;
-      DECODEHUFT(tb, bb, mb)    /* get coded literal */
+      EXP_DECODEHUFT(tb, bb, mb)    /* get coded literal */
       redirSlide[w++] = (uch)t->v.n;
-      if (w == wszimpl)
+      if (w == exp_wszimpl)
       {
         if ((retval = flush(pG, redirSlide, (ulg)w, 0)) != 0)
           return retval;
@@ -300,19 +300,19 @@ explode_lit (
     }
     else                        /* else distance/length */
     {
-      DUMPBITS(1)
-      NEEDBITS(bdl)             /* get distance low bits */
+      EXP_DUMPBITS(1)
+      EXP_NEEDBITS(bdl)             /* get distance low bits */
       d = (unsigned)b & mdl;
-      DUMPBITS(bdl)
-      DECODEHUFT(td, bd, md)    /* get coded distance high bits */
+      EXP_DUMPBITS(bdl)
+      EXP_DECODEHUFT(td, bd, md)    /* get coded distance high bits */
       d = w - d - t->v.n;       /* construct offset */
-      DECODEHUFT(tl, bl, ml)    /* get coded length */
+      EXP_DECODEHUFT(tl, bl, ml)    /* get coded length */
       n = t->v.n;
       if (e)                    /* get length extra bits */
       {
-        NEEDBITS(8)
+        EXP_NEEDBITS(8)
         n += (unsigned)b & 0xff;
-        DUMPBITS(8)
+        EXP_DUMPBITS(8)
       }
 
       /* do the copy */
@@ -320,13 +320,13 @@ explode_lit (
       do {
 #if (defined(DLL) && !defined(NO_SLIDE_REDIR))
         if ((*(Uz_Globs *)pG).redirect_slide) {
-          /* &= w/ wszimpl not needed and wrong if redirect */
-          if (d >= wszimpl)
+          /* &= w/ exp_wszimpl not needed and wrong if redirect */
+          if (d >= exp_wszimpl)
             return 1;
-          e = wszimpl - (d > w ? d : w);
+          e = exp_wszimpl - (d > w ? d : w);
         } else
 #endif
-          e = wszimpl - ((d &= wszimpl-1) > w ? d : w);
+          e = exp_wszimpl - ((d &= exp_wszimpl-1) > w ? d : w);
         if (e > n) e = n;
         n -= e;
         if (u && w <= d)
@@ -348,7 +348,7 @@ explode_lit (
             do {
               redirSlide[w++] = redirSlide[d++];
             } while (--e);
-        if (w == wszimpl)
+        if (w == exp_wszimpl)
         {
           if ((retval = flush(pG, redirSlide, (ulg)w, 0)) != 0)
             return retval;
@@ -405,36 +405,36 @@ explode_nolit (
   s = (*(Uz_Globs *)pG).lrec.ucsize;
   while (s > 0)                 /* do until ucsize bytes uncompressed */
   {
-    NEEDBITS(1)
+    EXP_NEEDBITS(1)
     if (b & 1)                  /* then literal--get eight bits */
     {
-      DUMPBITS(1)
+      EXP_DUMPBITS(1)
       s--;
-      NEEDBITS(8)
+      EXP_NEEDBITS(8)
       redirSlide[w++] = (uch)b;
-      if (w == wszimpl)
+      if (w == exp_wszimpl)
       {
         if ((retval = flush(pG, redirSlide, (ulg)w, 0)) != 0)
           return retval;
         w = u = 0;
       }
-      DUMPBITS(8)
+      EXP_DUMPBITS(8)
     }
     else                        /* else distance/length */
     {
-      DUMPBITS(1)
-      NEEDBITS(bdl)             /* get distance low bits */
+      EXP_DUMPBITS(1)
+      EXP_NEEDBITS(bdl)             /* get distance low bits */
       d = (unsigned)b & mdl;
-      DUMPBITS(bdl)
-      DECODEHUFT(td, bd, md)    /* get coded distance high bits */
+      EXP_DUMPBITS(bdl)
+      EXP_DECODEHUFT(td, bd, md)    /* get coded distance high bits */
       d = w - d - t->v.n;       /* construct offset */
-      DECODEHUFT(tl, bl, ml)    /* get coded length */
+      EXP_DECODEHUFT(tl, bl, ml)    /* get coded length */
       n = t->v.n;
       if (e)                    /* get length extra bits */
       {
-        NEEDBITS(8)
+        EXP_NEEDBITS(8)
         n += (unsigned)b & 0xff;
-        DUMPBITS(8)
+        EXP_DUMPBITS(8)
       }
 
       /* do the copy */
@@ -442,13 +442,13 @@ explode_nolit (
       do {
 #if (defined(DLL) && !defined(NO_SLIDE_REDIR))
         if ((*(Uz_Globs *)pG).redirect_slide) {
-          /* &= w/ wszimpl not needed and wrong if redirect */
-          if (d >= wszimpl)
+          /* &= w/ exp_wszimpl not needed and wrong if redirect */
+          if (d >= exp_wszimpl)
             return 1;
-          e = wszimpl - (d > w ? d : w);
+          e = exp_wszimpl - (d > w ? d : w);
         } else
 #endif
-          e = wszimpl - ((d &= wszimpl-1) > w ? d : w);
+          e = exp_wszimpl - ((d &= exp_wszimpl-1) > w ? d : w);
         if (e > n) e = n;
         n -= e;
         if (u && w <= d)
@@ -470,7 +470,7 @@ explode_nolit (
             do {
               redirSlide[w++] = redirSlide[d++];
             } while (--e);
-        if (w == wszimpl)
+        if (w == exp_wszimpl)
         {
           if ((retval = flush(pG, redirSlide, (ulg)w, 0)) != 0)
             return retval;
@@ -610,9 +610,3 @@ explode (Uz_Globs *pG)
   Trace((stderr, "<%u > ", (*(Uz_Globs *)pG).hufts));
   return (int)r;
 }
-
-/* so explode.c and inflate.c can be compiled together into one object: */
-#undef DECODEHUFT
-#undef NEEDBITS
-#undef DUMPBITS
-#undef wszimpl
