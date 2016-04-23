@@ -44,11 +44,7 @@
 #if defined(USE_CRYPT)
 #  define CRYPT  1  /* full version */
 #else
-#if !defined(SFX)
 #  define CRYPT  1  /* full version for zip and main unzip */
-#else
-#  define CRYPT  0  /* dummy version for unzip sfx */
-#endif
 #endif /* ?USE_CRYPT */
 #endif /* ?NO_CRYPT */
 

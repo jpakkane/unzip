@@ -77,9 +77,6 @@ main (int argc, char **argv)
 #ifdef FUNZIP
     (*set_flag)("FUNZIP");
 #endif
-#ifdef SFX
-    (*set_flag)("SFX");
-#endif
     (*set_flag)("REENTRANT");
 #ifdef DLL
     (*set_flag)("DLL");

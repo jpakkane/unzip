@@ -82,7 +82,6 @@
 #  define HAVE_WORKING_DIRENT_H
 #endif
 
-#ifndef SFX
 #  ifdef HAVE_WORKING_DIRENT_H
 #    include <dirent.h>         /* use readdir() */
 #    define zdirent  dirent
@@ -106,7 +105,6 @@
      static struct zdirent *Readdir  (zDIR *d);
      static void            Closedir (zDIR *d);
 #  endif /* ?HAVE_WORKING_DIRENT_H */
-#endif /* !SFX */
 
 #ifdef SET_DIR_ATTRIB
 typedef struct NTdirattr {      /* struct for holding unix style directory */
@@ -183,32 +181,6 @@ extern char TruncNTSD[];    /* in extract.c */
 
 
 
-#ifdef SFX
-
-/**************************/
-/* Function GetLoadPath() */
-/**************************/
-
-char *GetLoadPath(Uz_Globs *pG)
-{
-#ifdef MSC
-    extern char *_pgmptr;
-    return _pgmptr;
-
-#else    /* use generic API call */
-
-    GetModuleFileName(NULL, (*(Uz_Globs *)pG).filename, FILNAMSIZ);
-    _ISO_INTERN((*(Uz_Globs *)pG).filename);    /* translate to codepage of C rtl's stdio */
-    return (*(Uz_Globs *)pG).filename;
-#endif
-
-} /* end function GetLoadPath() */
-
-
-
-
-
-#else /* !SFX */
 
 #ifndef HAVE_WORKING_DIRENT_H
 
@@ -297,7 +269,6 @@ static void Closedir(d)
 }
 
 #endif /* !HAVE_WORKING_DIRENT_H */
-#endif /* ?SFX */
 
 
 
@@ -1480,7 +1451,6 @@ static int IsVolumeOldFAT(Uz_Globs *pG, const char *name)
 
 
 
-#ifndef SFX
 
 /************************/
 /*  Function do_wild()  */   /* identical to OS/2 version */
@@ -1615,9 +1585,6 @@ char *do_wild(pG, wildspec)
     return (char *)NULL;
 
 } /* end function do_wild() */
-
-#endif /* !SFX */
-
 
 
 /**********************/
@@ -2398,7 +2365,6 @@ int checkdir(pG, pathcomp, flag)
     hibited (e.g., freshening).
   ---------------------------------------------------------------------------*/
 
-#if (!defined(SFX) || defined(SFX_EXDIR))
     if (FUNCTION == ROOT) {
         Trace((stderr, "initializing root path to [%s]\n",
           FnFilter1(pathcomp)));
@@ -2463,7 +2429,6 @@ int checkdir(pG, pathcomp, flag)
         }
         return MPN_OK;
     }
-#endif /* !SFX || SFX_EXDIR */
 
 /*---------------------------------------------------------------------------
     END:  free rootpath, immediately prior to program exit.
@@ -2485,8 +2450,6 @@ int checkdir(pG, pathcomp, flag)
 
 
 
-
-#ifndef SFX
 
 /*************************/
 /* Function dateformat() */
@@ -2646,7 +2609,6 @@ void version(pG)
 } /* end function version() */
 
 #endif /* !WINDLL */
-#endif /* !SFX */
 
 
 

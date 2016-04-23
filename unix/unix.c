@@ -95,7 +95,6 @@ static const char CannotSetTimestamps[] =
 #endif /* !MTS */
 
 
-#ifndef SFX
 #ifdef NO_DIR                  /* for AT&T 3B1 */
 
 #define opendir(path) fopen(path,"r")
@@ -276,8 +275,6 @@ do_wild (
     return (char *)NULL;
 
 } /* end function do_wild() */
-
-#endif /* !SFX */
 
 
 
@@ -902,7 +899,6 @@ int checkdir(pG, pathcomp, flag)
     on the command line.
   ---------------------------------------------------------------------------*/
 
-#if (!defined(SFX) || defined(SFX_EXDIR))
     if (FUNCTION == ROOT) {
         Trace((stderr, "initializing root path to [%s]\n",
           FnFilter1(pathcomp)));
@@ -957,7 +953,6 @@ int checkdir(pG, pathcomp, flag)
         }
         return MPN_OK;
     }
-#endif /* !SFX || SFX_EXDIR */
 
 /*---------------------------------------------------------------------------
     END:  free rootpath, immediately prior to program exit.
@@ -1382,7 +1377,6 @@ int stamp_file(fname, modtime)
 
 
 
-#ifndef SFX
 
 /************************/
 /*  Function version()  */
@@ -1435,36 +1429,6 @@ version (Uz_Globs *pG)
       "gcc ", __VERSION__,
 #  endif
 #else
-#if defined(__SUNPRO_C)
-      "Sun C ", (sprintf(cc_versbuf, "version %x", __SUNPRO_C), cc_versbuf),
-#else
-#if (defined(__HP_cc))
-      "HP C ",
-      (((__HP_cc% 100) == 0) ?
-      (sprintf(cc_versbuf, "version A.%02d.%02d",
-      (__HP_cc/ 10000), ((__HP_cc% 10000)/ 100))) :
-      (sprintf(cc_versbuf, "version A.%02d.%02d.%02d",
-      (__HP_cc/ 10000), ((__HP_cc% 10000)/ 100), (__HP_cc% 100))),
-      cc_versbuf),
-#else
-#if (defined(__DECC_VER))
-      "DEC C ",
-      (sprintf(cc_versbuf, "%c%d.%d-%03d",
-               ((cc_verstyp = (__DECC_VER / 10000) % 10) == 6 ? 'T' :
-                (cc_verstyp == 8 ? 'S' : 'V')),
-               __DECC_VER / 10000000,
-               (__DECC_VER % 10000000) / 100000, __DECC_VER % 1000),
-               cc_versbuf),
-#else
-#if defined(CRAY) && defined(_RELEASE)
-      "cc ", (sprintf(cc_versbuf, "version %d", _RELEASE), cc_versbuf),
-#else
-#ifdef __IBMC__
-      "IBM C ",
-      (sprintf(cc_versbuf, "version %d.%d.%d",
-               (__IBMC__ / 100), ((__IBMC__ / 10) % 10), (__IBMC__ % 10)),
-               cc_versbuf),
-#else
 #ifdef __VERSION__
 #   ifndef IZ_CC_NAME
 #    define IZ_CC_NAME "cc "
@@ -1476,11 +1440,6 @@ version (Uz_Globs *pG)
 #   endif
       IZ_CC_NAME, "",
 #endif /* ?__VERSION__ */
-#endif /* ?__IBMC__ */
-#endif /* ?(CRAY && _RELEASE) */
-#endif /* ?__DECC_VER */
-#endif /* ?__HP_cc */
-#endif /* ?__SUNPRO_C */
 #endif /* ?__GNUC__ */
 
 #ifndef IZ_OS_NAME
@@ -1491,69 +1450,12 @@ version (Uz_Globs *pG)
 #if defined(sgi) || defined(__sgi)
       " (Silicon Graphics IRIX)",
 #else
-#ifdef sun
-#  ifdef sparc
-#    ifdef __SVR4
-      " (Sun SPARC/Solaris)",
-#    else /* may or may not be SunOS */
-      " (Sun SPARC)",
-#    endif
-#  else
-#  if defined(sun386) || defined(i386)
-      " (Sun 386i)",
-#  else
-#  if defined(mc68020) || defined(__mc68020__)
-      " (Sun 3)",
-#  else /* mc68010 or mc68000:  Sun 2 or earlier */
-      " (Sun 2)",
-#  endif
-#  endif
-#  endif
-#else
-#ifdef __hpux
-      " (HP-UX)",
-#else
-#ifdef __osf__
-      " (DEC OSF/1)",
-#else
-#ifdef _AIX
-      " (IBM AIX)",
-#else
-#ifdef aiws
-      " (IBM RT/AIX)",
-#else
-#if defined(CRAY) || defined(cray)
-#  ifdef _UNICOS
-      (sprintf(os_namebuf, " (Cray UNICOS release %d)", _UNICOS), os_namebuf),
-#  else
-      " (Cray UNICOS)",
-#  endif
-#else
-#if defined(uts) || defined(UTS)
-      " (Amdahl UTS)",
-#else
-#ifdef NeXT
-#  ifdef mc68000
-      " (NeXTStep/black)",
-#  else
-      " (NeXTStep for Intel)",
-#  endif
-#else              /* the next dozen or so are somewhat order-dependent */
 #ifdef LINUX
 #  ifdef __ELF__
       " (Linux ELF)",
 #  else
       " (Linux a.out)",
 #  endif
-#else
-#ifdef MINIX
-      " (Minix)",
-#else
-#ifdef M_UNIX
-      " (SCO Unix)",
-#else
-#ifdef M_XENIX
-      " (SCO Xenix)",
 #else
 #ifdef __NetBSD__
 #  ifdef NetBSD0_8
@@ -1597,63 +1499,11 @@ version (Uz_Globs *pG)
 #if defined(i386) || defined(__i386) || defined(__i386__)
       " (Intel 386)",
 #else
-#ifdef pyr
-      " (Pyramid)",
-#else
-#ifdef ultrix
-#  ifdef mips
-      " (DEC/MIPS)",
-#  else
-#  ifdef vax
-      " (DEC/VAX)",
-#  else /* __alpha? */
-      " (DEC/Alpha)",
-#  endif
-#  endif
-#else
-#ifdef gould
-      " (Gould)",
-#else
-#ifdef MTS
-      " (MTS)",
-#else
-#ifdef __convexc__
-      " (Convex)",
-#else
-#ifdef __QNX__
-      " (QNX 4)",
-#else
-#ifdef __QNXNTO__
-      " (QNX Neutrino)",
-#else
-#ifdef Lynx
-      " (LynxOS)",
-#else
 #ifdef __APPLE__
-#  ifdef __i386__
-      " Mac OS X Intel i32",
-#  else
-#  ifdef __ppc__
-      " Mac OS X PowerPC",
-#  else
-#  ifdef __ppc64__
-      " Mac OS X PowerPC64",
-#  else
       " Mac OS X",
-#  endif /* __ppc64__ */
-#  endif /* __ppc__ */
-#  endif /* __i386__ */
 #else
       "",
 #endif /* Apple */
-#endif /* Lynx */
-#endif /* QNX Neutrino */
-#endif /* QNX 4 */
-#endif /* Convex */
-#endif /* MTS */
-#endif /* Gould */
-#endif /* DEC */
-#endif /* Pyramid */
 #endif /* 386 */
 #endif /* 486 */
 #endif /* 586 */
@@ -1663,32 +1513,16 @@ version (Uz_Globs *pG)
 #endif /* BSDI BSD/386 */
 #endif /* NetBSD */
 #endif /* FreeBSD */
-#endif /* SCO Xenix */
-#endif /* SCO Unix */
-#endif /* Minix */
 #endif /* Linux */
-#endif /* NeXT */
-#endif /* Amdahl */
-#endif /* Cray */
-#endif /* RT/AIX */
-#endif /* AIX */
-#endif /* OSF/1 */
-#endif /* HP-UX */
-#endif /* Sun */
 #endif /* SGI */
 
-#ifdef __DATE__
-      " on ", __DATE__
-#else
       "", ""
-#endif
     );
 
     (*(*(Uz_Globs *)pG).message)((void *)&(*(Uz_Globs *)pG), slide, (ulg)strlen((char *)slide), 0);
 
 } /* end function version() */
 
-#endif /* !SFX */
 
 
 

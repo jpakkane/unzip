@@ -37,9 +37,6 @@
 #  ifdef DLL
 #    undef DLL
 #  endif
-#  ifdef SFX            /* fUnZip is NOT the sfx stub! */
-#    undef SFX
-#  endif
 #  ifdef USE_BZIP2      /* fUnZip does not support bzip2 decompression */
 #    undef USE_BZIP2
 #  endif
@@ -57,14 +54,9 @@
 #  endif
 #else
    /* enable Deflate64(tm) support unless compiling for SFX stub */
-#  if (!defined(USE_DEFLATE64) && !defined(SFX))
+#  if (!defined(USE_DEFLATE64))
 #    define USE_DEFLATE64
 #  endif
-#endif
-
-/* disable bzip2 support for SFX stub, unless explicitly requested */
-#if (defined(SFX) && !defined(BZIP2_SFX) && defined(USE_BZIP2))
-#  undef USE_BZIP2
 #endif
 
 #if (defined(NO_VMS_TEXT_CONV) || defined(VMS))
@@ -72,7 +64,7 @@
 #    undef VMS_TEXT_CONV
 #  endif
 #else
-#  if (!defined(VMS_TEXT_CONV) && !defined(SFX))
+#  if (!defined(VMS_TEXT_CONV))
 #    define VMS_TEXT_CONV
 #  endif
 #endif
@@ -572,31 +564,7 @@
 #  define Cdecl
 #endif
 
-#ifdef SFX      /* disable some unused features for SFX executables */
-#  ifndef NO_ZIPINFO
-#    define NO_ZIPINFO
-#  endif
-#  ifdef TIMESTAMP
-#    undef TIMESTAMP
-#  endif
-#endif
 
-#ifdef SFX
-#  ifdef CHEAP_SFX_AUTORUN
-#    ifndef NO_SFX_EXDIR
-#      define NO_SFX_EXDIR
-#    endif
-#  endif
-#  ifndef NO_SFX_EXDIR
-#    ifndef SFX_EXDIR
-#      define SFX_EXDIR
-#    endif
-#  else
-#    ifdef SFX_EXDIR
-#      undef SFX_EXDIR
-#    endif
-#  endif
-#endif
 
 /* user may have defined both by accident...  NOTIMESTAMP takes precedence */
 #if (defined(TIMESTAMP) && defined(NOTIMESTAMP))
@@ -950,11 +918,6 @@
 
 #endif
 
-/* No "64bit file vs. 32bit prog" check for SFX stub, to save space */
-#if (defined(DO_SAFECHECK_2GB) && defined(SFX))
-#  undef DO_SAFECHECK_2GB
-#endif
-
 #ifndef SSTAT
 #  ifdef WILD_STAT_BUG
 #    define SSTAT(path,pbuf) (iswild(path) || zstat(path,pbuf))
@@ -1040,10 +1003,6 @@
 #define DS_FN_L           6             /* read filename from local header */
 #define EXTRA_FIELD       3             /* copy extra field into buffer */
 #define DS_EF             3
-#if (defined(SFX) && defined(CHEAP_SFX_AUTORUN))
-#  define CHECK_AUTORUN   7             /* copy command, display remainder */
-#  define CHECK_AUTORUN_Q 8             /* copy command, skip remainder */
-#endif
 
 #define DOES_NOT_EXIST    -1   /* return values for check_for_newer() */
 #define EXISTS_AND_OLDER  0
@@ -1417,9 +1376,7 @@ typedef struct min_info {
 #ifdef UNICODE_SUPPORT
     unsigned GPFIsUTF8: 1;   /* crec gen_purpose_flag UTF-8 bit 11 is set */
 #endif
-#ifndef SFX
     char *cfilname;      /* central header version of filename */
-#endif
 } min_info;
 
 typedef struct VMStimbuf {
@@ -1646,7 +1603,6 @@ unsigned ef_scan_for_izux        (const uch *ef_buf, unsigned ef_len,
                                      int ef_is_c, ulg dos_mdatetime,
                                      iztimes *z_utim, ulg *z_uidgid);
 
-#ifndef SFX
 
 /*---------------------------------------------------------------------------
     Functions in zipinfo.c (`zipinfo-style' listing routines):
@@ -1676,7 +1632,6 @@ int      list_files              ();
 int      ratio                   (zusz_t uc, zusz_t c);
 void     fnprint                 ();
 
-#endif /* !SFX */
 
 /*---------------------------------------------------------------------------
     Functions in fileio.c:
@@ -1747,9 +1702,7 @@ int    extract_or_test_files     ();
 /* static int   TestExtraField   OF((Uz_Globs *pG, uch *ef, unsigned ef_len)); */
 /* static int   test_OS2         OF((Uz_Globs *pG, uch *eb, unsigned eb_size)); */
 /* static int   test_NT          OF((Uz_Globs *pG, uch *eb, unsigned eb_size)); */
-#ifndef SFX
   unsigned find_compr_idx        (unsigned compr_methodnum);
-#endif
 int    memextract                (Uz_Globs *pG, uch *tgt, ulg tgtsize,
                                      const uch *src, ulg srcsize);
 int    memflush                  (Uz_Globs *pG, const uch *rawbuf, ulg size);
@@ -1765,7 +1718,7 @@ char  *fnfilter                  (const char *raw, uch *space,
     Decompression functions:
   ---------------------------------------------------------------------------*/
 
-#if (!defined(SFX) && !defined(FUNZIP))
+#if (!defined(FUNZIP))
 int    explode                   ();                  /* explode.c */
 #endif
 int    huft_free                 (struct huft *t);          /* inflate.c */
@@ -1779,7 +1732,7 @@ int    huft_build                (Uz_Globs *pG, const unsigned *b, unsigned n,
    int    inflate                (Uz_Globs *pG, int is_defl64);  /* inflate.c */
    int    inflate_free           ();                  /* inflate.c */
 #endif /* ?USE_ZLIB */
-#if (!defined(SFX) && !defined(FUNZIP))
+#if (!defined(FUNZIP))
 #ifndef COPYRIGHT_CLEAN
    int    unreduce               ();                 /* unreduce.c */
 /* static void  LoadFollowers    OF((Uz_Globs *pG, f_array *follower, uch *Slen));
@@ -2302,18 +2255,14 @@ char    *GetLoadPath     ();                              /* local */
 
    extern const char  VersionDate[];
    extern const char  CentSigMsg[];
-#ifndef SFX
    extern const char  EndSigMsg[];
-#endif
    extern const char  SeekMsg[];
    extern const char  FilenameNotMatched[];
    extern const char  ExclFilenameNotMatched[];
    extern const char  ReportMsg[];
 
-#ifndef SFX
    extern const char  Zipnfo[];
    extern const char  CompiledWith[];
-#endif /* !SFX */
 
 
 

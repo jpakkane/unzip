@@ -28,10 +28,8 @@ const unsigned int mask_bits[17] = {
 
 const char VersionDate[] = UZ_VERSION_DATE;
 
-#ifndef SFX
    const char EndSigMsg[] =
    "\nnote:  didn't find end-of-central-dir signature at end of central dir.\n";
-#endif
 
 const char CentSigMsg[] =
   "error:  expected central file header signature not found (file #%lu).\n";
@@ -41,17 +39,9 @@ const char FilenameNotMatched[] = "caution: filename not matched:  %s\n";
 const char ExclFilenameNotMatched[] =
   "caution: excluded filename not matched:  %s\n";
 
-#ifdef VMS
-  const char ReportMsg[] = "\
-  (please check that you have transferred or created the zipfile in the\n\
-  appropriate BINARY mode--this includes ftp, Kermit, AND unzip'd zipfiles)\n";
-#else
   const char ReportMsg[] = "\
   (please check that you have transferred or created the zipfile in the\n\
   appropriate BINARY mode and that you have compiled UnZip properly)\n";
-#endif
 
-#ifndef SFX
   const char Zipnfo[] = "zipinfo";
   const char CompiledWith[] = "Compiled with %s%s for %s%s%s%s.\n\n";
-#endif

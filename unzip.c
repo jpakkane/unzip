@@ -92,10 +92,8 @@ typedef struct _sign_info
 static int setsignalhandler (Uz_Globs *pG, savsigs_info **p_savedhandler_chain,
                                 int signal_type, void (*newhandler)(int));
 #endif
-#ifndef SFX
 static void  help_extended      ();
 static void  show_version_info  (Uz_Globs *pG);
-#endif
 
 
 /*************/
@@ -107,7 +105,6 @@ static void  show_version_info  (Uz_Globs *pG);
 
 /* constant local variables: */
 
-#ifndef SFX
    static const char EnvUnZip[] = ENV_UNZIP;
    static const char EnvUnZip2[] = ENV_UNZIP2;
    static const char EnvZipInfo[] = ENV_ZIPINFO;
@@ -116,21 +113,18 @@ static void  show_version_info  (Uz_Globs *pG);
     "envargs:  cannot get memory for arguments";
   static const char CmdLineParamTooLong[] =
     "error:  command line parameter #%d exceeds internal size limit\n";
-#endif /* !SFX */
 
 #if ( !defined(NO_EXCEPT_SIGNALS))
   static const char CantSaveSigHandler[] =
     "error:  cannot save signal handler settings\n";
 #endif
 
-#if (!defined(SFX) || defined(SFX_EXDIR))
    static const char NotExtracting[] =
      "caution:  not extracting; -d ignored\n";
    static const char MustGiveExdir[] =
      "error:  must specify directory to which to extract with -d option\n";
    static const char OnlyOneExdir[] =
      "error:  -d option used more than once (only one exdir allowed)\n";
-#endif
 #if (defined(UNICODE_SUPPORT) && !defined(UNICODE_WCHAR))
   static const char UTF8EscapeUnSupp[] =
     "warning:  -U \"escape all non-ASCII UTF-8 chars\" is not supported\n";
@@ -141,17 +135,14 @@ static void  show_version_info  (Uz_Globs *pG);
      "error:  must give decryption password with -P option\n";
 #endif
 
-#ifndef SFX
    static const char Zfirst[] =
    "error:  -Z must be first option for ZipInfo mode (check UNZIP variable?)\n";
-#endif
 static const char InvalidOptionsMsg[] = "error:\
   -fn or any combination of -c, -l, -p, -t, -u and -v options invalid\n";
 static const char IgnoreOOptionMsg[] =
   "caution:  both -n and -o specified; ignoring -o\n";
 
 /* usage() strings */
-#ifndef SFX
    static const char Example3[] = "ReadMe";
    static const char Example2[] = " \
  unzip -p foo | more  => send contents of foo.zip via pipe into program more\n";
@@ -274,14 +265,9 @@ M  pipe through \"more\" pager              -s  spaces in filenames => '_'\n\n";
 #endif /* ?ATH_BEO_UNX */
 #endif /* ?VMS */
 #endif /* ?DOS_FLX_OS2_W32 */
-#endif /* !SFX */
 
 #ifndef NO_ZIPINFO
-#ifdef VMS
-   static const char ZipInfoExample[] = "* or % (e.g., \"*font-%.zip\")";
-#else
    static const char ZipInfoExample[] = "*, ?, [] (e.g., \"[a-j]*.zip\")";
-#endif
 
 static const char ZipInfoUsageLine1[] = "\
 ZipInfo %d.%d%d%s of %s, by Greg Roelofs and the Info-ZIP group.\n\
@@ -311,17 +297,6 @@ static const char ZipInfoUsageLine3[] = "miscellaneous options:\n\
 #endif /* ?MORE */
 #endif /* !NO_ZIPINFO */
 
-#ifdef SFX
-     const char UnzipSFXBanner[] =
-     "UnZipSFX %d.%d%d%s of %s, by Info-ZIP (http://www.info-zip.org).\n";
-#  ifdef SFX_EXDIR
-     static const char UnzipSFXOpts[] =
-    "Valid options are -tfupcz and -d <exdir>; modifiers are -abjnoqCL%sV%s.\n";
-#  else
-     static const char UnzipSFXOpts[] =
-       "Valid options are -tfupcz; modifiers are -abjnoqCL%sV%s.\n";
-#  endif
-#else /* !SFX */
    static const char CompileOptions[] =
      "UnZip special compilation options:\n";
    static const char CompileOptFormat[] = "        %s\n";
@@ -550,7 +525,6 @@ See \"unzip -hh\" or unzip.txt for more help.  Examples:\n\
   unzip data1 -x joe   => extract all files except joe from zipfile data1.zip\n\
 %s\
   unzip -fo foo %-6s => quietly replace existing %s if archive file newer\n";
-#endif /* ?SFX */
 
 
 
@@ -583,9 +557,7 @@ unzip (Uz_Globs *pG, int argc, char *argv[])
 #ifndef NO_ZIPINFO
     char *p;
 #endif
-#if (defined(DOS_FLX_H68_NLM_OS2_W32) || !defined(SFX))
     int i;
-#endif
     int retcode, error=FALSE;
 #ifndef NO_EXCEPT_SIGNALS
     savsigs_info *oldsighandlers = NULL;
@@ -773,18 +745,6 @@ unzip (Uz_Globs *pG, int argc, char *argv[])
     through any command-line options lurking about...
   ---------------------------------------------------------------------------*/
 
-#ifdef SFX
-    (*(Uz_Globs *)pG).argv0 = argv[0];
-#if (defined(OS2) || defined(WIN32))
-    (*(Uz_Globs *)pG).zipfn = GetLoadPath(pG);/* non-MSC NT puts path into (*(Uz_Globs *)pG).filename[] */
-#else
-    (*(Uz_Globs *)pG).zipfn = (*(Uz_Globs *)pG).argv0;
-#endif
-
-    uO.zipinfo_mode = FALSE;
-    error = uz_opts(pG, &argc, &argv);   /* UnZipSFX call only */
-
-#else /* !SFX */
 
     (*(Uz_Globs *)pG).noargs = (argc == 1);   /* no options, no zipfile, no anything */
 
@@ -837,8 +797,6 @@ unzip (Uz_Globs *pG, int argc, char *argv[])
             error = uz_opts(pG, &argc, &argv);
     }
 
-#endif /* ?SFX */
-
     if ((argc < 0) || error) {
         retcode = error;
         goto cleanup_and_exit;
@@ -870,37 +828,8 @@ unzip (Uz_Globs *pG, int argc, char *argv[])
     }
 #endif /* DOS_FLX_H68_NLM_OS2_W32 */
 
-#ifndef SFX
     (*(Uz_Globs *)pG).wildzipfn = *argv++;
-#endif
 
-#if (defined(SFX) && !defined(SFX_EXDIR)) /* only check for -x */
-
-    (*(Uz_Globs *)pG).filespecs = argc;
-    (*(Uz_Globs *)pG).xfilespecs = 0;
-
-    if (argc > 0) {
-        char **pp = argv-1;
-
-        (*(Uz_Globs *)pG).pfnames = argv;
-        while (*++pp)
-            if (strcmp(*pp, "-x") == 0) {
-                if (pp > argv) {
-                    *pp = 0;              /* terminate (*(Uz_Globs *)pG).pfnames */
-                    (*(Uz_Globs *)pG).filespecs = pp - (*(Uz_Globs *)pG).pfnames;
-                } else {
-                    (*(Uz_Globs *)pG).pfnames = (char **)fnames;  /* defaults */
-                    (*(Uz_Globs *)pG).filespecs = 0;
-                }
-                (*(Uz_Globs *)pG).pxnames = pp + 1;      /* excluded-names ptr: _after_ -x */
-                (*(Uz_Globs *)pG).xfilespecs = argc - (*(Uz_Globs *)pG).filespecs - 1;
-                break;                    /* skip rest of args */
-            }
-        (*(Uz_Globs *)pG).process_all_files = FALSE;
-    } else
-        (*(Uz_Globs *)pG).process_all_files = TRUE;      /* for speed */
-
-#else /* !SFX || SFX_EXDIR */             /* check for -x or -d */
 
     (*(Uz_Globs *)pG).filespecs = argc;
     (*(Uz_Globs *)pG).xfilespecs = 0;
@@ -971,7 +900,6 @@ unzip (Uz_Globs *pG, int argc, char *argv[])
 
     if (uO.exdir != (char *)NULL && !(*(Uz_Globs *)pG).extract_flag)    /* -d ignored */
         Info(slide, 0x401, ((char *)slide, LoadFarString(NotExtracting)));
-#endif /* ?(SFX && !SFX_EXDIR) */
 
 #ifdef UNICODE_SUPPORT
     /* set Unicode-escape-all if option -U used */
@@ -1122,7 +1050,6 @@ int uz_opts(pG, pargc, pargv)
                     else
                         uO.C_flag = TRUE;
                     break;
-#if (!defined(SFX) || defined(SFX_EXDIR))
                 case ('d'):
                     if (negative) {   /* negative not allowed with -d exdir */
                         Info(slide, 0x401, ((char *)slide,
@@ -1161,7 +1088,6 @@ int uz_opts(pG, pargc, pargv)
                                 ;
                     }
                     break;
-#endif /* !SFX || SFX_EXDIR */
 #if (!defined(NO_TIMESTAMPS))
                 case ('D'):    /* -D: Skip restoring dir (or any) timestamp. */
                     if (negative) {
@@ -1181,11 +1107,9 @@ int uz_opts(pG, pargc, pargv)
                     break;
                 case ('h'):    /* just print help message and quit */
                     if (showhelp == 0) {
-#ifndef SFX
                         if (*s == 'h')
                             showhelp = 2;
                         else
-#endif /* !SFX */
                         {
                             showhelp = 1;
                         }
@@ -1197,7 +1121,6 @@ int uz_opts(pG, pargc, pargv)
                     else
                         uO.jflag = TRUE;
                     break;
-#ifndef SFX
                 case ('l'):
                     if (negative) {
                         uO.vflag = MAX(uO.vflag-negative,0);
@@ -1205,7 +1128,6 @@ int uz_opts(pG, pargc, pargv)
                     } else
                         ++uO.vflag;
                     break;
-#endif /* !SFX */
 #ifdef MORE
                 case ('M'):    /* send all screen output through "more" fn. */
 /* GRR:  eventually check for numerical argument => height */
@@ -1328,7 +1250,6 @@ int uz_opts(pG, pargc, pargv)
                     break;
 #else /* !UNICODE_SUPPORT */
 #endif /* ?UNICODE_SUPPORT */
-#ifndef SFX
                 case ('v'):    /* verbose */
                     if (negative) {
                         uO.vflag = MAX(uO.vflag-negative,0);
@@ -1338,15 +1259,6 @@ int uz_opts(pG, pargc, pargv)
                     else
                         uO.vflag = 2;
                     break;
-#endif /* !SFX */
-#ifndef CMS_MVS
-                case ('V'):    /* Version (retain VMS/DEC-20 file versions) */
-                    if (negative)
-                        uO.V_flag = FALSE, negative = 0;
-                    else
-                        uO.V_flag = TRUE;
-                    break;
-#endif /* !CMS_MVS */
 #ifdef WILD_STOP_AT_DIR
                 case ('W'):    /* Wildcard interpretation (stop at '/'?) */
                     if (negative)
@@ -1356,19 +1268,6 @@ int uz_opts(pG, pargc, pargv)
                     break;
 #endif /* WILD_STOP_AT_DIR */
                 case ('x'):    /* extract:  default */
-#ifdef SFX
-                    /* when 'x' is the only option in this argument, and the
-                     * next arg is not an option, assume this initiates an
-                     * exclusion list (-x xlist):  terminate option-scanning
-                     * and leave uz_opts with argv still pointing to "-x";
-                     * the xlist is processed later
-                     */
-                    if (s - argv[0] == 2 && *s == '\0' &&
-                        argc > 1 && argv[1][0] != '-') {
-                        /* break out of nested loops without "++argv;--argc" */
-                        goto opts_done;
-                    }
-#endif /* SFX */
                     break;
 #if (defined(RESTORE_UIDGID) || defined(RESTORE_ACL))
                 case ('X'):   /* restore owner/protection info (need privs?) */
@@ -1386,13 +1285,10 @@ int uz_opts(pG, pargc, pargv)
                     } else
                         ++uO.zflag;
                     break;
-#ifndef SFX
                 case ('Z'):    /* should have been first option (ZipInfo) */
                     Info(slide, 0x401, ((char *)slide, LoadFarString(Zfirst)));
                     error = TRUE;
                     break;
-#endif /* !SFX */
-#if (!defined(RISCOS) && !defined(CMS_MVS) && !defined(TANDEM))
                 case (':'):    /* allow "parent dir" path components */
                     if (negative) {
                         uO.ddotflag = MAX(uO.ddotflag-negative,0);
@@ -1400,7 +1296,6 @@ int uz_opts(pG, pargc, pargv)
                     } else
                         ++uO.ddotflag;
                     break;
-#endif /* !RISCOS && !CMS_MVS && !TANDEM */
 #ifdef UNIX
                 case ('^'):    /* allow control chars in filenames */
                     if (negative) {
@@ -1422,18 +1317,13 @@ int uz_opts(pG, pargc, pargv)
     Check for nonsensical combinations of options.
   ---------------------------------------------------------------------------*/
 
-#ifdef SFX
-opts_done:  /* yes, very ugly...but only used by UnZipSFX with -x xlist */
-#endif
 
     if (showhelp > 0) {         /* just print help message and quit */
         *pargc = -1;
-#ifndef SFX
         if (showhelp == 2) {
             help_extended(pG);
             return PK_OK;
         } else
-#endif /* !SFX */
         {
             return USAGE(PK_OK);
         }
@@ -1456,37 +1346,18 @@ opts_done:  /* yes, very ugly...but only used by UnZipSFX with -x xlist */
         (*(Uz_Globs *)pG).M_flag = 0;
 #endif
 
-#ifdef SFX
-    if (error)
-#else
     if ((argc-- == 0) || error)
-#endif
     {
         *pargc = argc;
         *pargv = argv;
-#ifndef SFX
         if (uO.vflag >= 2 && argc == -1) {              /* "unzip -v" */
             show_version_info(pG);
             return PK_OK;
         }
         if (!(*(Uz_Globs *)pG).noargs && !error)
             error = TRUE;       /* had options (not -h or -v) but no zipfile */
-#endif /* !SFX */
         return USAGE(error);
     }
-
-#ifdef SFX
-    /* print our banner unless we're being fairly quiet */
-    if (uO.qflag < 2)
-        Info(slide, error? 1 : 0, ((char *)slide, LoadFarString(UnzipSFXBanner),
-          UZ_MAJORVER, UZ_MINORVER, UZ_PATCHLEVEL, UZ_BETALEVEL,
-          LoadFarStringSmall(VersionDate)));
-#ifdef BETA
-    /* always print the beta warning:  no unauthorized distribution!! */
-    Info(slide, error? 1 : 0, ((char *)slide, LoadFarString(BetaVersion), "\n",
-      "SFX"));
-#endif
-#endif /* SFX */
 
     if (uO.cflag || uO.tflag || uO.vflag || uO.zflag
 #ifdef TIMESTAMP
@@ -1510,62 +1381,6 @@ opts_done:  /* yes, very ugly...but only used by UnZipSFX with -x xlist */
 /* Function usage() */
 /********************/
 
-#ifdef SFX
-#  ifdef VMS
-#    define LOCAL "X.\n\
-(Must quote upper-case options, like \"-V\", unless SET PROC/PARSE=EXTEND.)"
-#  endif
-#  ifdef UNIX
-#    define LOCAL "X"
-#  endif
-#  ifdef DOS_OS2_W32
-#    define LOCAL "s$"
-#  endif
-   /* Default for all other systems: */
-#  ifndef LOCAL
-#    define LOCAL ""
-#  endif
-
-#  ifndef NO_TIMESTAMP
-#    ifdef MORE
-#      define SFXOPT1 "DM"
-#    else
-#      define SFXOPT1 "D"
-#    endif
-#  else
-#    ifdef MORE
-#      define SFXOPT1 "M"
-#    else
-#      define SFXOPT1 ""
-#    endif
-#  endif
-
-int usage(pG, error)   /* return PK-type error code */
-    Uz_Globs *pG;
-    int error;
-{
-    Info(slide, error? 1 : 0, ((char *)slide, LoadFarString(UnzipSFXBanner),
-      UZ_MAJORVER, UZ_MINORVER, UZ_PATCHLEVEL, UZ_BETALEVEL,
-      LoadFarStringSmall(VersionDate)));
-    Info(slide, error? 1 : 0, ((char *)slide, LoadFarString(UnzipSFXOpts),
-      SFXOPT1, LOCAL));
-#ifdef BETA
-    Info(slide, error? 1 : 0, ((char *)slide, LoadFarString(BetaVersion), "\n",
-      "SFX"));
-#endif
-
-    if (error)
-        return PK_PARAM;
-    else
-        return PK_COOL;     /* just wanted usage screen: no error */
-
-} /* end function usage() */
-
-
-
-
-
-#else /* !SFX */
 #    define QUOT ' '
 #    define QUOTS ""
 
@@ -1626,12 +1441,9 @@ int usage(pG, error)   /* return PK-type error code */
 
 } /* end function usage() */
 
-#endif /* ?SFX */
 
 
 
-
-#ifndef SFX
 
 /* Print extended help to stdout. */
 static void help_extended(pG)
@@ -2113,5 +1925,4 @@ static void show_version_info(Uz_Globs *pG)
     }
 } /* end function show_version() */
 
-#endif /* !SFX */
 #endif /* !WINDLL */

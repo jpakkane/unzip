@@ -96,13 +96,11 @@ static int extract_or_test_entrylist OF((Uz_Globs *pG, unsigned numchunk,
                 int error_in_archive));
 #endif
 static int extract_or_test_member OF((Uz_Globs *pG));
-#ifndef SFX
    static int TestExtraField OF((Uz_Globs *pG, uch *ef, unsigned ef_len));
    static int test_compr_eb OF((Uz_Globs *pG, uch *eb, unsigned eb_size,
         unsigned compr_offset,
         int (*test_uc_ebdata)(Uz_Globs *pG, uch *eb, unsigned eb_size,
                               uch *eb_ucptr, ulg eb_ucsize)));
-#endif
 #if (defined(VMS) || defined(VMS_TEXT_CONV))
    static void decompress_bits OF((uch *outptr, unsigned needlen,
                                    const uch *bitptr));
@@ -124,7 +122,6 @@ static const char VersionMsg[] =
   "   skipping: %-22s  need %s compat. v%u.%u (can do v%u.%u)\n";
 static const char ComprMsgNum[] =
   "   skipping: %-22s  unsupported compression method %u\n";
-#ifndef SFX
    static const char ComprMsgName[] =
      "   skipping: %-22s  `%s' method not supported\n";
    static const char CmprNone[]       = "store";
@@ -151,22 +148,19 @@ static const char ComprMsgNum[] =
      IMPLODED, TOKENIZED, DEFLATED, ENHDEFLATED, DCLIMPLODED,
      BZIPPED, LZMAED, IBMTERSED, IBMLZ77ED, WAVPACKED, PPMDED
    };
-#endif /* !SFX */
 static const char FilNamMsg[] =
   "%s:  bad filename length (%s)\n";
-#ifndef SFX
    static const char WarnNoMemCFName[] =
      "%s:  warning, no memory for comparison with local header\n";
    static const char LvsCFNamMsg[] =
      "%s:  mismatching \"local\" filename (%s),\n\
          continuing with \"central\" filename version\n";
-#endif /* !SFX */
-#if (!defined(SFX) && defined(UNICODE_SUPPORT))
+#if (defined(UNICODE_SUPPORT))
    static const char GP11FlagsDiffer[] =
      "file #%lu (%s):\n\
          mismatch between local and central GPF bit 11 (\"UTF-8\"),\n\
          continuing with central flag (IsUTF8 = %d)\n";
-#endif /* !SFX && UNICODE_SUPPORT */
+#endif /* UNICODE_SUPPORT */
 static const char WrnStorUCSizCSizDiff[] =
   "%s:  ucsize %s <> csize %s for STORED entry\n\
          continuing with \"compressed\" size value\n";
@@ -176,21 +170,17 @@ static const char OffsetMsg[] =
   "file #%lu:  bad zipfile offset (%s):  %ld\n";
 static const char ExtractMsg[] =
   "%8sing: %-22s  %s%s";
-#ifndef SFX
    static const char LengthMsg[] =
      "%s  %s:  %s bytes required to uncompress to %s bytes;\n    %s\
       supposed to require %s bytes%s%s%s\n";
-#endif
 
 static const char BadFileCommLength[] = "%s:  bad file comment length\n";
 static const char LocalHdrSig[] = "local header sig";
 static const char BadLocalHdr[] = "file #%lu:  bad local header\n";
 static const char AttemptRecompensate[] =
   "  (attempting to re-compensate)\n";
-#ifndef SFX
    static const char BackslashPathSep[] =
      "warning:  %s appears to use backslashes as path separators\n";
-#endif
 static const char AbsolutePathWarning[] =
   "warning:  stripped absolute path spec from %s\n";
 static const char SkipVolumeLabel[] =
@@ -274,11 +264,9 @@ static const char Inflate[] = "inflate";
   static const char BUnzip[] = "bunzip";
 #endif
 
-#ifndef SFX
    static const char Explode[] = "explode";
 #ifndef LZW_CLEAN
    static const char Unshrink[] = "unshrink";
-#endif
 #endif
 
 #if (!defined(DELETE_IF_FULL) || !defined(HAVE_UNLINK))
@@ -295,7 +283,6 @@ char const TruncEAs[] = " compressed EA data missing (%d bytes)%s";
 char const TruncNTSD[] =
   " compressed WinNT security data missing (%d bytes)%s";
 
-#ifndef SFX
    static const char InconsistEFlength[] = "bad extra-field entry:\n \
      EF block length (%u bytes) exceeds remaining EF data (%u bytes)\n";
    static const char InvalidComprDataEAs[] =
@@ -313,7 +300,6 @@ char const TruncNTSD[] =
      " out of memory while inflating EAs\n";
    static const char UnknErrorEAs[] =
      " unknown error on extended attributes\n";
-#endif /* !SFX */
 
 static const char UnsupportedExtraField[] =
   "\nerror:  unsupported extra-field compression type (%u)--skipping\n";
@@ -337,9 +323,7 @@ int extract_or_test_files(pG)    /* return PK-type error code */
     int cd_incnt;
     ulg filnum=0L, blknum=0L;
     int reached_end;
-#ifndef SFX
     int no_endsig_found;
-#endif
     int error, error_in_archive=PK_COOL;
     int *fn_matched=NULL, *xn_matched=NULL;
     zucn_t members_processed;
@@ -362,17 +346,6 @@ int extract_or_test_files(pG)    /* return PK-type error code */
             return PK_MEM;
         }
     }
-
-#if (!defined(SFX) || defined(SFX_EXDIR))
-    /* b) check out if specified extraction root directory exists */
-    if (uO.exdir != (char *)NULL && (*(Uz_Globs *)pG).extract_flag) {
-        (*(Uz_Globs *)pG).create_dirs = !uO.fflag;
-        if ((error = checkdir(pG, uO.exdir, ROOT)) > MPN_INF_SKIP) {
-            /* out of memory, or file in way */
-            return (error == MPN_NOMEM ? PK_MEM : PK_ERR);
-        }
-    }
-#endif /* !SFX || SFX_EXDIR */
 
 /*---------------------------------------------------------------------------
     The basic idea of this function is as follows.  Since the central di-
@@ -398,9 +371,7 @@ int extract_or_test_files(pG)    /* return PK-type error code */
 #if CRYPT
     (*(Uz_Globs *)pG).newzip = TRUE;
 #endif
-#ifndef SFX
     (*(Uz_Globs *)pG).reported_backslash = FALSE;
-#endif
 
     /* malloc space for check on unmatched filespecs (OK if one or both NULL) */
     if ((*(Uz_Globs *)pG).filespecs > 0  &&
@@ -422,15 +393,10 @@ int extract_or_test_files(pG)    /* return PK-type error code */
   ---------------------------------------------------------------------------*/
 
     members_processed = 0;
-#ifndef SFX
     no_endsig_found = FALSE;
-#endif
     reached_end = FALSE;
     while (!reached_end) {
         j = 0;
-#ifdef AMIGA
-        memzero((*(Uz_Globs *)pG).filenotes, DIR_BLKSIZ * sizeof(char *));
-#endif
 
         /*
          * Loop through files in central directory, storing offsets, file
@@ -454,7 +420,6 @@ int extract_or_test_files(pG)    /* return PK-type error code */
                 if ((members_processed
                      & ((*(Uz_Globs *)pG).ecrec.have_ecr64 ? MASK_ZUCN64 : MASK_ZUCN16))
                     == (*(Uz_Globs *)pG).ecrec.total_entries_central_dir) {
-#ifndef SFX
                     /* yes, so look if we ARE back at the end_central record
                      */
                     no_endsig_found =
@@ -465,7 +430,6 @@ int extract_or_test_files(pG)    /* return PK-type error code */
                        && (!(*(Uz_Globs *)pG).ecrec.is_zip64_archive)
                        && (memcmp((*(Uz_Globs *)pG).sig, end_central_sig, 4) != 0)
                       );
-#endif /* !SFX */
                 } else {
                     /* no; we have found an error in the central directory
                      * -> report it and stop searching for more Zip entries
@@ -750,14 +714,12 @@ int extract_or_test_files(pG)    /* return PK-type error code */
     ground and redirecting to a file can just do a "tail" on the output file.
   ---------------------------------------------------------------------------*/
 
-#ifndef SFX
     if (no_endsig_found) {                      /* just to make sure */
         Info(slide, 0x401, ((char *)slide, LoadFarString(EndSigMsg)));
         Info(slide, 0x401, ((char *)slide, LoadFarString(ReportMsg)));
         if (!error_in_archive)       /* don't overwrite stronger error */
             error_in_archive = PK_WARN;
     }
-#endif /* !SFX */
     if (uO.tflag) {
         ulg num = filnum - num_bad_pwd;
 
@@ -846,18 +808,6 @@ store_info (   /* return 0 if skipping, 1 if OK */
 #  define UNKN_PPMD TRUE      /* PPMd unknown */
 #endif
 
-#ifdef SFX
-#  ifdef USE_DEFLATE64
-#    define UNKN_COMPR \
-     ((*(Uz_Globs *)pG).crec.compression_method!=STORED && (*(Uz_Globs *)pG).crec.compression_method<DEFLATED \
-      && (*(Uz_Globs *)pG).crec.compression_method>ENHDEFLATED \
-      && UNKN_BZ2 && UNKN_LZMA && UNKN_WAVP && UNKN_PPMD)
-#  else
-#    define UNKN_COMPR \
-     ((*(Uz_Globs *)pG).crec.compression_method!=STORED && (*(Uz_Globs *)pG).crec.compression_method!=DEFLATED\
-      && UNKN_BZ2 && UNKN_LZMA && UNKN_WAVP && UNKN_PPMD)
-#  endif
-#else
 #  ifdef COPYRIGHT_CLEAN  /* no reduced files */
 #    define UNKN_RED ((*(Uz_Globs *)pG).crec.compression_method >= REDUCED1 && \
                       (*(Uz_Globs *)pG).crec.compression_method <= REDUCED4)
@@ -880,7 +830,6 @@ store_info (   /* return 0 if skipping, 1 if OK */
      ((*(Uz_Globs *)pG).crec.compression_method>DEFLATED && UNKN_BZ2 && UNKN_LZMA \
       && UNKN_WAVP && UNKN_PPMD))
 #  endif
-#endif
 
 #if (defined(USE_BZIP2) && (UNZIP_VERSION < UNZIP_BZ2VERS))
     int unzvers_support = (UNKN_BZ2 ? UNZIP_VERSION : UNZIP_BZ2VERS);
@@ -944,7 +893,6 @@ store_info (   /* return 0 if skipping, 1 if OK */
 
     if (UNKN_COMPR) {
         if (!((uO.tflag && uO.qflag) || (!uO.tflag && !QCOND2))) {
-#ifndef SFX
             unsigned cmpridx;
 
             if ((cmpridx = find_compr_idx((*(Uz_Globs *)pG).crec.compression_method))
@@ -953,7 +901,6 @@ store_info (   /* return 0 if skipping, 1 if OK */
                   FnFilter1((*(Uz_Globs *)pG).filename),
                   LoadFarStringSmall(ComprNames[cmpridx])));
             else
-#endif
                 Info(slide, 0x401, ((char *)slide, LoadFarString(ComprMsgNum),
                   FnFilter1((*(Uz_Globs *)pG).filename),
                   (*(Uz_Globs *)pG).crec.compression_method));
@@ -969,14 +916,12 @@ store_info (   /* return 0 if skipping, 1 if OK */
     }
 #endif /* !CRYPT */
 
-#ifndef SFX
     /* store a copy of the central header filename for later comparison */
     if (((*(Uz_Globs *)pG).pInfo->cfilname = malloc(strlen((*(Uz_Globs *)pG).filename) + 1)) == NULL) {
         Info(slide, 0x401, ((char *)slide, LoadFarString(WarnNoMemCFName),
           FnFilter1((*(Uz_Globs *)pG).filename)));
     } else
         strcpy((*(Uz_Globs *)pG).pInfo->cfilname, (*(Uz_Globs *)pG).filename);
-#endif /* !SFX */
 
     /* map whatever file attributes we have into the local format */
     mapattr(pG);   /* GRR:  worry about return value later */
@@ -991,7 +936,6 @@ store_info (   /* return 0 if skipping, 1 if OK */
 
 
 
-#ifndef SFX
 /*******************************/
 /*  Function find_compr_idx()  */
 /*******************************/
@@ -1006,9 +950,6 @@ find_compr_idx (unsigned compr_methodnum)
     }
     return i;
 }
-#endif /* !SFX */
-
-
 
 
 
@@ -1172,7 +1113,7 @@ static int extract_or_test_entrylist(pG, numchunk,
             error_in_archive = error;   /* only PK_EOF defined */
             continue;   /* can still try next one */
         }
-#if (!defined(SFX) && defined(UNICODE_SUPPORT))
+#if (defined(UNICODE_SUPPORT))
         if ((((*(Uz_Globs *)pG).lrec.general_purpose_bit_flag & (1 << 11)) == (1 << 11))
             != ((*(Uz_Globs *)pG).pInfo->GPFIsUTF8 != 0)) {
             if (QCOND2) {
@@ -1220,7 +1161,6 @@ static int extract_or_test_entrylist(pG, numchunk,
                 continue;   /* go on */
             }
         }
-#ifndef SFX
         /* Filename consistency checks must come after reading in the local
          * extra field, so that a UTF-8 entry name e.f. block has already
          * been processed.
@@ -1239,7 +1179,6 @@ static int extract_or_test_entrylist(pG, numchunk,
             free((*(Uz_Globs *)pG).pInfo->cfilname);
             (*(Uz_Globs *)pG).pInfo->cfilname = (char *)NULL;
         }
-#endif /* !SFX */
         /* Size consistency checks must come after reading in the local extra
          * field, so that any Zip64 extension local e.f. block has already
          * been processed.
@@ -1303,7 +1242,6 @@ startover:
              *  of slash as directory separator (bug in some zipper(s); so
              *  far, not a problem in HPFS, NTFS or VFAT systems)
              */
-#ifndef SFX
             if ((*(Uz_Globs *)pG).pInfo->hostnum == FS_FAT_ && !MBSCHR((*(Uz_Globs *)pG).filename, '/')) {
                 char *p=(*(Uz_Globs *)pG).filename;
 
@@ -1320,7 +1258,6 @@ startover:
                     }
                 } while (*PREINCSTR(p));
             }
-#endif /* !SFX */
 
             if (!renamed) {
                /* remove absolute path specs */
@@ -1731,7 +1668,6 @@ static int extract_or_test_member(pG)    /* return PK-type error code */
             }
             break;
 
-#ifndef SFX
 #ifndef LZW_CLEAN
         case SHRUNK:
             if (!uO.tflag && QCOND2) {
@@ -1829,7 +1765,6 @@ static int extract_or_test_member(pG)    /* return PK-type error code */
                 }
             }
             break;
-#endif /* !SFX */
 
         case DEFLATED:
 #ifdef USE_DEFLATE64
@@ -1969,13 +1904,11 @@ static int extract_or_test_member(pG)    /* return PK-type error code */
 #endif
         error = PK_ERR;
     } else if (uO.tflag) {
-#ifndef SFX
         if ((*(Uz_Globs *)pG).extra_field) {
             if ((r = TestExtraField(pG, (*(Uz_Globs *)pG).extra_field,
                                     (*(Uz_Globs *)pG).lrec.extra_field_length)) > error)
                 error = r;
         } else
-#endif /* !SFX */
         if (!uO.qflag)
             Info(slide, 0, ((char *)slide, " OK\n"));
     } else {
@@ -1992,7 +1925,6 @@ static int extract_or_test_member(pG)    /* return PK-type error code */
 
 
 
-#ifndef SFX
 
 /*******************************/
 /*  Function TestExtraField()  */
@@ -2236,10 +2168,6 @@ static int test_compr_eb(pG, eb, eb_size, compr_offset, test_uc_ebdata)
     return r;
 
 } /* end function test_compr_eb() */
-
-#endif /* !SFX */
-
-
 
 
 

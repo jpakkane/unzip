@@ -1792,55 +1792,6 @@ do_string (   /* return PK-type error code */
 
     switch (option) {
 
-#if (defined(SFX) && defined(CHEAP_SFX_AUTORUN))
-    /*
-     * Special case: See if the comment begins with an autorun command line.
-     * Save that and display (or skip) the remainder.
-     */
-
-    case CHECK_AUTORUN:
-    case CHECK_AUTORUN_Q:
-        comment_bytes_left = length;
-        if (length >= 10)
-        {
-            block_len = readbuf(pG, (char *)(*(Uz_Globs *)pG).outbuf, 10);
-            if (block_len == 0)
-                return PK_EOF;
-            comment_bytes_left -= block_len;
-            (*(Uz_Globs *)pG).outbuf[block_len] = '\0';
-            if (!strcmp((char *)(*(Uz_Globs *)pG).outbuf, "$AUTORUN$>")) {
-                char *eol;
-                length -= 10;
-                block_len = readbuf(pG, (*(Uz_Globs *)pG).autorun_command,
-                                    MIN(length, sizeof((*(Uz_Globs *)pG).autorun_command)-1));
-                if (block_len == 0)
-                    return PK_EOF;
-                comment_bytes_left -= block_len;
-                (*(Uz_Globs *)pG).autorun_command[block_len] = '\0';
-                A_TO_N((*(Uz_Globs *)pG).autorun_command);
-                eol = strchr((*(Uz_Globs *)pG).autorun_command, '\n');
-                if (!eol)
-                    eol = (*(Uz_Globs *)pG).autorun_command + strlen((*(Uz_Globs *)pG).autorun_command) - 1;
-                length -= eol + 1 - (*(Uz_Globs *)pG).autorun_command;
-                while (eol >= (*(Uz_Globs *)pG).autorun_command && isspace(*eol))
-                    *eol-- = '\0';
-#if (defined(WIN32) && !defined(_WIN32_WCE))
-                /* Win9x console always uses OEM character coding, and
-                   WinNT console is set to OEM charset by default, too */
-                INTERN_TO_OEM((*(Uz_Globs *)pG).autorun_command, (*(Uz_Globs *)pG).autorun_command);
-#endif /* (WIN32 && !_WIN32_WCE) */
-            }
-        }
-        if (option == CHECK_AUTORUN_Q)  /* don't display the remainder */
-            length = 0;
-        /* seek to beginning of remaining part of comment -- rewind if */
-        /* displaying entire comment, or skip to end if discarding it  */
-        seek_zipf(pG, (*(Uz_Globs *)pG).cur_zipfile_bufstart - (*(Uz_Globs *)pG).extra_bytes +
-                  ((*(Uz_Globs *)pG).inptr - (*(Uz_Globs *)pG).inbuf) + comment_bytes_left - length);
-        if (!length)
-            break;
-        /*  FALL THROUGH...  */
-#endif /* SFX && CHEAP_SFX_AUTORUN */
 
     /*
      * First normal case:  print string on standard output.  First set loop
