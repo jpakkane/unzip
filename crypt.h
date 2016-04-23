@@ -70,14 +70,6 @@
 #  define CR_RELEASE
 #endif
 
-#ifndef __G         /* UnZip only, for now (DLL stuff) */
-#  define __G
-#  define __G__
-#  define __GDEF
-#  define __GPRO    void
-#  define __GPRO__
-#endif
-
 #if defined(MSDOS) || defined(OS2) || defined(WIN32)
 #  ifndef DOS_OS2_W32
 #    define DOS_OS2_W32
@@ -128,7 +120,7 @@
 /* decode byte c in place */
 #define zdecode(c)   update_keys(__G__ c ^= decrypt_byte(__G))
 
-int  decrypt_byte ();
+int  decrypt_byte (__GPRO);
 int  update_keys (__GPRO__ int c);
 void init_keys (__GPRO__ const char *passwd);
 

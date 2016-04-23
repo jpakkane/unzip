@@ -1706,7 +1706,7 @@ int      seek_zipf            (__GPRO__ zoff_t abs_offset);
 #ifdef FUNZIP
    int   flush                (__GPRO__ ulg size);  /* actually funzip.c */
 #else
-   int   flush                (uch *buf, ulg size, int unshrink);
+   int   flush                (__GPRO__ uch *buf, ulg size, int unshrink);
 #endif
 /* static int  disk_error     (); */
 void     handler              (int signal);

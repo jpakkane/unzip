@@ -89,12 +89,12 @@ typedef struct _sign_info
 /*******************/
 
 #if (defined(REENTRANT) && !defined(NO_EXCEPT_SIGNALS))
-static int setsignalhandler OF((__GPRO__ savsigs_info **p_savedhandler_chain,
-                                int signal_type, void (*newhandler)(int)));
+static int setsignalhandler (__GPRO__ savsigs_info **p_savedhandler_chain,
+                                int signal_type, void (*newhandler)(int));
 #endif
 #ifndef SFX
 static void  help_extended      ();
-static void  show_version_info  ();
+static void  show_version_info  (__GPRO);
 #endif
 
 
@@ -1905,15 +1905,13 @@ static void help_extended(__G)
 /* Function show_version_info() */
 /********************************/
 
-static void show_version_info()
+static void show_version_info(__GPRO)
 {
     if (uO.qflag > 3)                           /* "unzip -vqqqq" */
         Info(slide, 0, ((char *)slide, "%d\n",
           (UZ_MAJORVER*100 + UZ_MINORVER*10 + UZ_PATCHLEVEL)));
     else {
-#ifndef _WIN32_WCE /* Win CE does not support environment variables */
         char *envptr;
-#endif
         int numopts = 0;
 
         Info(slide, 0, ((char *)slide, LoadFarString(UnzipUsageLine1v),

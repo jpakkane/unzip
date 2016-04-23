@@ -146,7 +146,8 @@
 /***********************************************************************
  * Return the next byte in the pseudo-random sequence
  */
-int decrypt_byte()
+int decrypt_byte(__G)
+  __GDEF
 {
     unsigned temp;  /* POTENTIAL BUG:  temp*(temp^1) may overflow in an
                      * unpredictable manner on 16-bit systems; not a problem
@@ -159,7 +160,10 @@ int decrypt_byte()
 /***********************************************************************
  * Update the encryption keys with the next byte of plain text
  */
-int update_keys(int c) {
+int update_keys(__G__ c)
+__GDEF
+int c;
+{
     GLOBAL(keys[0]) = CRC32(GLOBAL(keys[0]), c, CRY_CRC_TAB);
     GLOBAL(keys[1]) = (GLOBAL(keys[1])
                        + (GLOBAL(keys[0]) & 0xff))
@@ -522,9 +526,9 @@ int decrypt(__G__ passwrd)
 /***********************************************************************
  * Test the password.  Return -1 if bad, 0 if OK.
  */
-local int testp(
+local int testp(__G__ h)
     __GDEF
-    const uch *h)
+    const uch *h;
 {
     int r;
     char *key_translated;
@@ -577,11 +581,11 @@ local int testp(
 } /* end function testp() */
 
 
-local int testkey(
+local int testkey(__G__ h, key)
     __GDEF
-    const uch *h,      /* decrypted header */
-    const char *key   /* decryption password to test */
-)
+    const uch *h;      /* decrypted header */
+    const char *key;   /* decryption password to test */
+
     {
     ush b;
 #ifdef ZIP10

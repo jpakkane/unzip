@@ -14,10 +14,6 @@
 #include "unzip.h"
 #include "crypt.h"
 
-#ifndef REENTRANT
-  Uz_Globs G;
-#endif
-
 static int asm_setflag(const char *flagname);
 static int ccp_setflag(const char *flagname);
 

@@ -375,7 +375,6 @@ extern char end_central64_sig[4];
 extern char end_centloc64_sig[4];
 /* extern char extd_local_sig[4];  NOT USED YET */
 
-#ifdef REENTRANT
 #  define G                   (*(Uz_Globs *)pG)
 #  define __G                 pG
 #  define __G__               pG,
@@ -395,16 +394,5 @@ extern char end_centloc64_sig[4];
 #    define DESTROYGLOBALS()  do {free_G_buffers(pG); free(pG);} while (0)
 #  endif /* ?USETHREADID */
 #  define CONSTRUCTGLOBALS()  Uz_Globs *pG = globalsCtor()
-#else /* !REENTRANT */
-   extern Uz_Globs            G;
-#  define __G
-#  define __G__
-#  define __GPRO              void
-#  define __GPRO__
-#  define __GDEF
-#  define GETGLOBALS()
-#  define CONSTRUCTGLOBALS()  globalsCtor()
-#  define DESTROYGLOBALS()
-#endif /* ?REENTRANT */
 
 #define uO              G.UzO

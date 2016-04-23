@@ -239,7 +239,7 @@ int main(int argc, char **argv)
 #else /* !CRYPT */
   char *s = "";
 #endif /* ?CRYPT */
-  CONSTRUCTGLOBALS();
+  Uz_Globs *pG = CONSTRUCTGLOBALS();
 
   /* skip executable name */
   argc--;

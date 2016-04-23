@@ -2198,8 +2198,9 @@ static int zi_short(__G)   /* return PK-type error code */
 /*  Function zi_showMacTypeCreator()  */
 /**************************************/
 
-static void zi_showMacTypeCreator(
-    uch *ebfield)
+static void zi_showMacTypeCreator(__G__ ebfield)
+   __GDEF
+    uch *ebfield;
 {
     /* not every Type / Creator character is printable */
     if (isprint(native(ebfield[0])) && isprint(native(ebfield[1])) &&

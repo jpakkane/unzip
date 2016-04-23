@@ -299,7 +299,9 @@ char *do_wild(__G__ wildspec)
  * file as the user or group.  The new option -K bypasses this check.
  */
 
-static unsigned filtattr(unsigned int perms)
+static unsigned filtattr(__G__ perms)
+__GDEF
+unsigned perms;
 {
     /* keep setuid/setgid/tacky perms? */
     if (!uO.K_flag)
