@@ -18,9 +18,7 @@
   ---------------------------------------------------------------------------*/
 
 
-
-#ifndef __unzpriv_h   /* prevent multiple inclusions */
-#define __unzpriv_h
+#pragma once
 
 /* First thing: Signal all following code that we compile UnZip utilities! */
 #ifndef UNZIP
@@ -2397,6 +2395,3 @@ char    *GetLoadPath     ();                              /* local */
 # endif /* unused */
 
 #endif /* UNICODE_SUPPORT && UNICODE_WCHAR */
-
-
-#endif /* !__unzpriv_h */

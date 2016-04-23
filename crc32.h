@@ -11,8 +11,7 @@
  * For conditions of distribution and use, see copyright notice in zlib.h
  */
 
-#ifndef __crc32_h
-#define __crc32_h       /* identifies this source module */
+#pragma once
 
 /* This header should be read AFTER zip.h resp. unzip.h
  * (the latter with UNZIP_INTERNAL defined...).
@@ -54,4 +53,4 @@
 #  define REV_BE(w) w
 #endif
 
-#endif /* !__crc32_h */
+#pragma once

@@ -22,8 +22,7 @@
   public domain versions.
  */
 
-#ifndef __crypt_h   /* don't include more than once */
-#define __crypt_h
+#pragma once
 
 #ifdef CRYPT
 #  undef CRYPT
@@ -166,4 +165,3 @@ void init_keys (__GPRO__ const char *passwd);
 #define zfwrite  fwrite
 
 #endif /* ?CRYPT */
-#endif /* !__crypt_h */

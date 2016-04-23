@@ -6,8 +6,7 @@
   If, for some reason, all these files are missing, the Info-ZIP license
   also may be found at:  ftp://ftp.info-zip.org/pub/infozip/license.html
 */
-#ifndef __timezone_h
-#define __timezone_h
+#pragma once
 
 #ifndef IZ_MKTIME_ONLY
 
@@ -78,4 +77,4 @@ void set_TZ OF((long time_zone, int day_light));
 
 time_t mkgmtime OF((struct tm *tm));
 
-#endif
+#pragma once

@@ -132,8 +132,7 @@
 
   ---------------------------------------------------------------------------*/
 
-#ifndef __globals_h
-#define __globals_h
+#pragma once
 
 #ifdef USE_ZLIB
 #  include "zlib.h"
@@ -409,5 +408,3 @@ extern char end_centloc64_sig[4];
 #endif /* ?REENTRANT */
 
 #define uO              G.UzO
-
-#endif /* __globals_h */

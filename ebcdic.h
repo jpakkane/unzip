@@ -39,8 +39,7 @@
 
   ---------------------------------------------------------------------------*/
 
-#ifndef __ebcdic_h      /* prevent multiple inclusions */
-#define __ebcdic_h
+#pragma once
 
 
 #ifndef const
@@ -297,5 +296,3 @@ const uch *oem2iso = oem2iso_850;  /* backward compatibility default */
 #if defined(THEOS) || defined(THEOS_SUPPORT)
 #  include "theos/charconv.h"
 #endif
-
-#endif /* __ebcdic_h  */

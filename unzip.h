@@ -75,8 +75,7 @@ freely, subject to the above disclaimer and the following restrictions:
        own source and binary releases.
   ---------------------------------------------------------------------------*/
 
-#ifndef __unzip_h   /* prevent multiple inclusions */
-#define __unzip_h
+#pragma once
 
 /*---------------------------------------------------------------------------
     Predefined, machine-specific macros.
@@ -660,6 +659,3 @@ int      UZ_EXP UzpPassword      (void *pG, int *rcnt, char *pwbuf,
 #ifdef UNZIP_INTERNAL
 #  include "unzpriv.h"
 #endif
-
-
-#endif /* !__unzip_h */

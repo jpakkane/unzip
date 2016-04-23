@@ -10,9 +10,7 @@
     Unix specific configuration section:
   ---------------------------------------------------------------------------*/
 
-#ifndef __unxcfg_h
-#define __unxcfg_h
-
+#pragma once
 
 /* LARGE FILE SUPPORT - 10/6/04 EG */
 /* This needs to be set before the includes so they set the right sizes */
@@ -211,5 +209,3 @@ typedef struct stat z_stat;
 /* rootlen, rootpath, buildpath and end are used by checkdir().        */
 /* wild_dir, dirname, wildname, matchname[], dirnamelen, have_dirname, */
 /*    and notfirstcall are used by do_wild().                          */
-
-#endif /* !__unxcfg_h */

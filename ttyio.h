@@ -10,8 +10,7 @@
    ttyio.h
  */
 
-#ifndef __ttyio_h   /* don't include more than once */
-#define __ttyio_h
+#pragma once
 
 #ifndef __crypt_h
 #  include "crypt.h"  /* ensure that encryption header file has been seen */
@@ -224,4 +223,4 @@
 
 #endif /* ?(CRYPT || (UNZIP && !FUNZIP)) */
 
-#endif /* !__ttyio_h */
+#pragma once
