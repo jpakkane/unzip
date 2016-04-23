@@ -639,7 +639,6 @@ free_crc_table (void)
 
 #ifndef USE_ZLIB
 #ifndef CRC_TABLE_ONLY
-#ifndef ASM_CRC
 
 #define DO1(crc, buf)  crc = CRC32(crc, *buf++, crc_32_tab)
 #define DO2(crc, buf)  DO1(crc, buf); DO1(crc, buf)
@@ -719,7 +718,6 @@ ulg crc32(ulg crc, const uch *buf, extent len)
 
   return REV_BE(c) ^ 0xffffffffL;   /* (instead of ~c for 64-bit machines) */
 }
-#endif /* !ASM_CRC */
 #endif /* !CRC_TABLE_ONLY */
 #endif /* !USE_ZLIB */
 #endif /* !USE_ZLIB || USE_OWN_CRCTAB */

@@ -296,9 +296,6 @@ static const char ZipInfoUsageLine3[] = "miscellaneous options:\n\
    static const char EnvOptFormat[] = "%16s:  %.1024s\n";
 #endif
    static const char None[] = "[none]";
-#  ifdef ASM_CRC
-     static const char AsmCRC[] = "ASM_CRC";
-#  endif
 #  ifdef ASM_INFLATECODES
      static const char AsmInflateCodes[] = "ASM_INFLATECODES";
 #  endif
@@ -1674,11 +1671,6 @@ static void show_version_info(Uz_Globs *pG)
           LoadFarString(UnzipUsageLine2v)));
         version(pG);
         Info(slide, 0, ((char *)slide, LoadFarString(CompileOptions)));
-#ifdef ASM_CRC
-        Info(slide, 0, ((char *)slide, LoadFarString(CompileOptFormat),
-          LoadFarStringSmall(AsmCRC)));
-        ++numopts;
-#endif
 #ifdef ASM_INFLATECODES
         Info(slide, 0, ((char *)slide, LoadFarString(CompileOptFormat),
           LoadFarStringSmall(AsmInflateCodes)));

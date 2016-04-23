@@ -488,10 +488,6 @@
 #  endif
 #endif
 
-#if (defined(USE_ZLIB) && defined(ASM_CRC))
-#  undef ASM_CRC
-#endif
-
 #ifdef USE_ZLIB
 #  ifdef IZ_CRC_BE_OPTIMIZ
 #    undef IZ_CRC_BE_OPTIMIZ
