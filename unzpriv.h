@@ -31,18 +31,6 @@
 #  define NO_DEFLATE64
 #endif
 
-#ifdef NO_DEFLATE64
-   /* disable support for Deflate64(tm) */
-#  ifdef USE_DEFLATE64
-#    undef USE_DEFLATE64
-#  endif
-#else
-   /* enable Deflate64(tm) support unless compiling for SFX stub */
-#  if (!defined(USE_DEFLATE64))
-#    define USE_DEFLATE64
-#  endif
-#endif
-
 #if (defined(NO_VMS_TEXT_CONV) || defined(VMS))
 #  ifdef VMS_TEXT_CONV
 #    undef VMS_TEXT_CONV
@@ -459,11 +447,10 @@
 # define DIR_BLKSIZ 16384   /* use more memory, to reduce long-range seeks */
 
 #ifndef WSIZE
-#  ifdef USE_DEFLATE64
 #    define WSIZE   65536L  /* window size--must be a power of two, and */
-#  else                     /*  at least 64K for PKZip's deflate64 method */
-#    define WSIZE   0x8000  /* window size--must be a power of two, and */
-#  endif                    /*  at least 32K for zip's deflate method */
+                      /*  at least 64K for PKZip's deflate64 method */
+       /* window size--must be a power of two, and */
+                      /*  at least 32K for zip's deflate method */
 #endif
 
 #if (defined(DYNALLOC_CRCTAB) && !defined(DYNAMIC_CRC_TABLE))

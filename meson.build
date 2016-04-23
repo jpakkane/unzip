@@ -4,7 +4,6 @@ zdep = dependency('zlib')
 #bzdep = dependency('bz2')
 
 add_global_arguments(
-  '-DUSE_DEFLATE64=1',
   '-DNO_EXCEPT_SIGNALS=1',
   language : 'c')
 

@@ -277,19 +277,11 @@
 #define IS_INVALID_CODE(c)  ((c) == INVALID_CODE)
 
 #ifndef WSIZE               /* default is 32K resp. 64K */
-#  ifdef USE_DEFLATE64
 #    define WSIZE   65536L  /* window size--must be a power of two, and */
-#  else                     /*  at least 64K for PKZip's deflate64 method */
-#    define WSIZE   0x8000  /* window size--must be a power of two, and */
-#  endif                    /*  at least 32K for zip's deflate method */
 #endif
 
 /* some buffer counters must be capable of holding 64k for Deflate64 */
-#if (defined(USE_DEFLATE64) && defined(INT_16BIT))
-#  define UINT_D64 ulg
-#else
 #  define UINT_D64 unsigned
-#endif
 
 #if (defined(DLL) && !defined(NO_SLIDE_REDIR))
 #  define wsize (*(Uz_Globs *)pG)._wsize    /* wsize is a variable */
@@ -349,7 +341,6 @@
 #endif
 
 /* Check for incompatible combinations of zlib and Deflate64 support. */
-#if defined(USE_DEFLATE64)
 # if !USE_ZLIB_INFLATCB
   #error Deflate64 is incompatible with traditional (pre-1.2.x) zlib interface!
 # else
@@ -358,7 +349,6 @@
     */
 #  include "infback9.h"
 # endif
-#endif /* USE_DEFLATE64 */
 
 
 #if USE_ZLIB_INFLATCB
@@ -436,7 +426,6 @@ UZinflate (Uz_Globs *pG, int is_defl64)
         (*(Uz_Globs *)pG).inflInit = 1;
     }
 
-#ifdef USE_DEFLATE64
     if (is_defl64)
     {
         Trace((stderr, "initializing inflate9()\n"));
@@ -487,7 +476,6 @@ UZinflate (Uz_Globs *pG, int is_defl64)
         }
     }
     else
-#endif /* USE_DEFLATE64 */
     {
         /* For the callback interface, inflate initialization has to
            be called before each decompression call.
@@ -744,26 +732,18 @@ static const unsigned border[] = {
         16, 17, 18, 0, 8, 7, 9, 6, 10, 5, 11, 4, 12, 3, 13, 2, 14, 1, 15};
 
 /* - Copy lengths for literal codes 257..285 */
-#ifdef USE_DEFLATE64
 static const ush cplens64[] = {
         3, 4, 5, 6, 7, 8, 9, 10, 11, 13, 15, 17, 19, 23, 27, 31,
         35, 43, 51, 59, 67, 83, 99, 115, 131, 163, 195, 227, 3, 0, 0};
         /* For Deflate64, the code 285 is defined differently. */
-#else
-#  define cplens32 cplens
-#endif
 static const ush cplens32[] = {
         3, 4, 5, 6, 7, 8, 9, 10, 11, 13, 15, 17, 19, 23, 27, 31,
         35, 43, 51, 59, 67, 83, 99, 115, 131, 163, 195, 227, 258, 0, 0};
         /* note: see note #13 above about the 258 in this list. */
 /* - Extra bits for literal codes 257..285 */
-#ifdef USE_DEFLATE64
 static const uch cplext64[] = {
         0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2,
         3, 3, 3, 3, 4, 4, 4, 4, 5, 5, 5, 5, 16, INVALID_CODE, INVALID_CODE};
-#else
-#  define cplext32 cplext
-#endif
 static const uch cplext32[] = {
         0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2,
         3, 3, 3, 3, 4, 4, 4, 4, 5, 5, 5, 5, 0, INVALID_CODE, INVALID_CODE};
@@ -772,21 +752,13 @@ static const uch cplext32[] = {
 static const ush cpdist[] = {
         1, 2, 3, 4, 5, 7, 9, 13, 17, 25, 33, 49, 65, 97, 129, 193,
         257, 385, 513, 769, 1025, 1537, 2049, 3073, 4097, 6145,
-#if (defined(USE_DEFLATE64) || defined(PKZIP_BUG_WORKAROUND))
         8193, 12289, 16385, 24577, 32769, 49153};
-#else
-        8193, 12289, 16385, 24577};
-#endif
 
 /* - Extra bits for distance codes 0..29 (0..31 for Deflate64) */
-#ifdef USE_DEFLATE64
 static const uch cpdext64[] = {
         0, 0, 0, 0, 1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6,
         7, 7, 8, 8, 9, 9, 10, 10, 11, 11,
         12, 12, 13, 13, 14, 14};
-#else
-#  define cpdext32 cpdext
-#endif
 static const uch cpdext32[] = {
         0, 0, 0, 0, 1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6,
         7, 7, 8, 8, 9, 9, 10, 10, 11, 11,
@@ -801,11 +773,7 @@ static const uch cpdext32[] = {
 #else
 #  define MAXLITLENS 286
 #endif
-#if (defined(USE_DEFLATE64) || defined(PKZIP_BUG_WORKAROUND))
 #  define MAXDISTS 32
-#else
-#  define MAXDISTS 30
-#endif
 
 
 /* moved to consts.h (included in unzip.c), resp. funzip.c */
@@ -1150,13 +1118,8 @@ inflate_fixed (Uz_Globs *pG)
     for (; i < 288; i++)          /* make a complete, but wrong code set */
       l[i] = 8;
     (*(Uz_Globs *)pG).fixed_bl = 7;
-#ifdef USE_DEFLATE64
     if ((i = huft_build(pG, l, 288, 257, (*(Uz_Globs *)pG).cplens, (*(Uz_Globs *)pG).cplext,
                         &(*(Uz_Globs *)pG).fixed_tl, &(*(Uz_Globs *)pG).fixed_bl)) != 0)
-#else
-    if ((i = huft_build(pG, l, 288, 257, cplens, cplext,
-                        &(*(Uz_Globs *)pG).fixed_tl, &(*(Uz_Globs *)pG).fixed_bl)) != 0)
-#endif
     {
       (*(Uz_Globs *)pG).fixed_tl = (struct huft *)NULL;
       return i;
@@ -1166,13 +1129,8 @@ inflate_fixed (Uz_Globs *pG)
     for (i = 0; i < MAXDISTS; i++)      /* make an incomplete code set */
       l[i] = 5;
     (*(Uz_Globs *)pG).fixed_bd = 5;
-#ifdef USE_DEFLATE64
     if ((i = huft_build(pG, l, MAXDISTS, 0, cpdist, (*(Uz_Globs *)pG).cpdext,
                         &(*(Uz_Globs *)pG).fixed_td, &(*(Uz_Globs *)pG).fixed_bd)) > 1)
-#else
-    if ((i = huft_build(pG, l, MAXDISTS, 0, cpdist, cpdext,
-                        &(*(Uz_Globs *)pG).fixed_td, &(*(Uz_Globs *)pG).fixed_bd)) > 1)
-#endif
     {
       huft_free((*(Uz_Globs *)pG).fixed_tl);
       (*(Uz_Globs *)pG).fixed_td = (*(Uz_Globs *)pG).fixed_tl = (struct huft *)NULL;
@@ -1318,11 +1276,7 @@ inflate_dynamic (Uz_Globs *pG)
 
   /* build the decoding tables for literal/length and distance codes */
   bl = lbits;
-#ifdef USE_DEFLATE64
   retval = huft_build(pG, ll, nl, 257, (*(Uz_Globs *)pG).cplens, (*(Uz_Globs *)pG).cplext, &tl, &bl);
-#else
-  retval = huft_build(pG, ll, nl, 257, cplens, cplext, &tl, &bl);
-#endif
   if (bl == 0)                  /* no literals or lengths */
     retval = 1;
   if (retval)
@@ -1342,11 +1296,7 @@ inflate_dynamic (Uz_Globs *pG)
 #else
   bd = dbits;
 #endif
-#ifdef USE_DEFLATE64
   retval = huft_build(pG, ll + nl, nd, 0, cpdist, (*(Uz_Globs *)pG).cpdext, &td, &bd);
-#else
-  retval = huft_build(pG, ll + nl, nd, 0, cpdist, cpdext, &td, &bd);
-#endif
 #ifdef PKZIP_BUG_WORKAROUND
   if (retval == 1)
     retval = 0;
@@ -1454,7 +1404,6 @@ int inflate(pG, is_defl64)
   (*(Uz_Globs *)pG).bk = 0;
   (*(Uz_Globs *)pG).bb = 0;
 
-#ifdef USE_DEFLATE64
   if (is_defl64) {
     (*(Uz_Globs *)pG).cplens = cplens64;
     (*(Uz_Globs *)pG).cplext = cplext64;
@@ -1472,16 +1421,6 @@ int inflate(pG, is_defl64)
     (*(Uz_Globs *)pG).fixed_td = (*(Uz_Globs *)pG).fixed_td32;
     (*(Uz_Globs *)pG).fixed_bd = (*(Uz_Globs *)pG).fixed_bd32;
   }
-#else /* !USE_DEFLATE64 */
-  if (is_defl64) {
-    /* This should not happen unless UnZip is built from object files
-     * compiled with inconsistent option setting.  Handle this by
-     * returning with "bad input" error code.
-     */
-    Trace((stderr, "\nThis inflate() cannot handle Deflate64!\n"));
-    return 2;
-  }
-#endif /* ?USE_DEFLATE64 */
 
   /* decompress until the last block */
   do {
@@ -1499,7 +1438,6 @@ int inflate(pG, is_defl64)
   Trace((stderr, "\n%u bytes in Huffman tables (%u/entry)\n",
          h * (unsigned)sizeof(struct huft), (unsigned)sizeof(struct huft)));
 
-#ifdef USE_DEFLATE64
   if (is_defl64) {
     (*(Uz_Globs *)pG).fixed_tl64 = (*(Uz_Globs *)pG).fixed_tl;
     (*(Uz_Globs *)pG).fixed_bl64 = (*(Uz_Globs *)pG).fixed_bl;
@@ -1511,7 +1449,6 @@ int inflate(pG, is_defl64)
     (*(Uz_Globs *)pG).fixed_td32 = (*(Uz_Globs *)pG).fixed_td;
     (*(Uz_Globs *)pG).fixed_bd32 = (*(Uz_Globs *)pG).fixed_bd;
   }
-#endif
 
   /* flush out redirSlide and return (success, unless final FLUSH failed) */
   return (FLUSH((*(Uz_Globs *)pG).wp));

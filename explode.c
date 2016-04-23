@@ -123,11 +123,7 @@
 #if (defined(DLL) && !defined(NO_SLIDE_REDIR))
 #  define wszimpl (unsigned)((*(Uz_Globs *)pG)._wsize)
 #else
-#  if defined(USE_DEFLATE64) && defined(INT_16BIT)
-#    define wszimpl (unsigned)(WSIZE>>1)
-#  else /* !(USE_DEFLATE64 && INT_16BIT) */
 #    define wszimpl WSIZE
-#  endif /* !(USE_DEFLATE64 && INT_16BIT) */
 #endif
 
 /* routines here */
@@ -525,14 +521,7 @@ explode (Uz_Globs *pG)
      */
     (*(Uz_Globs *)pG)._wsize = (*(Uz_Globs *)pG).redirect_size, redirSlide = (*(Uz_Globs *)pG).redirect_buffer;
   else
-#if defined(USE_DEFLATE64) && defined(INT_16BIT)
-    /* For systems using 16-bit ints, reduce the used buffer size below
-     * the limit of "unsigned int" numbers range.
-     */
-    (*(Uz_Globs *)pG)._wsize = WSIZE>>1, redirSlide = slide;
-#else /* !(USE_DEFLATE64 && INT_16BIT) */
     (*(Uz_Globs *)pG)._wsize = WSIZE, redirSlide = slide;
-#endif /* !(USE_DEFLATE64 && INT_16BIT) */
 #endif /* DLL && !NO_SLIDE_REDIR */
 
   /* Tune base table sizes.  Note: I thought that to truly optimize speed,

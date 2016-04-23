@@ -354,10 +354,8 @@ static const char ZipInfoUsageLine3[] = "miscellaneous options:\n\
      static const char Use_Smith_Code[] =
      "USE_SMITH_CODE (PKZIP 0.9x unreducing method supported)";
 #  endif
-#  ifdef USE_DEFLATE64
      static const char Use_Deflate64[] =
      "USE_DEFLATE64 (PKZIP 4.x Deflate64(tm) supported)";
-#  endif
 #  ifdef UNICODE_SUPPORT
 #   ifdef UTF8_MAYBE_NATIVE
 #    ifdef UNICODE_WCHAR
@@ -1758,11 +1756,9 @@ static void show_version_info(Uz_Globs *pG)
         Info(slide, 0, ((char *)slide, LoadFarString(CompileOptFormat),
           LoadFarStringSmall(Use_Unshrink)));
         ++numopts;
-#ifdef USE_DEFLATE64
         Info(slide, 0, ((char *)slide, LoadFarString(CompileOptFormat),
           LoadFarStringSmall(Use_Deflate64)));
         ++numopts;
-#endif
 #ifdef UNICODE_SUPPORT
 # ifdef UTF8_MAYBE_NATIVE
         sprintf((char *)(slide+256), LoadFarStringSmall(Use_Unicode),

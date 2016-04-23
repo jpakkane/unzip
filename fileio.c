@@ -126,9 +126,6 @@
 */
 #  define WriteTxtErr(buf,len,strm)  WriteError(buf,len,strm)
 
-#if (defined(USE_DEFLATE64) && defined(__16BIT__))
-static int partflush OF((Uz_Globs *pG, uch *rawbuf, ulg size, int unshrink));
-#endif
 static int disk_error OF((Uz_Globs *pG));
 
 
@@ -781,35 +778,6 @@ int flush(pG, rawbuf, size, unshrink)
     uch *rawbuf;
     ulg size;
     int unshrink;
-#if (defined(USE_DEFLATE64) && defined(__16BIT__))
-{
-    int ret;
-
-    /* On 16-bit systems (MSDOS, OS/2 1.x), the standard C library functions
-     * cannot handle writes of 64k blocks at once.  For these systems, the
-     * blocks to flush are split into pieces of 32k or less.
-     */
-    while (size > 0x8000L) {
-        ret = partflush(pG, rawbuf, 0x8000L, unshrink);
-        if (ret != PK_OK)
-            return ret;
-        size -= 0x8000L;
-        rawbuf += (extent)0x8000;
-    }
-    return partflush(pG, rawbuf, size, unshrink);
-} /* end function flush() */
-
-
-/************************/
-/* Function partflush() */  /* returns PK error codes: */
-/************************/  /* if tflag => always 0; PK_DISK if write error */
-
-static int partflush(pG, rawbuf, size, unshrink)
-    Uz_Globs *pG;
-    uch *rawbuf;        /* cannot be const, gets passed to (*(*(Uz_Globs *)pG).message)() */
-    ulg size;
-    int unshrink;
-#endif /* USE_DEFLATE64 && __16BIT__ */
 {
     uch *p;
     uch *q;

@@ -813,17 +813,10 @@ store_info (   /* return 0 if skipping, 1 if OK */
 #    define UNKN_RED  FALSE  /* reducing not unknown */
 #  endif
 #    define UNKN_SHR  FALSE  /* unshrinking not unknown */
-#  ifdef USE_DEFLATE64
 #    define UNKN_COMPR (UNKN_RED || UNKN_SHR || \
      (*(Uz_Globs *)pG).crec.compression_method==TOKENIZED || \
      ((*(Uz_Globs *)pG).crec.compression_method>ENHDEFLATED && UNKN_BZ2 && UNKN_LZMA \
       && UNKN_WAVP && UNKN_PPMD))
-#  else
-#    define UNKN_COMPR (UNKN_RED || UNKN_SHR || \
-     (*(Uz_Globs *)pG).crec.compression_method==TOKENIZED || \
-     ((*(Uz_Globs *)pG).crec.compression_method>DEFLATED && UNKN_BZ2 && UNKN_LZMA \
-      && UNKN_WAVP && UNKN_PPMD))
-#  endif
 
 #if (defined(USE_BZIP2) && (UNZIP_VERSION < UNZIP_BZ2VERS))
     int unzvers_support = (UNKN_BZ2 ? UNZIP_VERSION : UNZIP_BZ2VERS);
@@ -1759,9 +1752,7 @@ static int extract_or_test_member(pG)    /* return PK-type error code */
             break;
 
         case DEFLATED:
-#ifdef USE_DEFLATE64
         case ENHDEFLATED:
-#endif
             if (!uO.tflag && QCOND2) {
                 Info(slide, 0, ((char *)slide, LoadFarString(ExtractMsg),
                   "inflat", FnFilter1((*(Uz_Globs *)pG).filename),
@@ -2198,9 +2189,7 @@ int memextract(pG, tgt, tgtsize, src, srcsize)  /* extract compressed */
             (*(Uz_Globs *)pG).outcnt = (ulg)(*(Uz_Globs *)pG).csize;    /* for CRC calculation */
             break;
         case DEFLATED:
-#ifdef USE_DEFLATE64
         case ENHDEFLATED:
-#endif
             (*(Uz_Globs *)pG).outcnt = 0L;
             if ((r = UZinflate(pG, (method == ENHDEFLATED))) != 0) {
                 if (!uO.tflag)

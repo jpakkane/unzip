@@ -78,9 +78,7 @@ main (int argc, char **argv)
     (*set_flag)("NO_SLIDE_REDIR");
 # endif
 #endif
-#ifdef USE_DEFLATE64
     (*set_flag)("USE_DEFLATE64");
-#endif
 
     return 0;
 }
