@@ -1340,10 +1340,6 @@ UzpPassword (
     char *m;
     char *prompt;
 
-#ifndef REENTRANT
-    /* tell picky compilers to shut up about "unused variable" warnings */
-    pG = pG;
-#endif
 
     if (*rcnt == 0) {           /* First call for current entry */
         *rcnt = 2;

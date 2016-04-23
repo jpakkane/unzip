@@ -31,9 +31,7 @@ static int ccp_setflag(const char *flagname)
 int 
 main (int argc, char **argv)
 {
-#ifdef REENTRANT
     Uz_Globs *pG = NULL;
-#endif
     struct huft *t = NULL;
     static const char asm_offsdef[] = "%-15s EQU     %lu\n";
     static const char ccp_offsdef[] = "#define %-15s %lu\n";
@@ -82,9 +80,7 @@ main (int argc, char **argv)
 #ifdef SFX
     (*set_flag)("SFX");
 #endif
-#ifdef REENTRANT
     (*set_flag)("REENTRANT");
-#endif
 #ifdef DLL
     (*set_flag)("DLL");
 # ifdef NO_SLIDE_REDIR

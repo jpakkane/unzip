@@ -124,15 +124,11 @@ unshrink (Uz_Globs *pG)
 
     lastfreecode = BOGUSCODE;
 
-#ifndef VMS     /* VMS uses its own buffer scheme for textmode flush(). */
-#ifndef SMALL_MEM
     /* non-memory-limited machines:  allocate second (large) buffer for
      * textmode conversion in flush(), but only if needed */
     if ((*(Uz_Globs *)pG).pInfo->textmode && !(*(Uz_Globs *)pG).outbuf2 &&
         ((*(Uz_Globs *)pG).outbuf2 = (uch *)malloc(TRANSBUFSIZ)) == (uch *)NULL)
         return PK_MEM3;
-#endif
-#endif /* !VMS */
 
     for (code = 0;  code < BOGUSCODE;  ++code) {
         Value[code] = (uch)code;

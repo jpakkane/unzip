@@ -34,9 +34,6 @@
 
 /* fUnZip should never need to be reentrant */
 #ifdef FUNZIP
-#  ifdef REENTRANT
-#    undef REENTRANT
-#  endif
 #  ifdef DLL
 #    undef DLL
 #  endif
@@ -91,18 +88,8 @@
 #  endif
 #endif
 
-#if (defined(DLL) && !defined(REENTRANT))
-#  define REENTRANT
-#endif
-
 #if (!defined(DYNAMIC_CRC_TABLE) && !defined(FUNZIP))
 #  define DYNAMIC_CRC_TABLE
-#endif
-
-#if (defined(DYNAMIC_CRC_TABLE) && !defined(REENTRANT))
-#  ifndef DYNALLOC_CRCTAB
-#    define DYNALLOC_CRCTAB
-#  endif
 #endif
 
 /*---------------------------------------------------------------------------
@@ -537,7 +524,7 @@
 #  undef DYNALLOC_CRCTAB
 #endif
 
-#if (defined(DYNALLOC_CRCTAB) && defined(REENTRANT))
+#if (defined(DYNALLOC_CRCTAB))
 #  undef DYNALLOC_CRCTAB   /* not safe with reentrant code */
 #endif
 

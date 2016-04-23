@@ -75,7 +75,7 @@
 /* Local type declarations */
 /***************************/
 
-#if (defined(REENTRANT) && !defined(NO_EXCEPT_SIGNALS))
+#if (!defined(NO_EXCEPT_SIGNALS))
 typedef struct _sign_info
     {
         struct _sign_info *previous;
@@ -88,7 +88,7 @@ typedef struct _sign_info
 /* Local Functions */
 /*******************/
 
-#if (defined(REENTRANT) && !defined(NO_EXCEPT_SIGNALS))
+#if (!defined(NO_EXCEPT_SIGNALS))
 static int setsignalhandler (Uz_Globs *pG, savsigs_info **p_savedhandler_chain,
                                 int signal_type, void (*newhandler)(int));
 #endif
@@ -118,7 +118,7 @@ static void  show_version_info  (Uz_Globs *pG);
     "error:  command line parameter #%d exceeds internal size limit\n";
 #endif /* !SFX */
 
-#if (defined(REENTRANT) && !defined(NO_EXCEPT_SIGNALS))
+#if ( !defined(NO_EXCEPT_SIGNALS))
   static const char CantSaveSigHandler[] =
     "error:  cannot save signal handler settings\n";
 #endif
@@ -372,9 +372,7 @@ static const char ZipInfoUsageLine3[] = "miscellaneous options:\n\
 #  ifdef QLZIP
      static const char SMSExFldOnUnix[] = "QLZIP";
 #  endif
-#  ifdef REENTRANT
      static const char Reentrant[] = "REENTRANT";
-#  endif
 #  ifdef REGARGS
      static const char RegArgs[] = "REGARGS";
 #  endif
@@ -590,16 +588,11 @@ unzip (Uz_Globs *pG, int argc, char *argv[])
 #endif
     int retcode, error=FALSE;
 #ifndef NO_EXCEPT_SIGNALS
-#ifdef REENTRANT
     savsigs_info *oldsighandlers = NULL;
 #   define SET_SIGHANDLER(sigtype, newsighandler) \
       if ((retcode = setsignalhandler(pG, &oldsighandlers, (sigtype), \
                                       (newsighandler))) > PK_WARN) \
           goto cleanup_and_exit
-#else
-#   define SET_SIGHANDLER(sigtype, newsighandler) \
-      signal((sigtype), (newsighandler))
-#endif
 #endif /* NO_EXCEPT_SIGNALS */
 
     /* initialize international char support to the current environment */
@@ -1007,7 +1000,7 @@ unzip (Uz_Globs *pG, int argc, char *argv[])
     retcode = process_zipfiles(pG);
 
 cleanup_and_exit:
-#if (defined(REENTRANT) && !defined(NO_EXCEPT_SIGNALS))
+#if (!defined(NO_EXCEPT_SIGNALS))
     /* restore all signal handlers back to their state at function entry */
     while (oldsighandlers != NULL) {
         savsigs_info *thissigsav = oldsighandlers;
@@ -1015,12 +1008,6 @@ cleanup_and_exit:
         signal(thissigsav->sigtype, thissigsav->sighandler);
         oldsighandlers = thissigsav->previous;
         free(thissigsav);
-    }
-#endif
-#if (defined(MALLOC_WORK) && !defined(REENTRANT))
-    if ((*(Uz_Globs *)pG).area.Slide != (uch *)NULL) {
-        free((*(Uz_Globs *)pG).area.Slide);
-        (*(Uz_Globs *)pG).area.Slide = (uch *)NULL;
     }
 #endif
 #if (defined(MSDOS) && !defined(SFX) && !defined(WINDLL))
@@ -1035,7 +1022,7 @@ cleanup_and_exit:
 
 
 
-#if (defined(REENTRANT) && !defined(NO_EXCEPT_SIGNALS))
+#if (!defined(NO_EXCEPT_SIGNALS))
 /*******************************/
 /* Function setsignalhandler() */
 /*******************************/
@@ -1984,11 +1971,9 @@ static void show_version_info(Uz_Globs *pG)
           LoadFarStringSmall(SMSExFldOnUnix)));
         ++numopts;
 #endif
-#ifdef REENTRANT
         Info(slide, 0, ((char *)slide, LoadFarString(CompileOptFormat),
           LoadFarStringSmall(Reentrant)));
         ++numopts;
-#endif
 #ifdef REGARGS
         Info(slide, 0, ((char *)slide, LoadFarString(CompileOptFormat),
           LoadFarStringSmall(RegArgs)));

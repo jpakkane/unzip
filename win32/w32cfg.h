@@ -351,13 +351,8 @@ int getch_win32  OF((void));
 #endif /* !__RSXNT__ */
 
 #define W32_STAT_BANDAID
-#if defined(REENTRANT)
 #  define __W32STAT_GLOBALS__       Uz_Globs *pG,
 #  define __W32STAT_G__             pG,
-#else
-#  define __W32STAT_GLOBALS__
-#  define __W32STAT_G__
-#endif
 #ifdef SSTAT
 #  undef SSTAT
 #endif

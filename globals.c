@@ -38,10 +38,6 @@ const char *fnames[2] = {"*", NULL};   /* default filenames vector */
 #endif
 
 
-#ifndef REENTRANT
-   Uz_Globs (*(Uz_Globs *)pG);
-#else /* REENTRANT */
-
 #  ifndef USETHREADID
      Uz_Globs *GG;
 #  else /* USETHREADID */
@@ -153,19 +149,16 @@ getGlobalPointer (void)
 }
 
 #  endif /* ?USETHREADID */
-#endif /* ?REENTRANT */
 
 
 
 Uz_Globs *
 globalsCtor (void)
 {
-#ifdef REENTRANT
     Uz_Globs *pG = (Uz_Globs *)malloc(sizeof(Uz_Globs));
 
     if (!pG)
         return (Uz_Globs *)NULL;
-#endif /* REENTRANT */
 
     /* for REENTRANT version, (*(Uz_Globs *)pG) is defined as (*pG) */
 
@@ -200,13 +193,11 @@ globalsCtor (void)
     SYSTEM_SPECIFIC_CTOR(pG);
 #endif
 
-#ifdef REENTRANT
 #ifdef USETHREADID
     registerGlobalPointer(pG);
 #else
     GG = &(*(Uz_Globs *)pG);
 #endif /* ?USETHREADID */
-#endif /* REENTRANT */
 
     return &(*(Uz_Globs *)pG);
 }

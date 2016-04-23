@@ -80,7 +80,7 @@
 
 local void make_crc_table OF((void));
 
-#if (defined(DYNALLOC_CRCTAB) && defined(REENTRANT))
+#if (defined(DYNALLOC_CRCTAB))
    error: Dynamic allocation of CRC table not safe with reentrant code.
 #endif /* DYNALLOC_CRCTAB && REENTRANT */
 
