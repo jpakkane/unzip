@@ -234,19 +234,8 @@ static const char ZeroFilesTested[] =
      "\n%s:  stored in VMS format.  Extract anyway? (y/n) ";
 #endif
 
-#if CRYPT
-   static const char SkipCannotGetPasswd[] =
-     "   skipping: %-22s  unable to get password\n";
-   static const char SkipIncorrectPasswd[] =
-     "   skipping: %-22s  incorrect password\n";
-   static const char FilesSkipBadPasswd[] =
-     "%lu file%s skipped because of incorrect password.\n";
-   static const char MaybeBadPasswd[] =
-     "    (may instead be incorrect password)\n";
-#else
    static const char SkipEncrypted[] =
      "   skipping: %-22s  encrypted (not supported)\n";
-#endif
 
 static const char NoErrInCompData[] =
   "No errors detected in compressed data of %s.\n";
@@ -366,9 +355,6 @@ int extract_or_test_files(pG)    /* return PK-type error code */
 
     (*(Uz_Globs *)pG).pInfo = (*(Uz_Globs *)pG).info;
 
-#if CRYPT
-    (*(Uz_Globs *)pG).newzip = TRUE;
-#endif
     (*(Uz_Globs *)pG).reported_backslash = FALSE;
 
     /* malloc space for check on unmatched filespecs (OK if one or both NULL) */
@@ -732,11 +718,6 @@ int extract_or_test_files(pG)    /* return PK-type error code */
             if (num_skipped > 0L)
                 Info(slide, 0, ((char *)slide, LoadFarString(FilesSkipped),
                   num_skipped, (num_skipped==1L)? "":"s"));
-#if CRYPT
-            if (num_bad_pwd > 0L)
-                Info(slide, 0, ((char *)slide, LoadFarString(FilesSkipBadPasswd)
-                  , num_bad_pwd, (num_bad_pwd==1L)? "":"s"));
-#endif /* CRYPT */
         }
     }
 
@@ -749,16 +730,8 @@ int extract_or_test_files(pG)    /* return PK-type error code */
         else
             error_in_archive = PK_FIND;  /* no files found at all */
     }
-#if CRYPT
-    else if ((filnum == num_bad_pwd) && error_in_archive <= PK_WARN)
-        error_in_archive = IZ_BADPWD;    /* bad passwd => all files skipped */
-#endif
     else if ((num_skipped > 0L) && error_in_archive <= PK_WARN)
         error_in_archive = IZ_UNSUP;     /* was PK_WARN; Jean-loup complained */
-#if CRYPT
-    else if ((num_bad_pwd > 0L) && !error_in_archive)
-        error_in_archive = PK_WARN;
-#endif
 
     return error_in_archive;
 
@@ -889,14 +862,6 @@ store_info (   /* return 0 if skipping, 1 if OK */
         }
         return 0;
     }
-#if (!CRYPT)
-    if ((*(Uz_Globs *)pG).pInfo->encrypted) {
-        if (!((uO.tflag && uO.qflag) || (!uO.tflag && !QCOND2)))
-            Info(slide, 0x401, ((char *)slide, LoadFarString(SkipEncrypted),
-              FnFilter1((*(Uz_Globs *)pG).filename)));
-        return 0;
-    }
-#endif /* !CRYPT */
 
     /* store a copy of the central header filename for later comparison */
     if (((*(Uz_Globs *)pG).pInfo->cfilname = malloc(strlen((*(Uz_Globs *)pG).filename) + 1)) == NULL) {
@@ -1177,25 +1142,6 @@ static int extract_or_test_entrylist(pG, numchunk,
             }
         }
 
-#if CRYPT
-        if ((*(Uz_Globs *)pG).pInfo->encrypted &&
-            (error = decrypt(pG, uO.pwdarg)) != PK_COOL) {
-            if (error == PK_WARN) {
-                if (!((uO.tflag && uO.qflag) || (!uO.tflag && !QCOND2)))
-                    Info(slide, 0x401, ((char *)slide,
-                      LoadFarString(SkipIncorrectPasswd),
-                      FnFilter1((*(Uz_Globs *)pG).filename)));
-                ++(*pnum_bad_pwd);
-            } else {  /* (error > PK_WARN) */
-                if (error > error_in_archive)
-                    error_in_archive = error;
-                Info(slide, 0x401, ((char *)slide,
-                  LoadFarString(SkipCannotGetPasswd),
-                  FnFilter1((*(Uz_Globs *)pG).filename)));
-            }
-            continue;   /* go on to next file */
-        }
-#endif /* CRYPT */
 
         /*
          * just about to extract file:  if extracting to disk, check if
@@ -1871,10 +1817,6 @@ static int extract_or_test_member(pG)    /* return PK-type error code */
               FnFilter1((*(Uz_Globs *)pG).filename)));
         Info(slide, 0x401, ((char *)slide, LoadFarString(BadCRC), (*(Uz_Globs *)pG).crc32val,
           (*(Uz_Globs *)pG).lrec.crc32));
-#if CRYPT
-        if ((*(Uz_Globs *)pG).pInfo->encrypted)
-            Info(slide, 0x401, ((char *)slide, LoadFarString(MaybeBadPasswd)));
-#endif
         error = PK_ERR;
     } else if (uO.tflag) {
         if ((*(Uz_Globs *)pG).extra_field) {

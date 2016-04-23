@@ -72,15 +72,6 @@
 #include "crypt.h"
 #include "ttyio.h"
 
-/* setup of codepage conversion for decryption passwords */
-#if CRYPT
-#  if (defined(CRYP_USES_ISO2OEM) && !defined(IZ_ISO2OEM_ARRAY))
-#    define IZ_ISO2OEM_ARRAY            /* pull in iso2oem[] table */
-#  endif
-#  if (defined(CRYP_USES_OEM2ISO) && !defined(IZ_OEM2ISO_ARRAY))
-#    define IZ_OEM2ISO_ARRAY            /* pull in oem2iso[] table */
-#  endif
-#endif
 #include "ebcdic.h"   /* definition/initialization of ebcdic[] */
 
 
@@ -182,16 +173,6 @@ static const char ExtraFieldTooLong[] =
      "--- Press `Q' to quit, or any other key to continue ---";
    static const char HidePrompt[] = /* "\r                       \r"; */
      "\r                                                         \r";
-#  if CRYPT
-#    ifdef MACOS
-       /* SPC: are names on MacOS REALLY so much longer than elsewhere ??? */
-       static const char PasswPrompt[] = "[%s]\n %s password: ";
-#    else
-       static const char PasswPrompt[] = "[%s] %s password: ";
-#    endif
-     static const char PasswPrompt2[] = "Enter password: ";
-     static const char PasswRetry[] = "password incorrect--reenter: ";
-#  endif /* CRYPT */
 #endif /* !WINDLL */
 
 

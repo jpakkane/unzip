@@ -854,10 +854,10 @@ cleanup_and_exit:
 /* Function uz_opts() */
 /**********************/
 
-int uz_opts(pG, pargc, pargv)
-    Uz_Globs *pG;
-    int *pargc;
-    char ***pargv;
+int uz_opts(
+    Uz_Globs *pG,
+    int *pargc,
+    char ***pargv)
 {
     char **argv, *s;
     int argc, c, error=FALSE, negative=0, showhelp=0;
@@ -1026,51 +1026,6 @@ int uz_opts(pG, pargc, pargv)
                         uO.qflag += 999;
                     }
                     break;
-#if CRYPT
-                /* GRR:  yes, this is highly insecure, but dozens of people
-                 * have pestered us for this, so here we go... */
-                case ('P'):
-                    if (negative) {   /* negative not allowed with -P passwd */
-                        Info(slide, 0x401, ((char *)slide,
-                          LoadFarString(MustGivePasswd)));
-                        return(PK_PARAM);  /* don't extract here by accident */
-                    }
-                    if (uO.pwdarg != (char *)NULL) {
-/*
-                        GRR:  eventually support multiple passwords?
-                        Info(slide, 0x401, ((char *)slide,
-                          LoadFarString(OnlyOnePasswd)));
-                        return(PK_PARAM);
- */
-                    } else {
-                        /* first check for "-Ppasswd", then for "-P passwd" */
-                        uO.pwdarg = s;
-                        if (*uO.pwdarg == '\0') {
-                            if (argc > 1) {
-                                --argc;
-                                uO.pwdarg = *++argv;
-                                if (*uO.pwdarg == '-') {
-                                    Info(slide, 0x401, ((char *)slide,
-                                      LoadFarString(MustGivePasswd)));
-                                    return(PK_PARAM);
-                                }
-                                /* else pwdarg points at decryption password */
-                            } else {
-                                Info(slide, 0x401, ((char *)slide,
-                                  LoadFarString(MustGivePasswd)));
-                                return(PK_PARAM);
-                            }
-                        }
-                        /* pwdarg now points at decryption password (-Ppasswd or
-                         *  -P passwd); point s at end of passwd to avoid mis-
-                         *  interpretation of passwd characters as more options
-                         */
-                        if (*s != 0)
-                            while (*++s != 0)
-                                ;
-                    }
-                    break;
-#endif /* CRYPT */
                 case ('q'):    /* quiet:  fewer comments/messages */
                     if (negative) {
                         uO.qflag = MAX(uO.qflag-negative,0);
@@ -1723,16 +1678,6 @@ static void show_version_info(Uz_Globs *pG)
           LoadFarStringSmall(WildStopAtDir)));
         ++numopts;
 #endif
-#if CRYPT
-# ifdef PASSWD_FROM_STDIN
-        Info(slide, 0, ((char *)slide, LoadFarString(CompileOptFormat),
-          LoadFarStringSmall(PasswdStdin)));
-# endif
-        Info(slide, 0, ((char *)slide, LoadFarString(Decryption),
-          CR_MAJORVER, CR_MINORVER, CR_BETA_VER,
-          LoadFarStringSmall(CryptDate)));
-        ++numopts;
-#endif /* CRYPT */
         if (numopts == 0)
             Info(slide, 0, ((char *)slide,
               LoadFarString(CompileOptFormat),

@@ -4,13 +4,11 @@ zdep = dependency('zlib')
 #bzdep = dependency('bz2')
 
 add_global_arguments(
-  '-DNO_EXCEPT_SIGNALS=1',
   language : 'c')
 
 
 unziplib = static_library('unziplib',
   'crc32.c',
-  'crypt.c',
   'envargs.c',
   'explode.c',
   'extract.c',

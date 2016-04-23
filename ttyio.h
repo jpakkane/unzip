@@ -12,11 +12,7 @@
 
 #pragma once
 
-#ifndef __crypt_h
-#  include "crypt.h"  /* ensure that encryption header file has been seen */
-#endif
-
-#if (CRYPT || (defined(UNZIP)))
+#if ((defined(UNZIP)))
 /*
  * Non-echo keyboard/console input support is needed and enabled.
  */
@@ -135,45 +131,6 @@
 #  define HAVE_WORKING_GETCH
 #endif
 
-/* For VM/CMS and MVS, we do not (yet) have any support to switch terminal
- * input echo on and off. The following "fake" definitions allow inclusion
- * of crypt support and UnZip's "pause prompting" features, but without
- * any echo suppression.
- */
-#ifdef CMS_MVS
-#  define echoff(f)
-#  define echon()
-#endif
-
-#ifdef TANDEM
-#  define echoff(f)
-#  define echon()
-#  define getch() zgetch() /* defined in TANDEMC */
-#  define HAVE_WORKING_GETCH
-#endif
-
-/* The THEOS C runtime library supplies the function conmask() to toggle
- * terminal input echo on (conmask("e")) and off (conmask("n")).  But,
- * since THEOS C RTL also contains a working non-echo getch() function,
- * the echo toggles are not needed.
- */
-#ifdef THEOS
-#  define echoff(f)
-#  define echon()
-#  define HAVE_WORKING_GETCH
-#endif
-
-/* VMS has a single echo() function in ttyio.c to toggle terminal
- * input echo on and off.
- */
-#ifdef VMS
-#  define echoff(f)  echo(0)
-#  define echon()    echo(1)
-#  define getch()    tt_getch()
-#  define FGETCH(f)  tt_getch()
-   int echo OF((int));
-   int tt_getch OF((void));
-#endif
 
 /* For all other systems, ttyio.c supplies the two functions Echoff() and
  * Echon() for suppressing and (re)enabling console input echo.
@@ -197,7 +154,7 @@
 #  endif
 #endif /* UNZIP && !FUNZIP */
 
-#if (CRYPT && !defined(WINDLL))
+#if (!defined(WINDLL))
    char *getp (Uz_Globs *pG, const char *m, char *p, int n);
 #endif
 
