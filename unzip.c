@@ -811,11 +811,6 @@ unzip (Uz_Globs *pG, int argc, char *argv[])
 #endif /* !NO_ZIPINFO */
     {
         uO.zipinfo_mode = FALSE;
-#ifndef _WIN32_WCE /* Win CE does not support environment variables */
-        if ((error = envargs(&argc, &argv, LoadFarStringSmall(EnvUnZip),
-                             LoadFarStringSmall2(EnvUnZip2))) != PK_OK)
-            perror(LoadFarString(NoMemEnvArguments));
-#endif
     }
 
     if (!error) {
@@ -918,11 +913,7 @@ unzip (Uz_Globs *pG, int argc, char *argv[])
         (*(Uz_Globs *)pG).pfnames = argv;
         while (*++pp) {
             Trace((stderr, "pp - argv = %d\n", pp-argv));
-#ifdef CMS_MVS
-            if (!uO.exdir && STRNICMP(*pp, "-d", 2) == 0) {
-#else
             if (!uO.exdir && strncmp(*pp, "-d", 2) == 0) {
-#endif
                 int firstarg = (pp == argv);
 
                 uO.exdir = (*pp) + 2;
@@ -1009,10 +1000,6 @@ cleanup_and_exit:
         oldsighandlers = thissigsav->previous;
         free(thissigsav);
     }
-#endif
-#if (defined(MSDOS) && !defined(SFX) && !defined(WINDLL))
-    if (retcode != PK_OK)
-        check_for_windows("UnZip");
 #endif
     return(retcode);
 
