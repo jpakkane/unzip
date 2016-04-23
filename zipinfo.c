@@ -511,14 +511,6 @@ zi_opts (Uz_Globs *pG, int *pargc, char ***pargv)
                     else
                         uO.lflag = 4;
                     break;
-#ifdef MORE
-                case 'M':      /* send output through built-in "more" */
-                    if (negative)
-                        (*(Uz_Globs *)pG).M_flag = FALSE, negative = 0;
-                    else
-                        (*(Uz_Globs *)pG).M_flag = TRUE;
-                    break;
-#endif
                 case 's':      /* default:  shorter "ls -l" type listing */
                     if (negative)
                         uO.lflag = -2, negative = 0;
@@ -584,11 +576,6 @@ zi_opts (Uz_Globs *pG, int *pargc, char ***pargv)
         return 1;
         /*return USAGE(error);*/
     }
-
-#ifdef MORE
-    if ((*(Uz_Globs *)pG).M_flag && !isatty(1))  /* stdout redirected: "more" func useless */
-        (*(Uz_Globs *)pG).M_flag = 0;
-#endif
 
     /* if no listing options given (or all negated), or if only -h/-t given
      * with individual files specified, use default listing format */

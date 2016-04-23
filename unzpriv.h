@@ -25,13 +25,6 @@
 #  define UNZIP
 #endif
 
-/* GRR 960204:  MORE defined here in preparation for removal altogether */
-#ifndef MORE
-# ifndef RISCOS
-#  define MORE
-# endif
-#endif
-
 
 #if (defined(USE_ZLIB) && !defined(HAVE_ZL_INFLAT64) && !defined(NO_DEFLATE64))
    /* zlib does not (yet?) provide Deflate64(tm) support */
@@ -470,30 +463,8 @@
 #define MSG_NO_NDLL(f) (f & 0x0800)   /* bit 11:  1 = skip if WIN32 DLL */
 #define MSG_NO_WDLL(f) (f & 0x1000)   /* bit 12:  1 = skip if Windows DLL */
 
-#if (defined(MORE) && !defined(SCREENLINES))
-#  ifdef DOS_FLX_NLM_OS2_W32
-#    define SCREENLINES 25  /* can be (should be) a function instead */
-#  else
-#    define SCREENLINES 24  /* VT-100s are assumed to be minimal hardware */
-#  endif
-#endif
-#if (defined(MORE) && !defined(SCREENSIZE))
-#  ifndef SCREENWIDTH
-#    define SCREENSIZE(scrrows, scrcols) { \
-          if ((scrrows) != NULL) *(scrrows) = SCREENLINES; }
-#  else
-#    define SCREENSIZE(scrrows, scrcols) { \
-          if ((scrrows) != NULL) *(scrrows) = SCREENLINES; \
-          if ((scrcols) != NULL) *(scrcols) = SCREENWIDTH; }
-#  endif
-#endif
 
-#if (defined(__16BIT__) || defined(MED_MEM) || defined(SMALL_MEM))
-# define DIR_BLKSIZ  64     /* number of directory entries per block
-                             *  (should fit in 4096 bytes, usually) */
-#else
 # define DIR_BLKSIZ 16384   /* use more memory, to reduce long-range seeks */
-#endif
 
 #ifndef WSIZE
 #  ifdef USE_DEFLATE64
@@ -1802,9 +1773,6 @@ int      mapname         (Uz_Globs *pG, int renamed);                /* local */
 int      checkdir        (Uz_Globs *pG, char *pathcomp, int flag);   /* local */
 char    *do_wild         (Uz_Globs *pG, const char *wildzipfn);     /* local */
 char    *GetLoadPath     ();                              /* local */
-#if (defined(MORE) && (defined(ATH_BEO_UNX) || defined(QDOS) || defined(VMS)))
-   int screensize        OF((int *tt_rows, int *tt_cols));          /* local */
-#endif /* MORE && (ATH_BEO_UNX || QDOS || VMS) */
 #ifdef OS2_W32
    int   SetFileSize     OF((FILE *file, zusz_t filesize));         /* local */
 #endif

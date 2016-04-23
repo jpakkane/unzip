@@ -252,13 +252,8 @@ M  pipe through \"more\" pager              -s  spaces in filenames => '_'\n\n";
  -i  ignore filenames in mac extra info     -J  junk (ignore) Mac extra info\n\
 \n";
 #else /* !MACOS */
-#ifdef MORE
-   static const char local2[] = " -M  pipe through \"more\" pager";
-   static const char local3[] = "\n";
-#else
    static const char local2[] = "";   /* Atari, Mac, CMS/MVS etc. */
    static const char local3[] = "";
-#endif
 #endif /* ?MACOS */
 #endif /* ?AMIGA */
 #endif /* ?TANDEM */
@@ -289,12 +284,7 @@ static const char ZipInfoUsageLine3[] = "miscellaneous options:\n\
   -z  print zipfile comment   -T  print file times in sortable decimal format\
 \n  -C  be case-insensitive   %s\
   -x  exclude filenames that follow from listing\n";
-#ifdef MORE
-   static const char ZipInfoUsageLine4[] =
-     "  -M  page output through built-in \"more\"\n";
-#else /* !MORE */
    static const char ZipInfoUsageLine4[] = "";
-#endif /* ?MORE */
 #endif /* !NO_ZIPINFO */
 
    static const char CompileOptions[] =
@@ -332,9 +322,7 @@ static const char ZipInfoUsageLine3[] = "miscellaneous options:\n\
      static const char LZW_Clean[] =
      "LZW_CLEAN (PKZIP/Zip 1.x unshrinking method not supported)";
 #  endif
-#  ifndef MORE
      static const char No_More[] = "NO_MORE";
-#  endif
 #  ifdef NO_ZIPINFO
      static const char No_ZipInfo[] = "NO_ZIPINFO";
 #  endif
@@ -1128,15 +1116,6 @@ int uz_opts(pG, pargc, pargv)
                     } else
                         ++uO.vflag;
                     break;
-#ifdef MORE
-                case ('M'):    /* send all screen output through "more" fn. */
-/* GRR:  eventually check for numerical argument => height */
-                    if (negative)
-                        (*(Uz_Globs *)pG).M_flag = FALSE, negative = 0;
-                    else
-                        (*(Uz_Globs *)pG).M_flag = TRUE;
-                    break;
-#endif /* MORE */
                 case ('n'):    /* don't overwrite any files */
                     if (negative)
                         uO.overwrite_none = FALSE, negative = 0;
@@ -1341,10 +1320,6 @@ int uz_opts(pG, pargc, pargv)
         Info(slide, 0x401, ((char *)slide, LoadFarString(IgnoreOOptionMsg)));
         uO.overwrite_all = FALSE;
     }
-#ifdef MORE
-    if ((*(Uz_Globs *)pG).M_flag && !isatty(1))  /* stdout redirected: "more" func. useless */
-        (*(Uz_Globs *)pG).M_flag = 0;
-#endif
 
     if ((argc-- == 0) || error)
     {
@@ -1745,11 +1720,9 @@ static void show_version_info(Uz_Globs *pG)
           LoadFarStringSmall(LZW_Clean)));
         ++numopts;
 #endif
-#ifndef MORE
         Info(slide, 0, ((char *)slide, LoadFarString(CompileOptFormat),
           LoadFarStringSmall(No_More)));
         ++numopts;
-#endif
 #ifdef NO_ZIPINFO
         Info(slide, 0, ((char *)slide, LoadFarString(CompileOptFormat),
           LoadFarStringSmall(No_ZipInfo)));

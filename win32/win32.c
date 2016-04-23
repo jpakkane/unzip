@@ -2611,21 +2611,6 @@ void version(pG)
 
 
 
-#ifdef MORE
-
-int screensize(int *tt_rows, int *tt_cols)
-{
-    HANDLE hstdout;
-    CONSOLE_SCREEN_BUFFER_INFO scr;
-
-    hstdout = GetStdHandle(STD_OUTPUT_HANDLE);
-    GetConsoleScreenBufferInfo(hstdout, &scr);
-    if (tt_rows != NULL) *tt_rows = scr.srWindow.Bottom - scr.srWindow.Top + 1;
-    if (tt_cols != NULL) *tt_cols = scr.srWindow.Right - scr.srWindow.Left + 1;
-    return 0;           /* signal success */
-}
-
-#endif /* MORE */
 
 
 

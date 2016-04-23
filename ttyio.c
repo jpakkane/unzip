@@ -101,12 +101,6 @@
 #  endif
 #endif
 
-#if (defined(UNZIP) && defined(UNIX) && defined(MORE))
-#  include <sys/ioctl.h>
-#  define GOT_IOCTL_H
-   /* int ioctl OF((int, int, void *));   GRR: may need for some systems */
-#endif
-
 #ifndef HAVE_WORKING_GETCH
    /* include system support for switching of console echo */
 #  ifdef VMS
@@ -228,98 +222,6 @@ Echon (Uz_Globs *pG)
 #if (defined(UNZIP))
 
 #ifdef ATH_BEO_UNX
-#ifdef MORE
-
-/*
- * Get the number of lines on the output terminal.  SCO Unix apparently
- * defines TIOCGWINSZ but doesn't support it (!M_UNIX).
- *
- * GRR:  will need to know width of terminal someday, too, to account for
- *       line-wrapping.
- */
-
-#if (defined(TIOCGWINSZ) && !defined(M_UNIX))
-
-int 
-screensize (int *tt_rows, int *tt_cols)
-{
-    struct winsize wsz;
-#ifdef DEBUG_WINSZ
-    static int firsttime = TRUE;
-#endif
-
-    /* see termio(4) under, e.g., SunOS */
-    if (ioctl(1, TIOCGWINSZ, &wsz) == 0) {
-#ifdef DEBUG_WINSZ
-        if (firsttime) {
-            firsttime = FALSE;
-            fprintf(stderr, "ttyio.c screensize():  ws_row = %d\n",
-              wsz.ws_row);
-            fprintf(stderr, "ttyio.c screensize():  ws_col = %d\n",
-              wsz.ws_col);
-        }
-#endif
-        /* number of rows */
-        if (tt_rows != NULL)
-            *tt_rows = (int)((wsz.ws_row > 0) ? wsz.ws_row : 24);
-        /* number of columns */
-        if (tt_cols != NULL)
-            *tt_cols = (int)((wsz.ws_col > 0) ? wsz.ws_col : 80);
-        return 0;    /* signal success */
-    } else {         /* this happens when piping to more(1), for example */
-#ifdef DEBUG_WINSZ
-        if (firsttime) {
-            firsttime = FALSE;
-            fprintf(stderr,
-              "ttyio.c screensize():  ioctl(TIOCGWINSZ) failed\n"));
-        }
-#endif
-        /* VT-100 assumed to be minimal hardware */
-        if (tt_rows != NULL)
-            *tt_rows = 24;
-        if (tt_cols != NULL)
-            *tt_cols = 80;
-        return 1;       /* signal failure */
-    }
-}
-
-#else /* !TIOCGWINSZ: service not available, fall back to semi-bogus method */
-
-int 
-screensize (int *tt_rows, int *tt_cols)
-{
-    char *envptr, *getenv();
-    int n;
-    int errstat = 0;
-
-    /* GRR:  this is overly simplistic, but don't have access to stty/gtty
-     * system anymore
-     */
-    if (tt_rows != NULL) {
-        envptr = getenv("LINES");
-        if (envptr == (char *)NULL || (n = atoi(envptr)) < 5) {
-            /* VT-100 assumed to be minimal hardware */
-            *tt_rows = 24;
-            errstat = 1;    /* signal failure */
-        } else {
-            *tt_rows = n;
-        }
-    }
-    if (tt_cols != NULL) {
-        envptr = getenv("COLUMNS");
-        if (envptr == (char *)NULL || (n = atoi(envptr)) < 5) {
-            *tt_cols = 80;
-            errstat = 1;    /* signal failure */
-        } else {
-            *tt_cols = n;
-        }
-    }
-    return errstat;
-}
-
-#endif /* ?(TIOCGWINSZ && !M_UNIX) */
-#endif /* MORE */
-
 
 /*
  * Get a character from the given file descriptor without echo or newline.
