@@ -22,9 +22,7 @@
 
 #include <stdio.h>
 #include "unzip.h"
-#if defined(MODERN) && !defined(NO_STDDEF_H)
 # include <stddef.h>
-#endif
 #include "unzvers.h"
 
 int main(int argc, char *argv[])
@@ -79,11 +77,7 @@ int main(int argc, char *argv[])
          ((extent)(void *)&(((UzpVer *)0)->dllapimin))
      */
     if (pVersion->structlen >=
-#if defined(MODERN) && !defined(NO_STDDEF_H)
         ( offsetof(UzpVer, dllapimin)
-#else
-          ((unsigned)&(((UzpVer *)0)->dllapimin))
-#endif
          + sizeof(_version_type) ))
     {
 #ifdef OS2DLL

@@ -273,25 +273,15 @@
 #else
 #  include <string.h>    /* strcpy, strcmp, memcpy, strchr/strrchr, etc. */
 #endif
-#if (defined(MODERN) && !defined(NO_LIMITS_H))
 #  include <limits.h>    /* MAX/MIN constant symbols for system types... */
-#endif
 
 /* this include must be down here for SysV.4, for some reason... */
 #include <signal.h>      /* used in unzip.c, fileio.c */
 
 
-#ifdef MODERN
-#  ifndef NO_STDDEF_H
 #    include <stddef.h>
-#  endif
-#  ifndef NO_STDLIB_H
 #    include <stdlib.h>  /* standard library prototypes, malloc(), etc. */
-#  endif
    typedef size_t extent;
-#else /* !MODERN */
-   typedef unsigned int extent;
-#endif /* ?MODERN */
 
 
 
@@ -531,7 +521,6 @@
 #endif
 
 /* Defaults when nothing special has been defined previously. */
-#ifdef MODERN
 #  ifndef FOPR
 #    define FOPR "rb"
 #  endif
@@ -547,23 +536,6 @@
 #  ifndef FOPWR
 #    define FOPWR "w+b"
 #  endif
-#else /* !MODERN */
-#  ifndef FOPR
-#    define FOPR "r"
-#  endif
-#  ifndef FOPM
-#    define FOPM "r+"
-#  endif
-#  ifndef FOPW
-#    define FOPW "w"
-#  endif
-#  ifndef FOPWT
-#    define FOPWT "w"
-#  endif
-#  ifndef FOPWR
-#    define FOPWR "w+"
-#  endif
-#endif /* ?MODERN */
 
 /*
  * If <limits.h> exists on most systems, should include that, since it may
@@ -1161,22 +1133,7 @@
 # endif
 
 #ifndef Z_UINT4_DEFINED
-# if (defined(MODERN) && !defined(NO_LIMITS_H))
-#  if (defined(UINT_MAX) && (UINT_MAX == 0xffffffffUL))
-     typedef unsigned int       z_uint4;
-#    define Z_UINT4_DEFINED
-#  else
-#  if (defined(ULONG_MAX) && (ULONG_MAX == 0xffffffffUL))
-     typedef unsigned long      z_uint4;
-#    define Z_UINT4_DEFINED
-#  else
-#  if (defined(USHRT_MAX) && (USHRT_MAX == 0xffffffffUL))
-     typedef unsigned short     z_uint4;
-#    define Z_UINT4_DEFINED
-#  endif
-#  endif
-#  endif
-# endif /* MODERN && !NO_LIMITS_H */
+#include<limits.h>
 #endif /* !Z_UINT4_DEFINED */
 #ifndef Z_UINT4_DEFINED
   typedef ulg                   z_uint4;

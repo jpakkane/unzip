@@ -88,7 +88,7 @@ typedef struct stat z_stat;
    struct tm *gmtime(), *localtime();
 #endif
 
-#if (defined(BSD4_4) || (defined(SYSV) && defined(MODERN)))
+#if (defined(BSD4_4) || (defined(SYSV)))
 #  include <unistd.h>           /* this includes utime.h on SGIs */
 #  if (defined(BSD4_4) || defined(linux) || defined(__GLIBC__))
 #    include <utime.h>

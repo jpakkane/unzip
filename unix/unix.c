@@ -30,6 +30,8 @@
 #define UNZIP_INTERNAL
 #include "unzip.h"
 
+#include<stdlib.h>
+
 #ifdef _POSIX_VERSION
 #  ifndef DIRENT
 #    define DIRENT

@@ -204,44 +204,6 @@ freely, subject to the above disclaimer and the following restrictions:
 #  define MACOS
 #endif
 
-/* use prototypes and ANSI libraries if __STDC__, or MS-DOS, or OS/2, or Win32,
- * or IBM C Set/2, or Borland C, or Watcom C, or GNU gcc (emx or Cygwin),
- * or Macintosh, or Sequent, or Atari, or IBM RS/6000, or Silicon Graphics,
- * or Convex?, or AtheOS, or BeOS.
- */
-#if (defined(__STDC__) || defined(MSDOS) || defined(OS2) || defined(WIN32))
-#  ifndef PROTO
-#    define PROTO
-#  endif
-#  ifndef MODERN
-#    define MODERN
-#  endif
-#endif
-#if (defined(__IBMC__) || defined(__BORLANDC__) || defined(__WATCOMC__))
-#  ifndef PROTO
-#    define PROTO
-#  endif
-#  ifndef MODERN
-#    define MODERN
-#  endif
-#endif
-#if (defined(__EMX__) || defined(__CYGWIN__))
-#  ifndef PROTO
-#    define PROTO
-#  endif
-#  ifndef MODERN
-#    define MODERN
-#  endif
-#endif
-#if (defined(MACOS) || defined(ATARI_ST) || defined(RISCOS) || defined(THEOS))
-#  ifndef PROTO
-#    define PROTO
-#  endif
-#  ifndef MODERN
-#    define MODERN
-#  endif
-#endif
-
 /* Tell Microsoft Visual C++ 2005 (and newer) to leave us alone
  * and let us use standard C functions the way we're supposed to.
  * (These preprocessor symbols must appear before the first system
@@ -269,10 +231,6 @@ freely, subject to the above disclaimer and the following restrictions:
     Grab system-specific public include headers.
   ---------------------------------------------------------------------------*/
 
-#ifdef POCKET_UNZIP             /* WinCE port */
-#  include "wince/punzip.h"     /* must appear before windows.h */
-#endif
-
 #ifdef WINDLL
    /* for UnZip, the "basic" part of the win32 api is sufficient */
 #  ifndef WIN32_LEAN_AND_MEAN
@@ -291,25 +249,6 @@ freely, subject to the above disclaimer and the following restrictions:
     Grab system-dependent definition of EXPENTRY for prototypes below.
   ---------------------------------------------------------------------------*/
 
-#if 0
-#if (defined(OS2) && !defined(FUNZIP))
-#  ifdef UNZIP_INTERNAL
-#    define INCL_NOPM
-#    define INCL_DOSNLS
-#    define INCL_DOSPROCESS
-#    define INCL_DOSDEVICES
-#    define INCL_DOSDEVIOCTL
-#    define INCL_DOSERRORS
-#    define INCL_DOSMISC
-#    ifdef OS2DLL
-#      define INCL_REXXSAA
-#      include <rexxsaa.h>
-#    endif
-#  endif /* UNZIP_INTERNAL */
-#  include <os2.h>
-#  define UZ_EXP EXPENTRY
-#endif /* OS2 && !FUNZIP */
-#endif /* 0 */
 
 #if (defined(WINDLL) || defined(USE_UNZIP_LIB))
 #  ifndef EXPENTRY
@@ -339,7 +278,6 @@ typedef unsigned long   ulg;    /*  predefined on some systems) & match zip  */
 #endif /* !_IZ_TYPES_DEFINED */
 
 /* InputFn is not yet used and is likely to change: */
-#ifdef PROTO
    typedef int   (UZ_EXP MsgFn)     (void *pG, uch *buf, ulg size, int flag);
    typedef int   (UZ_EXP InputFn)   (void *pG, uch *buf, int *size, int flag);
    typedef void  (UZ_EXP PauseFn)   (void *pG, const char *prompt, int flag);
@@ -349,14 +287,6 @@ typedef unsigned long   ulg;    /*  predefined on some systems) & match zip  */
    typedef int   (UZ_EXP StatCBFn)  (void *pG, int fnflag, const char *zfn,
                                      const char *efn, const void *details);
    typedef void  (UZ_EXP UsrIniFn)  (void);
-#else /* !PROTO */
-   typedef int   (UZ_EXP MsgFn)     ();
-   typedef int   (UZ_EXP InputFn)   ();
-   typedef void  (UZ_EXP PauseFn)   ();
-   typedef int   (UZ_EXP PasswdFn)  ();
-   typedef int   (UZ_EXP StatCBFn)  ();
-   typedef void  (UZ_EXP UsrIniFn)  ();
-#endif /* ?PROTO */
 
 typedef struct _UzpBuffer {    /* rxstr */
     ulg   strlength;           /* length of string */
