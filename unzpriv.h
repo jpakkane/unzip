@@ -32,15 +32,6 @@
 # endif
 #endif
 
-/* fUnZip should never need to be reentrant */
-#ifdef FUNZIP
-#  ifdef DLL
-#    undef DLL
-#  endif
-#  ifdef USE_BZIP2      /* fUnZip does not support bzip2 decompression */
-#    undef USE_BZIP2
-#  endif
-#endif
 
 #if (defined(USE_ZLIB) && !defined(HAVE_ZL_INFLAT64) && !defined(NO_DEFLATE64))
    /* zlib does not (yet?) provide Deflate64(tm) support */
@@ -80,7 +71,7 @@
 #  endif
 #endif
 
-#if (!defined(DYNAMIC_CRC_TABLE) && !defined(FUNZIP))
+#if (!defined(DYNAMIC_CRC_TABLE))
 #  define DYNAMIC_CRC_TABLE
 #endif
 
@@ -1645,11 +1636,7 @@ unsigned readbuf              (Uz_Globs *pG, char *buf, register unsigned len);
 int      readbyte             ();
 int      fillinbuf            ();
 int      seek_zipf            (Uz_Globs *pG, zoff_t abs_offset);
-#ifdef FUNZIP
-   int   flush                (Uz_Globs *pG, ulg size);  /* actually funzip.c */
-#else
    int   flush                (Uz_Globs *pG, uch *buf, ulg size, int unshrink);
-#endif
 /* static int  disk_error     (); */
 void     handler              (int signal);
 time_t   dos_to_unix_time     (ulg dos_datetime);
@@ -1718,9 +1705,7 @@ char  *fnfilter                  (const char *raw, uch *space,
     Decompression functions:
   ---------------------------------------------------------------------------*/
 
-#if (!defined(FUNZIP))
 int    explode                   ();                  /* explode.c */
-#endif
 int    huft_free                 (struct huft *t);          /* inflate.c */
 int    huft_build                (Uz_Globs *pG, const unsigned *b, unsigned n,
                                      unsigned s, const ush *d, const uch *e,
@@ -1732,7 +1717,6 @@ int    huft_build                (Uz_Globs *pG, const unsigned *b, unsigned n,
    int    inflate                (Uz_Globs *pG, int is_defl64);  /* inflate.c */
    int    inflate_free           ();                  /* inflate.c */
 #endif /* ?USE_ZLIB */
-#if (!defined(FUNZIP))
 #ifndef COPYRIGHT_CLEAN
    int    unreduce               ();                 /* unreduce.c */
 /* static void  LoadFollowers    OF((Uz_Globs *pG, f_array *follower, uch *Slen));
@@ -1742,7 +1726,6 @@ int    huft_build                (Uz_Globs *pG, const unsigned *b, unsigned n,
    int    unshrink               ();                 /* unshrink.c */
 /* static void  partial_clear    ();                  * unshrink.c */
 #endif /* !LZW_CLEAN */
-#endif /* !SFX && !FUNZIP */
 #ifdef USE_BZIP2
    int    UZbunzip2              ();                  /* extract.c */
    void   bz_internal_error      OF((int bzerrcode));           /* ubz2err.c */
@@ -1916,10 +1899,6 @@ char    *GetLoadPath     ();                              /* local */
  *             (flag)&1? stderr : stdout) < 0)
  */
 #ifndef Info   /* may already have been defined for redirection */
-#  ifdef FUNZIP
-#    define Info(buf,flag,sprf_arg) \
-     fputs((char *)(sprintf sprf_arg, (buf)), (flag)&1? stderr : stdout)
-#  else
 #    ifdef INT_SPRINTF  /* optimized version for "int sprintf()" flavour */
 #      define Info(buf,flag,sprf_arg) \
        (*(*(Uz_Globs *)pG).message)((void *)&(*(Uz_Globs *)pG), (uch *)(buf), (ulg)sprintf sprf_arg, (flag))
@@ -1927,7 +1906,6 @@ char    *GetLoadPath     ();                              /* local */
 #      define Info(buf,flag,sprf_arg) \
        (*(*(Uz_Globs *)pG).message)((void *)&(*(Uz_Globs *)pG), (uch *)(buf), \
                      (ulg)(sprintf sprf_arg, strlen((char *)(buf))), (flag))
-#    endif
 #  endif
 #endif /* !Info */
 
@@ -1948,9 +1926,7 @@ char    *GetLoadPath     ();                              /* local */
         fnfilter((fname), slide + (extent)((WSIZE>>1) + (WSIZE>>2)),\
                  (extent)(WSIZE>>2))
 
-#ifndef FUNZIP   /* used only in inflate.c */
 #  define MESSAGE(str,len,flag)  (*(*(Uz_Globs *)pG).message)((void *)&(*(Uz_Globs *)pG),(str),(len),(flag))
-#endif
 
 #if 0            /* Optimization: use the (const) result of crc32(0L,NULL,0) */
 #  define CRCVAL_INITIAL  crc32(0L, NULL, 0)
@@ -1989,14 +1965,9 @@ char    *GetLoadPath     ();                              /* local */
  */
 
 
-#ifdef FUNZIP
-#  define FLUSH(w)  flush(pG, (ulg)(w))
-#  define NEXTBYTE  getc((*(Uz_Globs *)pG).in)   /* redefined in crypt.h if full version */
-#else
 #  define FLUSH(w)  (((*(Uz_Globs *)pG).mem_mode) ? memflush(pG, redirSlide,(ulg)(w)) \
                                   : flush(pG, redirSlide,(ulg)(w),0))
 #  define NEXTBYTE  ((*(Uz_Globs *)pG).incnt-- > 0 ? (int)(*(*(Uz_Globs *)pG).inptr++) : readbyte(pG))
-#endif
 
 
 #define READBITS(nbits,zdest) {if(nbits>(*(Uz_Globs *)pG).bits_left) {int temp; (*(Uz_Globs *)pG).zipeof=1;\

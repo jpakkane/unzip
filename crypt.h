@@ -131,18 +131,9 @@ void init_keys (Uz_Globs *pG, const char *passwd);
 #  endif
 #endif /* ZIP */
 
-#if (defined(UNZIP) && !defined(FUNZIP))
+#if (defined(UNZIP))
    int  decrypt (Uz_Globs *pG, const char *passwrd);
 #endif
-
-#ifdef FUNZIP
-   extern int encrypted;
-#  ifdef NEXTBYTE
-#    undef NEXTBYTE
-#  endif
-#  define NEXTBYTE \
-   (encrypted? update_keys(pG, getc((*(Uz_Globs *)pG).in)^decrypt_byte(pG)) : getc((*(Uz_Globs *)pG).in))
-#endif /* FUNZIP */
 
 #else /* !CRYPT */
 /* dummy version */

@@ -311,14 +311,6 @@ freely, subject to the above disclaimer and the following restrictions:
 #endif /* OS2 && !FUNZIP */
 #endif /* 0 */
 
-#if (defined(OS2) && !defined(FUNZIP))
-#  if (defined(__IBMC__) || defined(__WATCOMC__))
-#    define UZ_EXP  _System    /* compiler keyword */
-#  else
-#    define UZ_EXP
-#  endif
-#endif /* OS2 && !FUNZIP */
-
 #if (defined(WINDLL) || defined(USE_UNZIP_LIB))
 #  ifndef EXPENTRY
 #    define UZ_EXP WINAPI
@@ -401,17 +393,10 @@ typedef struct _UzpCB {
 
 /* the collection of general UnZip option flags and option arguments */
 typedef struct _UzpOpts {
-#ifndef FUNZIP
     char *exdir;        /* pointer to extraction root directory (-d option) */
     char *pwdarg;       /* pointer to command-line password (-P option) */
     int zipinfo_mode;   /* behave like ZipInfo or like normal UnZip? */
     int aflag;          /* -a: do ASCII-EBCDIC and/or end-of-line translation */
-#ifdef VMS
-    int bflag;          /* -b: force fixed record format for binary files */
-#endif
-#ifdef TANDEM
-    int bflag;          /* -b: create text files in 'C' format (180)*/
-#endif
 #if defined(UNIX) || defined(OS2) || defined(WIN32)
     int B_flag;         /* -B: back up existing files by renaming to *~##### */
 #else
@@ -426,15 +411,9 @@ typedef struct _UzpOpts {
     int E_flag;         /* -E: [MacOS] show Mac extra field during restoring */
 #endif
     int fflag;          /* -f: "freshen" (extract only newer files) */
-#if (defined(RISCOS) || defined(ACORN_FTYPE_NFS))
-    int acorn_nfs_ext;  /* -F: RISC OS types & NFS filetype extensions */
-#endif
     int hflag;          /* -h: header line (zipinfo) */
 #ifdef MACOS
     int i_flag;         /* -i: [MacOS] ignore filenames stored in Mac e.f. */
-#endif
-#ifdef RISCOS
-    int scanimage;      /* -I: scan image files */
 #endif
     int jflag;          /* -j: junk pathnames (unzip) */
 #if (defined(__ATHEOS__) || defined(__BEOS__) || defined(MACOS))
@@ -446,16 +425,8 @@ typedef struct _UzpOpts {
     int lflag;          /* -12slmv: listing format (zipinfo) */
     int L_flag;         /* -L: convert filenames from some OSes to lowercase */
     int overwrite_none; /* -n: never overwrite files (no prompting) */
-#ifdef AMIGA
-    int N_flag;         /* -N: restore comments as AmigaDOS filenotes */
-#endif
     int overwrite_all;  /* -o: OK to overwrite files without prompting */
-#endif /* !FUNZIP */
     int qflag;          /* -q: produce a lot less output */
-#ifdef TANDEM
-    int rflag;          /* -r: remove file extensions */
-#endif
-#ifndef FUNZIP
 #if (defined(MSDOS) || defined(FLEXOS) || defined(OS2) || defined(WIN32))
     int sflag;          /* -s: convert spaces in filenames to underscores */
 #endif
@@ -488,20 +459,13 @@ typedef struct _UzpOpts {
 #endif
 #endif
 #endif
-#ifdef VMS
-    int Y_flag;         /* -Y: treat ".nnn" as ";nnn" version */
-#endif
     int zflag;          /* -z: display the zipfile comment (only, for unzip) */
-#ifdef VMS
-    int ods2_flag;      /* -2: force names to conform to ODS2 */
-#endif
 #if (!defined(RISCOS) && !defined(CMS_MVS) && !defined(TANDEM))
     int ddotflag;       /* -:: don't skip over "../" path elements */
 #endif
 #ifdef UNIX
     int cflxflag;       /* -^: allow control chars in extracted filenames */
 #endif
-#endif /* !FUNZIP */
 } UzpOpts;
 
 /* intended to be a private struct: */

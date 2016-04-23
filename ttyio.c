@@ -29,7 +29,7 @@
 #include "zip.h"
 #include "crypt.h"
 
-#if (CRYPT || (defined(UNZIP) && !defined(FUNZIP)))
+#if (CRYPT || (defined(UNZIP)))
 /* Non-echo console/keyboard input is needed for (en/de)cryption's password
  * entry, and for UnZip(SFX)'s MORE and Pause features.
  * (The corresponding #endif is found at the end of this module.)
@@ -101,7 +101,7 @@
 #  endif
 #endif
 
-#if (defined(UNZIP) && !defined(FUNZIP) && defined(UNIX) && defined(MORE))
+#if (defined(UNZIP) && defined(UNIX) && defined(MORE))
 #  include <sys/ioctl.h>
 #  define GOT_IOCTL_H
    /* int ioctl OF((int, int, void *));   GRR: may need for some systems */
@@ -225,7 +225,7 @@ Echon (Uz_Globs *pG)
 #endif /* ?VMS */
 
 
-#if (defined(UNZIP) && !defined(FUNZIP))
+#if (defined(UNZIP))
 
 #ifdef ATH_BEO_UNX
 #ifdef MORE

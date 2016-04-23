@@ -16,7 +16,7 @@
 #  include "crypt.h"  /* ensure that encryption header file has been seen */
 #endif
 
-#if (CRYPT || (defined(UNZIP) && !defined(FUNZIP)))
+#if (CRYPT || (defined(UNZIP)))
 /*
  * Non-echo keyboard/console input support is needed and enabled.
  */
@@ -186,7 +186,7 @@
 #endif
 
 /* this stuff is used by MORE and also now by the ctrl-S code; fileio.c only */
-#if (defined(UNZIP) && !defined(FUNZIP))
+#if (defined(UNZIP))
 #  ifdef HAVE_WORKING_GETCH
 #    define FGETCH(f)  getch()
 #  endif

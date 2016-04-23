@@ -90,11 +90,9 @@
 
 #ifdef UNZIP
    /* char *key = (char *)NULL; moved to globals.h */
-#  ifndef FUNZIP
      local int testp (Uz_Globs *pG, const uch *h);
      local int testkey (Uz_Globs *pG, const uch *h, const char *key);
 #  endif
-#endif /* UNZIP */
 
 #ifndef UNZIP             /* moved to globals.h for UnZip */
 #  ifndef Z_UINT4_DEFINED
@@ -444,7 +442,7 @@ unsigned zfwrite(buf, item_size, nb, f)
 #endif /* ZIP */
 
 
-#if (defined(UNZIP) && !defined(FUNZIP))
+#if (defined(UNZIP))
 
 /***********************************************************************
  * Get the password and set up keys for current zipfile member.

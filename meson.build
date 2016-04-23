@@ -35,9 +35,6 @@ unziplib = static_library('unziplib',
 unzip = executable('unzip', 'unzip.c',
   link_with : unziplib)
 
-#funzip = executable('funzip', 'funzip.c',
-#  link_with : unziplib)
-
 uzexe = '@0@/unzip'.format(meson.build_root())
 testzip = '@0@/testmake.zip'.format(meson.source_root())
 

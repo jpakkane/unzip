@@ -61,7 +61,6 @@
 #endif
 #include "../win32/nt.h"
 
-#ifndef FUNZIP          /* most of this file is not used with fUnZip */
 
 /* some non-MS runtime headers (e.g. lcc) may miss this definition */
 #ifndef FILE_WRITE_ATTRIBUTES
@@ -2849,7 +2848,6 @@ int GetPlatformLocalTimezone(register struct state * const sp,
 }
 #endif /* W32_USE_IZ_TIMEZONE */
 
-#endif /* !FUNZIP */
 
 
 
@@ -2906,7 +2904,7 @@ int getch_win32(void)
 
 
 
-#if (defined(UNICODE_SUPPORT) && !defined(FUNZIP))
+#if (defined(UNICODE_SUPPORT))
 /* convert wide character string to multi-byte character string */
 char *wide_to_local_string(wide_string, escape_all)
   const zwchar *wide_string;

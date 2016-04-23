@@ -60,9 +60,6 @@ main (int argc, char **argv)
     printf(out_format, "bb", (ulg)&(*(Uz_Globs *)pG).bb - (ulg)&(*(Uz_Globs *)pG));
     printf(out_format, "bk", (ulg)&(*(Uz_Globs *)pG).bk - (ulg)&(*(Uz_Globs *)pG));
     printf(out_format, "wp", (ulg)&(*(Uz_Globs *)pG).wp - (ulg)&(*(Uz_Globs *)pG));
-#ifdef FUNZIP
-    printf(out_format, "in", (ulg)&(*(Uz_Globs *)pG).in - (ulg)&(*(Uz_Globs *)pG));
-#else
     printf(out_format, "incnt", (ulg)&(*(Uz_Globs *)pG).incnt - (ulg)&(*(Uz_Globs *)pG));
     printf(out_format, "inptr", (ulg)&(*(Uz_Globs *)pG).inptr - (ulg)&(*(Uz_Globs *)pG));
     printf(out_format, "csize", (ulg)&(*(Uz_Globs *)pG).csize - (ulg)&(*(Uz_Globs *)pG));
@@ -74,9 +71,6 @@ main (int argc, char **argv)
     printf(out_format, "_wsize", (ulg)&(*(Uz_Globs *)pG)._wsize - (ulg)&(*(Uz_Globs *)pG));
 #endif /* DLL && !NO_SLIDE_REDIR */
     printf(out_format, "CRYPT", (ulg)CRYPT);
-#ifdef FUNZIP
-    (*set_flag)("FUNZIP");
-#endif
     (*set_flag)("REENTRANT");
 #ifdef DLL
     (*set_flag)("DLL");
