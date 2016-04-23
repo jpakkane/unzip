@@ -666,14 +666,7 @@
 #define INCSTR(ptr) PREINCSTR(ptr)
 
 
-#ifdef ZMEM
-#  undef ZMEM
-#  define memcmp(b1,b2,len)      bcmp(b2,b1,len)
-#  define memcpy(dest,src,len)   bcopy(src,dest,len)
-#  define memzero                bzero
-#else
 #  define memzero(dest,len)      memset(dest,0,len)
-#endif
 
 #ifndef TRUE
 #  define TRUE      1   /* sort of obvious */
@@ -1572,13 +1565,6 @@ char    *fzofft               (Uz_Globs *pG, zoff_t val,
 #endif
 #ifdef REGULUS
    int   zstat                (const char *p, struct stat *s));
-#endif
-#ifdef ZMEM   /* MUST be ifdef'd because of conflicts with the standard def. */
-   void *memset OF((register void *, register int, register unsigned int));
-   int    memcmp OF((register const void*, register const void *,
-                     register unsigned int));
-   void *memcpy OF((register void *, register const void *,
-                     register unsigned int));
 #endif
 #ifdef NEED_UZMBCLEN
    extent uzmbclen          OF((const unsigned char *ptr));

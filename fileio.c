@@ -598,19 +598,6 @@ readbyte (   /* refill inbuf and return a byte if available, else EOF */
         defer_leftover_input(pG);           /* decrements (*(Uz_Globs *)pG).csize */
     }
 
-#if CRYPT
-    if ((*(Uz_Globs *)pG).pInfo->encrypted) {
-        uch *p;
-        int n;
-
-        /* This was previously set to decrypt one byte beyond (*(Uz_Globs *)pG).csize, when
-         * incnt reached that far.  GRR said, "but it's required:  why?"  This
-         * was a bug in fillinbuf() -- was it also a bug here?
-         */
-        for (n = (*(Uz_Globs *)pG).incnt, p = (*(Uz_Globs *)pG).inptr;  n--;  p++)
-            zdecode(*p);
-    }
-#endif /* CRYPT */
 
     --(*(Uz_Globs *)pG).incnt;
     return *(*(Uz_Globs *)pG).inptr++;
@@ -639,15 +626,6 @@ fillinbuf ( /* like readbyte() except returns number of bytes in inbuf */
     (*(Uz_Globs *)pG).inptr = (*(Uz_Globs *)pG).inbuf;
     defer_leftover_input(pG);           /* decrements (*(Uz_Globs *)pG).csize */
 
-#if CRYPT
-    if ((*(Uz_Globs *)pG).pInfo->encrypted) {
-        uch *p;
-        int n;
-
-        for (n = (*(Uz_Globs *)pG).incnt, p = (*(Uz_Globs *)pG).inptr;  n--;  p++)
-            zdecode(*p);
-    }
-#endif /* CRYPT */
 
     return (*(Uz_Globs *)pG).incnt;
 
@@ -1147,45 +1125,10 @@ UzpPassword (
     const char *efn  /* name of archive entry being processed */
 )
 {
-#if CRYPT
-    int r = IZ_PW_ENTERED;
-    char *m;
-    char *prompt;
-
-
-    if (*rcnt == 0) {           /* First call for current entry */
-        *rcnt = 2;
-        if ((prompt = (char *)malloc(2*FILNAMSIZ + 15)) != (char *)NULL) {
-            sprintf(prompt, LoadFarString(PasswPrompt),
-                    FnFilter1(zfn), FnFilter2(efn));
-            m = prompt;
-        } else
-            m = (char *)LoadFarString(PasswPrompt2);
-    } else {                    /* Retry call, previous password was wrong */
-        (*rcnt)--;
-        prompt = NULL;
-        m = (char *)LoadFarString(PasswRetry);
-    }
-
-    m = getp(pG, m, pwbuf, size);
-    if (prompt != (char *)NULL) {
-        free(prompt);
-    }
-    if (m == (char *)NULL) {
-        r = IZ_PW_ERROR;
-    }
-    else if (*pwbuf == '\0') {
-        r = IZ_PW_CANCELALL;
-    }
-    return r;
-
-#else /* !CRYPT */
     /* tell picky compilers to shut up about "unused variable" warnings */
     pG = pG; rcnt = rcnt; pwbuf = pwbuf; size = size; zfn = zfn; efn = efn;
 
     return IZ_PW_ERROR;  /* internal error; function should never get called */
-#endif /* ?CRYPT */
-
 } /* end function UzpPassword() */
 
 
@@ -2041,129 +1984,6 @@ fzofft (Uz_Globs *pG, zoff_t val, const char *pre, const char *post)
 
 
 
-
-#if CRYPT
-
-#ifdef NEED_STR2ISO
-/**********************/
-/* Function str2iso() */
-/**********************/
-
-char *
-str2iso (
-    char *dst,                          /* destination buffer */
-    register const char *src          /* source string */
-)
-{
-#ifdef INTERN_TO_ISO
-    INTERN_TO_ISO(src, dst);
-#else
-    register uch c;
-    register char *dstp = dst;
-
-    do {
-        c = (uch)foreign(*src++);
-        *dstp++ = (char)ASCII2ISO(c);
-    } while (c != '\0');
-#endif
-
-    return dst;
-}
-#endif /* NEED_STR2ISO */
-
-
-#ifdef NEED_STR2OEM
-/**********************/
-/* Function str2oem() */
-/**********************/
-
-char *
-str2oem (
-    char *dst,                          /* destination buffer */
-    register const char *src          /* source string */
-)
-{
-#ifdef INTERN_TO_OEM
-    INTERN_TO_OEM(src, dst);
-#else
-    register uch c;
-    register char *dstp = dst;
-
-    do {
-        c = (uch)foreign(*src++);
-        *dstp++ = (char)ASCII2OEM(c);
-    } while (c != '\0');
-#endif
-
-    return dst;
-}
-#endif /* NEED_STR2OEM */
-
-#endif /* CRYPT */
-
-
-#ifdef ZMEM  /* memset/memcmp/memcpy for systems without either them or */
-             /* bzero/bcmp/bcopy */
-             /* (no known systems as of 960211) */
-
-/*********************/
-/* Function memset() */
-/*********************/
-
-void *memset(buf, init, len)
-    register void *buf;        /* buffer location */
-    register int init;          /* initializer character */
-    register unsigned int len;  /* length of the buffer */
-{
-    void *start;
-
-    start = buf;
-    while (len--)
-        *((char *)buf++) = (char)init;
-    return start;
-}
-
-
-
-/*********************/
-/* Function memcmp() */
-/*********************/
-
-int memcmp(b1, b2, len)
-    register const void *b1;
-    register const void *b2;
-    register unsigned int len;
-{
-    register int c;
-
-    if (len > 0) do {
-        if ((c = (int)(*((const unsigned char *)b1)++) -
-                 (int)(*((const unsigned char *)b2)++)) != 0)
-           return c;
-    } while (--len > 0)
-    return 0;
-}
-
-
-
-/*********************/
-/* Function memcpy() */
-/*********************/
-
-void *memcpy(dst, src, len)
-    register void *dst;
-    register const void *src;
-    register unsigned int len;
-{
-    void *start;
-
-    start = dst;
-    while (len-- > 0)
-        *((char *)dst)++ = *((const char *)src)++;
-    return start;
-}
-
-#endif /* ZMEM */
 
 
 
