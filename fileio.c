@@ -127,9 +127,9 @@
 #  define WriteTxtErr(buf,len,strm)  WriteError(buf,len,strm)
 
 #if (defined(USE_DEFLATE64) && defined(__16BIT__))
-static int partflush OF((__GPRO__ uch *rawbuf, ulg size, int unshrink));
+static int partflush OF((Uz_Globs *pG, uch *rawbuf, ulg size, int unshrink));
 #endif
-static int disk_error OF((__GPRO));
+static int disk_error OF((Uz_Globs *pG));
 
 
 /****************************/
@@ -208,8 +208,8 @@ static const char ExtraFieldTooLong[] =
 /* Function open_input_file() */
 /******************************/
 
-int open_input_file(__G)    /* return 1 if open failed */
-    __GDEF
+int open_input_file(pG)    /* return 1 if open failed */
+    Uz_Globs *pG;
 {
     /*
      *  open the zipfile for reading and in BINARY mode to prevent cr/lf
@@ -217,32 +217,32 @@ int open_input_file(__G)    /* return 1 if open failed */
      */
 
 #ifdef VMS
-    G.zipfd = open(G.zipfn, O_RDONLY, 0, OPNZIP_RMS_ARGS);
+    (*(Uz_Globs *)pG).zipfd = open((*(Uz_Globs *)pG).zipfn, O_RDONLY, 0, OPNZIP_RMS_ARGS);
 #else /* !VMS */
 #ifdef MACOS
-    G.zipfd = open(G.zipfn, 0);
+    (*(Uz_Globs *)pG).zipfd = open((*(Uz_Globs *)pG).zipfn, 0);
 #else /* !MACOS */
 #ifdef CMS_MVS
-    G.zipfd = vmmvs_open_infile(__G);
+    (*(Uz_Globs *)pG).zipfd = vmmvs_open_infile(pG);
 #else /* !CMS_MVS */
 #ifdef USE_STRM_INPUT
-    G.zipfd = fopen(G.zipfn, FOPR);
+    (*(Uz_Globs *)pG).zipfd = fopen((*(Uz_Globs *)pG).zipfn, FOPR);
 #else /* !USE_STRM_INPUT */
-    G.zipfd = open(G.zipfn, O_RDONLY | O_BINARY);
+    (*(Uz_Globs *)pG).zipfd = open((*(Uz_Globs *)pG).zipfn, O_RDONLY | O_BINARY);
 #endif /* ?USE_STRM_INPUT */
 #endif /* ?CMS_MVS */
 #endif /* ?MACOS */
 #endif /* ?VMS */
 
 #ifdef USE_STRM_INPUT
-    if (G.zipfd == NULL)
+    if ((*(Uz_Globs *)pG).zipfd == NULL)
 #else
-    /* if (G.zipfd < 0) */  /* no good for Windows CE port */
-    if (G.zipfd == -1)
+    /* if ((*(Uz_Globs *)pG).zipfd < 0) */  /* no good for Windows CE port */
+    if ((*(Uz_Globs *)pG).zipfd == -1)
 #endif
     {
         Info(slide, 0x401, ((char *)slide, LoadFarString(CannotOpenZipfile),
-          G.zipfn, strerror(errno)));
+          (*(Uz_Globs *)pG).zipfn, strerror(errno)));
         return 1;
     }
     return 0;
@@ -259,22 +259,22 @@ int open_input_file(__G)    /* return 1 if open failed */
 /* Function open_outfile() */
 /***************************/
 
-int open_outfile(__G)           /* return 1 if fail */
-    __GDEF
+int open_outfile(pG)           /* return 1 if fail */
+    Uz_Globs *pG;
 {
 #ifdef DLL
-    if (G.redirect_data)
-        return (redirect_outfile(__G) == FALSE);
+    if ((*(Uz_Globs *)pG).redirect_data)
+        return (redirect_outfile(pG) == FALSE);
 #endif
 #ifdef QDOS
-    QFilename(__G__ G.filename);
+    QFilename(pG, (*(Uz_Globs *)pG).filename);
 #endif
 #if (defined(DOS_FLX_NLM_OS2_W32) || defined(ATH_BEO_THS_UNX))
 #ifdef BORLAND_STAT_BUG
     /* Borland 5.0's stat() barfs if the filename has no extension and the
      * file doesn't exist. */
-    if (access(G.filename, 0) == -1) {
-        FILE *tmp = fopen(G.filename, "wb+");
+    if (access((*(Uz_Globs *)pG).filename, 0) == -1) {
+        FILE *tmp = fopen((*(Uz_Globs *)pG).filename, "wb+");
 
         /* file doesn't exist, so create a dummy file to keep stat() from
          * failing (will be over-written anyway) */
@@ -283,14 +283,14 @@ int open_outfile(__G)           /* return 1 if fail */
     }
 #endif /* BORLAND_STAT_BUG */
 #ifdef SYMLINKS
-    if (SSTAT(G.filename, &G.statbuf) == 0 ||
-        lstat(G.filename, &G.statbuf) == 0)
+    if (SSTAT((*(Uz_Globs *)pG).filename, &(*(Uz_Globs *)pG).statbuf) == 0 ||
+        lstat((*(Uz_Globs *)pG).filename, &(*(Uz_Globs *)pG).statbuf) == 0)
 #else
-    if (SSTAT(G.filename, &G.statbuf) == 0)
+    if (SSTAT((*(Uz_Globs *)pG).filename, &(*(Uz_Globs *)pG).statbuf) == 0)
 #endif /* ?SYMLINKS */
     {
         Trace((stderr, "open_outfile:  stat(%s) returns 0:  file exists\n",
-          FnFilter1(G.filename)));
+          FnFilter1((*(Uz_Globs *)pG).filename)));
 #ifdef UNIXBACKUP
         if (uO.B_flag) {    /* do backup */
             char *tname;
@@ -298,14 +298,14 @@ int open_outfile(__G)           /* return 1 if fail */
             int blen, flen, tlen;
 
             blen = strlen(BackupSuffix);
-            flen = strlen(G.filename);
+            flen = strlen((*(Uz_Globs *)pG).filename);
             tlen = flen + blen + 6;    /* includes space for 5 digits */
             if (tlen >= FILNAMSIZ) {   /* in case name is too long, truncate */
                 tname = (char *)malloc(FILNAMSIZ);
                 if (tname == NULL)
                     return 1;                 /* in case we run out of space */
                 tlen = FILNAMSIZ - 1 - blen;
-                strcpy(tname, G.filename);    /* make backup name */
+                strcpy(tname, (*(Uz_Globs *)pG).filename);    /* make backup name */
                 tname[tlen] = '\0';
                 if (flen > tlen) flen = tlen;
                 tlen = FILNAMSIZ;
@@ -313,7 +313,7 @@ int open_outfile(__G)           /* return 1 if fail */
                 tname = (char *)malloc(tlen);
                 if (tname == NULL)
                     return 1;                 /* in case we run out of space */
-                strcpy(tname, G.filename);    /* make backup name */
+                strcpy(tname, (*(Uz_Globs *)pG).filename);    /* make backup name */
             }
             strcpy(tname+flen, BackupSuffix);
 
@@ -346,60 +346,60 @@ int open_outfile(__G)           /* return 1 if fail */
                     sprintf(numtail,"%u", ++i);
             }
 
-            if (rename(G.filename, tname) != 0) {   /* move file */
+            if (rename((*(Uz_Globs *)pG).filename, tname) != 0) {   /* move file */
                 Info(slide, 0x401, ((char *)slide,
                   LoadFarString(CannotRenameOldFile),
-                  FnFilter1(G.filename), strerror(errno)));
+                  FnFilter1((*(Uz_Globs *)pG).filename), strerror(errno)));
                 free(tname);
                 return 1;
             }
             Trace((stderr, "open_outfile:  %s now renamed into %s\n",
-              FnFilter1(G.filename), FnFilter2(tname)));
+              FnFilter1((*(Uz_Globs *)pG).filename), FnFilter2(tname)));
             free(tname);
         } else
 #endif /* UNIXBACKUP */
         {
 #ifdef DOS_FLX_OS2_W32
-            if (!(G.statbuf.st_mode & S_IWRITE)) {
+            if (!((*(Uz_Globs *)pG).statbuf.st_mode & S_IWRITE)) {
                 Trace((stderr,
                   "open_outfile:  existing file %s is read-only\n",
-                  FnFilter1(G.filename)));
-                chmod(G.filename, S_IREAD | S_IWRITE);
+                  FnFilter1((*(Uz_Globs *)pG).filename)));
+                chmod((*(Uz_Globs *)pG).filename, S_IREAD | S_IWRITE);
                 Trace((stderr, "open_outfile:  %s now writable\n",
-                  FnFilter1(G.filename)));
+                  FnFilter1((*(Uz_Globs *)pG).filename)));
             }
 #endif /* DOS_FLX_OS2_W32 */
 #ifdef NLM
             /* Give the file read/write permission (non-POSIX shortcut) */
-            chmod(G.filename, 0);
+            chmod((*(Uz_Globs *)pG).filename, 0);
 #endif /* NLM */
-            if (unlink(G.filename) != 0) {
+            if (unlink((*(Uz_Globs *)pG).filename) != 0) {
                 Info(slide, 0x401, ((char *)slide,
                   LoadFarString(CannotDeleteOldFile),
-                  FnFilter1(G.filename), strerror(errno)));
+                  FnFilter1((*(Uz_Globs *)pG).filename), strerror(errno)));
                 return 1;
             }
             Trace((stderr, "open_outfile:  %s now deleted\n",
-              FnFilter1(G.filename)));
+              FnFilter1((*(Uz_Globs *)pG).filename)));
         }
     }
 #endif /* DOS_FLX_NLM_OS2_W32 || ATH_BEO_THS_UNX */
 #ifdef RISCOS
-    if (SWI_OS_File_7(G.filename,0xDEADDEAD,0xDEADDEAD,G.lrec.ucsize)!=NULL) {
+    if (SWI_OS_File_7((*(Uz_Globs *)pG).filename,0xDEADDEAD,0xDEADDEAD,(*(Uz_Globs *)pG).lrec.ucsize)!=NULL) {
         Info(slide, 1, ((char *)slide, LoadFarString(CannotCreateFile),
-          FnFilter1(G.filename), strerror(errno)));
+          FnFilter1((*(Uz_Globs *)pG).filename), strerror(errno)));
         return 1;
     }
 #endif /* RISCOS */
 #ifdef TOPS20
     char *tfilnam;
 
-    if ((tfilnam = (char *)malloc(2*strlen(G.filename)+1)) == (char *)NULL)
+    if ((tfilnam = (char *)malloc(2*strlen((*(Uz_Globs *)pG).filename)+1)) == (char *)NULL)
         return 1;
-    strcpy(tfilnam, G.filename);
+    strcpy(tfilnam, (*(Uz_Globs *)pG).filename);
     upper(tfilnam);
     enquote(tfilnam);
-    if ((G.outfile = fopen(tfilnam, FOPW)) == (FILE *)NULL) {
+    if (((*(Uz_Globs *)pG).outfile = fopen(tfilnam, FOPW)) == (FILE *)NULL) {
         Info(slide, 1, ((char *)slide, LoadFarString(CannotCreateFile),
           tfilnam, strerror(errno)));
         free(tfilnam);
@@ -409,39 +409,39 @@ int open_outfile(__G)           /* return 1 if fail */
 #else /* !TOPS20 */
 #ifdef MTS
     if (uO.aflag)
-        G.outfile = zfopen(G.filename, FOPWT);
+        (*(Uz_Globs *)pG).outfile = zfopen((*(Uz_Globs *)pG).filename, FOPWT);
     else
-        G.outfile = zfopen(G.filename, FOPW);
-    if (G.outfile == (FILE *)NULL) {
+        (*(Uz_Globs *)pG).outfile = zfopen((*(Uz_Globs *)pG).filename, FOPW);
+    if ((*(Uz_Globs *)pG).outfile == (FILE *)NULL) {
         Info(slide, 1, ((char *)slide, LoadFarString(CannotCreateFile),
-          FnFilter1(G.filename), strerror(errno)));
+          FnFilter1((*(Uz_Globs *)pG).filename), strerror(errno)));
         return 1;
     }
 #else /* !MTS */
 #ifdef DEBUG
     Info(slide, 1, ((char *)slide,
-      "open_outfile:  doing fopen(%s) for reading\n", FnFilter1(G.filename)));
-    if ((G.outfile = zfopen(G.filename, FOPR)) == (FILE *)NULL)
+      "open_outfile:  doing fopen(%s) for reading\n", FnFilter1((*(Uz_Globs *)pG).filename)));
+    if (((*(Uz_Globs *)pG).outfile = zfopen((*(Uz_Globs *)pG).filename, FOPR)) == (FILE *)NULL)
         Info(slide, 1, ((char *)slide,
           "open_outfile:  fopen(%s) for reading failed:  does not exist\n",
-          FnFilter1(G.filename)));
+          FnFilter1((*(Uz_Globs *)pG).filename)));
     else {
         Info(slide, 1, ((char *)slide,
           "open_outfile:  fopen(%s) for reading succeeded:  file exists\n",
-          FnFilter1(G.filename)));
-        fclose(G.outfile);
+          FnFilter1((*(Uz_Globs *)pG).filename)));
+        fclose((*(Uz_Globs *)pG).outfile);
     }
 #endif /* DEBUG */
 #ifdef NOVELL_BUG_FAILSAFE
-    if (G.dne && ((G.outfile = zfopen(G.filename, FOPR)) != (FILE *)NULL)) {
+    if ((*(Uz_Globs *)pG).dne && (((*(Uz_Globs *)pG).outfile = zfopen((*(Uz_Globs *)pG).filename, FOPR)) != (FILE *)NULL)) {
         Info(slide, 0x401, ((char *)slide, LoadFarString(NovellBug),
-          FnFilter1(G.filename)));
-        fclose(G.outfile);
+          FnFilter1((*(Uz_Globs *)pG).filename)));
+        fclose((*(Uz_Globs *)pG).outfile);
         return 1;   /* with "./" fix in checkdir(), should never reach here */
     }
 #endif /* NOVELL_BUG_FAILSAFE */
     Trace((stderr, "open_outfile:  doing fopen(%s) for writing\n",
-      FnFilter1(G.filename)));
+      FnFilter1((*(Uz_Globs *)pG).filename)));
     {
 #if defined(ATH_BE_UNX) || defined(AOS_VS) || defined(QDOS) || defined(TANDEM)
         mode_t umask_sav = umask(0077);
@@ -450,41 +450,41 @@ int open_outfile(__G)           /* return 1 if fail */
         /* These features require the ability to re-read extracted data from
            the output files. Output files are created with Read&Write access.
          */
-        G.outfile = zfopen(G.filename, FOPWR);
+        (*(Uz_Globs *)pG).outfile = zfopen((*(Uz_Globs *)pG).filename, FOPWR);
 #else
-        G.outfile = zfopen(G.filename, FOPW);
+        (*(Uz_Globs *)pG).outfile = zfopen((*(Uz_Globs *)pG).filename, FOPW);
 #endif
 #if defined(ATH_BE_UNX) || defined(AOS_VS) || defined(QDOS) || defined(TANDEM)
         umask(umask_sav);
 #endif
     }
-    if (G.outfile == (FILE *)NULL) {
+    if ((*(Uz_Globs *)pG).outfile == (FILE *)NULL) {
         Info(slide, 0x401, ((char *)slide, LoadFarString(CannotCreateFile),
-          FnFilter1(G.filename), strerror(errno)));
+          FnFilter1((*(Uz_Globs *)pG).filename), strerror(errno)));
         return 1;
     }
     Trace((stderr, "open_outfile:  fopen(%s) for writing succeeded\n",
-      FnFilter1(G.filename)));
+      FnFilter1((*(Uz_Globs *)pG).filename)));
 #endif /* !MTS */
 #endif /* !TOPS20 */
 
 #ifdef USE_FWRITE
 #ifdef DOS_NLM_OS2_W32
     /* 16-bit MSC: buffer size must be strictly LESS than 32K (WSIZE):  bogus */
-    setbuf(G.outfile, (char *)NULL);   /* make output unbuffered */
+    setbuf((*(Uz_Globs *)pG).outfile, (char *)NULL);   /* make output unbuffered */
 #else /* !DOS_NLM_OS2_W32 */
 #ifndef RISCOS
 #ifdef _IOFBF  /* make output fully buffered (works just about like write()) */
-    setvbuf(G.outfile, (char *)slide, _IOFBF, WSIZE);
+    setvbuf((*(Uz_Globs *)pG).outfile, (char *)slide, _IOFBF, WSIZE);
 #else
-    setbuf(G.outfile, (char *)slide);
+    setbuf((*(Uz_Globs *)pG).outfile, (char *)slide);
 #endif
 #endif /* !RISCOS */
 #endif /* ?DOS_NLM_OS2_W32 */
 #endif /* USE_FWRITE */
 #ifdef OS2_W32
     /* preallocate the final file size to prevent file fragmentation */
-    SetFileSize(G.outfile, G.lrec.ucsize);
+    SetFileSize((*(Uz_Globs *)pG).outfile, (*(Uz_Globs *)pG).lrec.ucsize);
 #endif
     return 0;
 
@@ -499,36 +499,36 @@ int open_outfile(__G)           /* return 1 if fail */
 
 /*
  * These functions allow NEXTBYTE to function without needing two bounds
- * checks.  Call defer_leftover_input() if you ever have filled G.inbuf
+ * checks.  Call defer_leftover_input() if you ever have filled (*(Uz_Globs *)pG).inbuf
  * by some means other than readbyte(), and you then want to start using
  * NEXTBYTE.  When going back to processing bytes without NEXTBYTE, call
  * undefer_input().  For example, extract_or_test_member brackets its
  * central section that does the decompression with these two functions.
  * If you need to check the number of bytes remaining in the current
- * file while using NEXTBYTE, check (G.csize + G.incnt), not G.csize.
+ * file while using NEXTBYTE, check ((*(Uz_Globs *)pG).csize + (*(Uz_Globs *)pG).incnt), not (*(Uz_Globs *)pG).csize.
  */
 
 /****************************/
 /* function undefer_input() */
 /****************************/
 
-void undefer_input(__G)
-    __GDEF
+void undefer_input(pG)
+    Uz_Globs *pG;
 {
-    if (G.incnt > 0)
-        G.csize += G.incnt;
-    if (G.incnt_leftover > 0) {
-        /* We know that "(G.csize < MAXINT)" so we can cast G.csize to int:
-         * This condition was checked when G.incnt_leftover was set > 0 in
-         * defer_leftover_input(), and it is NOT allowed to touch G.csize
-         * before calling undefer_input() when (G.incnt_leftover > 0)
-         * (single exception: see read_byte()'s  "G.csize <= 0" handling) !!
+    if ((*(Uz_Globs *)pG).incnt > 0)
+        (*(Uz_Globs *)pG).csize += (*(Uz_Globs *)pG).incnt;
+    if ((*(Uz_Globs *)pG).incnt_leftover > 0) {
+        /* We know that "((*(Uz_Globs *)pG).csize < MAXINT)" so we can cast (*(Uz_Globs *)pG).csize to int:
+         * This condition was checked when (*(Uz_Globs *)pG).incnt_leftover was set > 0 in
+         * defer_leftover_input(), and it is NOT allowed to touch (*(Uz_Globs *)pG).csize
+         * before calling undefer_input() when ((*(Uz_Globs *)pG).incnt_leftover > 0)
+         * (single exception: see read_byte()'s  "(*(Uz_Globs *)pG).csize <= 0" handling) !!
          */
-        G.incnt = G.incnt_leftover + (int)G.csize;
-        G.inptr = G.inptr_leftover - (int)G.csize;
-        G.incnt_leftover = 0;
-    } else if (G.incnt < 0)
-        G.incnt = 0;
+        (*(Uz_Globs *)pG).incnt = (*(Uz_Globs *)pG).incnt_leftover + (int)(*(Uz_Globs *)pG).csize;
+        (*(Uz_Globs *)pG).inptr = (*(Uz_Globs *)pG).inptr_leftover - (int)(*(Uz_Globs *)pG).csize;
+        (*(Uz_Globs *)pG).incnt_leftover = 0;
+    } else if ((*(Uz_Globs *)pG).incnt < 0)
+        (*(Uz_Globs *)pG).incnt = 0;
 } /* end function undefer_input() */
 
 
@@ -539,19 +539,19 @@ void undefer_input(__G)
 /* function defer_leftover_input() */
 /***********************************/
 
-void defer_leftover_input(__G)
-    __GDEF
+void defer_leftover_input(pG)
+    Uz_Globs *pG;
 {
-    if ((zoff_t)G.incnt > G.csize) {
-        /* (G.csize < MAXINT), we can safely cast it to int !! */
-        if (G.csize < 0L)
-            G.csize = 0L;
-        G.inptr_leftover = G.inptr + (int)G.csize;
-        G.incnt_leftover = G.incnt - (int)G.csize;
-        G.incnt = (int)G.csize;
+    if ((zoff_t)(*(Uz_Globs *)pG).incnt > (*(Uz_Globs *)pG).csize) {
+        /* ((*(Uz_Globs *)pG).csize < MAXINT), we can safely cast it to int !! */
+        if ((*(Uz_Globs *)pG).csize < 0L)
+            (*(Uz_Globs *)pG).csize = 0L;
+        (*(Uz_Globs *)pG).inptr_leftover = (*(Uz_Globs *)pG).inptr + (int)(*(Uz_Globs *)pG).csize;
+        (*(Uz_Globs *)pG).incnt_leftover = (*(Uz_Globs *)pG).incnt - (int)(*(Uz_Globs *)pG).csize;
+        (*(Uz_Globs *)pG).incnt = (int)(*(Uz_Globs *)pG).csize;
     } else
-        G.incnt_leftover = 0;
-    G.csize -= G.incnt;
+        (*(Uz_Globs *)pG).incnt_leftover = 0;
+    (*(Uz_Globs *)pG).csize -= (*(Uz_Globs *)pG).incnt;
 } /* end function defer_leftover_input() */
 
 
@@ -562,8 +562,8 @@ void defer_leftover_input(__G)
 /* Function readbuf() */
 /**********************/
 
-unsigned readbuf(__G__ buf, size)   /* return number of bytes read into buf */
-    __GDEF
+unsigned readbuf(pG, buf, size)   /* return number of bytes read into buf */
+    Uz_Globs *pG;
     char *buf;
     register unsigned size;
 {
@@ -572,25 +572,25 @@ unsigned readbuf(__G__ buf, size)   /* return number of bytes read into buf */
 
     n = size;
     while (size) {
-        if (G.incnt <= 0) {
-            if ((G.incnt = read(G.zipfd, (char *)G.inbuf, INBUFSIZ)) == 0)
+        if ((*(Uz_Globs *)pG).incnt <= 0) {
+            if (((*(Uz_Globs *)pG).incnt = read((*(Uz_Globs *)pG).zipfd, (char *)(*(Uz_Globs *)pG).inbuf, INBUFSIZ)) == 0)
                 return (n-size);
-            else if (G.incnt < 0) {
+            else if ((*(Uz_Globs *)pG).incnt < 0) {
                 /* another hack, but no real harm copying same thing twice */
-                (*G.message)((void *)&G,
+                (*(*(Uz_Globs *)pG).message)((void *)&(*(Uz_Globs *)pG),
                   (uch *)LoadFarString(ReadError),  /* CANNOT use slide */
                   (ulg)strlen(LoadFarString(ReadError)), 0x401);
                 return 0;  /* discarding some data; better than lock-up */
             }
             /* buffer ALWAYS starts on a block boundary:  */
-            G.cur_zipfile_bufstart += INBUFSIZ;
-            G.inptr = G.inbuf;
+            (*(Uz_Globs *)pG).cur_zipfile_bufstart += INBUFSIZ;
+            (*(Uz_Globs *)pG).inptr = (*(Uz_Globs *)pG).inbuf;
         }
-        count = MIN(size, (unsigned)G.incnt);
-        memcpy(buf, G.inptr, count);
+        count = MIN(size, (unsigned)(*(Uz_Globs *)pG).incnt);
+        memcpy(buf, (*(Uz_Globs *)pG).inptr, count);
         buf += count;
-        G.inptr += count;
-        G.incnt -= count;
+        (*(Uz_Globs *)pG).inptr += count;
+        (*(Uz_Globs *)pG).incnt -= count;
         size -= count;
     }
     return n;
@@ -605,22 +605,22 @@ unsigned readbuf(__G__ buf, size)   /* return number of bytes read into buf */
 /* Function readbyte() */
 /***********************/
 
-int readbyte(__G)   /* refill inbuf and return a byte if available, else EOF */
-    __GDEF
+int readbyte(pG)   /* refill inbuf and return a byte if available, else EOF */
+    Uz_Globs *pG;
 {
-    if (G.mem_mode)
+    if ((*(Uz_Globs *)pG).mem_mode)
         return EOF;
-    if (G.csize <= 0) {
-        G.csize--;             /* for tests done after exploding */
-        G.incnt = 0;
+    if ((*(Uz_Globs *)pG).csize <= 0) {
+        (*(Uz_Globs *)pG).csize--;             /* for tests done after exploding */
+        (*(Uz_Globs *)pG).incnt = 0;
         return EOF;
     }
-    if (G.incnt <= 0) {
-        if ((G.incnt = read(G.zipfd, (char *)G.inbuf, INBUFSIZ)) == 0) {
+    if ((*(Uz_Globs *)pG).incnt <= 0) {
+        if (((*(Uz_Globs *)pG).incnt = read((*(Uz_Globs *)pG).zipfd, (char *)(*(Uz_Globs *)pG).inbuf, INBUFSIZ)) == 0) {
             return EOF;
-        } else if (G.incnt < 0) {  /* "fail" (abort, retry, ...) returns this */
+        } else if ((*(Uz_Globs *)pG).incnt < 0) {  /* "fail" (abort, retry, ...) returns this */
             /* another hack, but no real harm copying same thing twice */
-            (*G.message)((void *)&G,
+            (*(*(Uz_Globs *)pG).message)((void *)&(*(Uz_Globs *)pG),
               (uch *)LoadFarString(ReadError),
               (ulg)strlen(LoadFarString(ReadError)), 0x401);
             echon();
@@ -631,27 +631,27 @@ int readbyte(__G)   /* refill inbuf and return a byte if available, else EOF */
             EXIT(PK_BADERR);    /* totally bailing; better than lock-up */
 #endif
         }
-        G.cur_zipfile_bufstart += INBUFSIZ; /* always starts on block bndry */
-        G.inptr = G.inbuf;
-        defer_leftover_input(__G);           /* decrements G.csize */
+        (*(Uz_Globs *)pG).cur_zipfile_bufstart += INBUFSIZ; /* always starts on block bndry */
+        (*(Uz_Globs *)pG).inptr = (*(Uz_Globs *)pG).inbuf;
+        defer_leftover_input(pG);           /* decrements (*(Uz_Globs *)pG).csize */
     }
 
 #if CRYPT
-    if (G.pInfo->encrypted) {
+    if ((*(Uz_Globs *)pG).pInfo->encrypted) {
         uch *p;
         int n;
 
-        /* This was previously set to decrypt one byte beyond G.csize, when
+        /* This was previously set to decrypt one byte beyond (*(Uz_Globs *)pG).csize, when
          * incnt reached that far.  GRR said, "but it's required:  why?"  This
          * was a bug in fillinbuf() -- was it also a bug here?
          */
-        for (n = G.incnt, p = G.inptr;  n--;  p++)
+        for (n = (*(Uz_Globs *)pG).incnt, p = (*(Uz_Globs *)pG).inptr;  n--;  p++)
             zdecode(*p);
     }
 #endif /* CRYPT */
 
-    --G.incnt;
-    return *G.inptr++;
+    --(*(Uz_Globs *)pG).incnt;
+    return *(*(Uz_Globs *)pG).inptr++;
 
 } /* end function readbyte() */
 
@@ -665,27 +665,27 @@ int readbyte(__G)   /* refill inbuf and return a byte if available, else EOF */
 /* Function fillinbuf() */
 /************************/
 
-int fillinbuf(__G) /* like readbyte() except returns number of bytes in inbuf */
-    __GDEF
+int fillinbuf(pG) /* like readbyte() except returns number of bytes in inbuf */
+    Uz_Globs *pG;
 {
-    if (G.mem_mode ||
-                  (G.incnt = read(G.zipfd, (char *)G.inbuf, INBUFSIZ)) <= 0)
+    if ((*(Uz_Globs *)pG).mem_mode ||
+                  ((*(Uz_Globs *)pG).incnt = read((*(Uz_Globs *)pG).zipfd, (char *)(*(Uz_Globs *)pG).inbuf, INBUFSIZ)) <= 0)
         return 0;
-    G.cur_zipfile_bufstart += INBUFSIZ;  /* always starts on a block boundary */
-    G.inptr = G.inbuf;
-    defer_leftover_input(__G);           /* decrements G.csize */
+    (*(Uz_Globs *)pG).cur_zipfile_bufstart += INBUFSIZ;  /* always starts on a block boundary */
+    (*(Uz_Globs *)pG).inptr = (*(Uz_Globs *)pG).inbuf;
+    defer_leftover_input(pG);           /* decrements (*(Uz_Globs *)pG).csize */
 
 #if CRYPT
-    if (G.pInfo->encrypted) {
+    if ((*(Uz_Globs *)pG).pInfo->encrypted) {
         uch *p;
         int n;
 
-        for (n = G.incnt, p = G.inptr;  n--;  p++)
+        for (n = (*(Uz_Globs *)pG).incnt, p = (*(Uz_Globs *)pG).inptr;  n--;  p++)
             zdecode(*p);
     }
 #endif /* CRYPT */
 
-    return G.incnt;
+    return (*(Uz_Globs *)pG).incnt;
 
 } /* end function fillinbuf() */
 
@@ -699,8 +699,8 @@ int fillinbuf(__G) /* like readbyte() except returns number of bytes in inbuf */
 /* Function seek_zipf() */
 /************************/
 
-int seek_zipf(__G__ abs_offset)
-    __GDEF
+int seek_zipf(pG, abs_offset)
+    Uz_Globs *pG;
     zoff_t abs_offset;
 {
 /*
@@ -722,40 +722,40 @@ int seek_zipf(__G__ abs_offset)
  *  PK_EOF if seeking past end of zipfile
  *  PK_OK when seek was successful
  */
-    zoff_t request = abs_offset + G.extra_bytes;
+    zoff_t request = abs_offset + (*(Uz_Globs *)pG).extra_bytes;
     zoff_t inbuf_offset = request % INBUFSIZ;
     zoff_t bufstart = request - inbuf_offset;
 
     if (request < 0) {
         Info(slide, 1, ((char *)slide, LoadFarStringSmall(SeekMsg),
-             G.zipfn, LoadFarString(ReportMsg)));
+             (*(Uz_Globs *)pG).zipfn, LoadFarString(ReportMsg)));
         return(PK_BADERR);
-    } else if (bufstart != G.cur_zipfile_bufstart) {
+    } else if (bufstart != (*(Uz_Globs *)pG).cur_zipfile_bufstart) {
         Trace((stderr,
-          "fpos_zip: abs_offset = %s, G.extra_bytes = %s\n",
+          "fpos_zip: abs_offset = %s, (*(Uz_Globs *)pG).extra_bytes = %s\n",
           FmZofft(abs_offset, NULL, NULL),
-          FmZofft(G.extra_bytes, NULL, NULL)));
+          FmZofft((*(Uz_Globs *)pG).extra_bytes, NULL, NULL)));
 #ifdef USE_STRM_INPUT
-        zfseeko(G.zipfd, bufstart, SEEK_SET);
-        G.cur_zipfile_bufstart = zftello(G.zipfd);
+        zfseeko((*(Uz_Globs *)pG).zipfd, bufstart, SEEK_SET);
+        (*(Uz_Globs *)pG).cur_zipfile_bufstart = zftello((*(Uz_Globs *)pG).zipfd);
 #else /* !USE_STRM_INPUT */
-        G.cur_zipfile_bufstart = zlseek(G.zipfd, bufstart, SEEK_SET);
+        (*(Uz_Globs *)pG).cur_zipfile_bufstart = zlseek((*(Uz_Globs *)pG).zipfd, bufstart, SEEK_SET);
 #endif /* ?USE_STRM_INPUT */
         Trace((stderr,
           "       request = %s, (abs+extra) = %s, inbuf_offset = %s\n",
           FmZofft(request, NULL, NULL),
-          FmZofft((abs_offset+G.extra_bytes), NULL, NULL),
+          FmZofft((abs_offset+(*(Uz_Globs *)pG).extra_bytes), NULL, NULL),
           FmZofft(inbuf_offset, NULL, NULL)));
         Trace((stderr, "       bufstart = %s, cur_zipfile_bufstart = %s\n",
           FmZofft(bufstart, NULL, NULL),
-          FmZofft(G.cur_zipfile_bufstart, NULL, NULL)));
-        if ((G.incnt = read(G.zipfd, (char *)G.inbuf, INBUFSIZ)) <= 0)
+          FmZofft((*(Uz_Globs *)pG).cur_zipfile_bufstart, NULL, NULL)));
+        if (((*(Uz_Globs *)pG).incnt = read((*(Uz_Globs *)pG).zipfd, (char *)(*(Uz_Globs *)pG).inbuf, INBUFSIZ)) <= 0)
             return(PK_EOF);
-        G.incnt -= (int)inbuf_offset;
-        G.inptr = G.inbuf + (int)inbuf_offset;
+        (*(Uz_Globs *)pG).incnt -= (int)inbuf_offset;
+        (*(Uz_Globs *)pG).inptr = (*(Uz_Globs *)pG).inbuf + (int)inbuf_offset;
     } else {
-        G.incnt += (G.inptr-G.inbuf) - (int)inbuf_offset;
-        G.inptr = G.inbuf + (int)inbuf_offset;
+        (*(Uz_Globs *)pG).incnt += ((*(Uz_Globs *)pG).inptr-(*(Uz_Globs *)pG).inbuf) - (int)inbuf_offset;
+        (*(Uz_Globs *)pG).inptr = (*(Uz_Globs *)pG).inbuf + (int)inbuf_offset;
     }
     return(PK_OK);
 } /* end function seek_zipf() */
@@ -770,8 +770,8 @@ int seek_zipf(__G__ abs_offset)
 /* Function flush() */   /* returns PK error codes: */
 /********************/   /* if tflag => always 0; PK_DISK if write error */
 
-int flush(__G__ rawbuf, size, unshrink)
-    __GDEF
+int flush(pG, rawbuf, size, unshrink)
+    Uz_Globs *pG;
     uch *rawbuf;
     ulg size;
     int unshrink;
@@ -784,13 +784,13 @@ int flush(__G__ rawbuf, size, unshrink)
      * blocks to flush are split into pieces of 32k or less.
      */
     while (size > 0x8000L) {
-        ret = partflush(__G__ rawbuf, 0x8000L, unshrink);
+        ret = partflush(pG, rawbuf, 0x8000L, unshrink);
         if (ret != PK_OK)
             return ret;
         size -= 0x8000L;
         rawbuf += (extent)0x8000;
     }
-    return partflush(__G__ rawbuf, size, unshrink);
+    return partflush(pG, rawbuf, size, unshrink);
 } /* end function flush() */
 
 
@@ -798,9 +798,9 @@ int flush(__G__ rawbuf, size, unshrink)
 /* Function partflush() */  /* returns PK error codes: */
 /************************/  /* if tflag => always 0; PK_DISK if write error */
 
-static int partflush(__G__ rawbuf, size, unshrink)
-    __GDEF
-    uch *rawbuf;        /* cannot be const, gets passed to (*G.message)() */
+static int partflush(pG, rawbuf, size, unshrink)
+    Uz_Globs *pG;
+    uch *rawbuf;        /* cannot be const, gets passed to (*(*(Uz_Globs *)pG).message)() */
     ulg size;
     int unshrink;
 #endif /* USE_DEFLATE64 && __16BIT__ */
@@ -815,18 +815,18 @@ static int partflush(__G__ rawbuf, size, unshrink)
     Compute the CRC first; if testing or if disk is full, that's it.
   ---------------------------------------------------------------------------*/
 
-    G.crc32val = crc32(G.crc32val, rawbuf, (extent)size);
+    (*(Uz_Globs *)pG).crc32val = crc32((*(Uz_Globs *)pG).crc32val, rawbuf, (extent)size);
 
 #ifdef DLL
-    if ((G.statreportcb != NULL) &&
-        (*G.statreportcb)(__G__ UZ_ST_IN_PROGRESS, G.zipfn, G.filename, NULL))
+    if (((*(Uz_Globs *)pG).statreportcb != NULL) &&
+        (*(*(Uz_Globs *)pG).statreportcb)(pG, UZ_ST_IN_PROGRESS, (*(Uz_Globs *)pG).zipfn, (*(Uz_Globs *)pG).filename, NULL))
         return IZ_CTRLC;        /* cancel operation by user request */
 #endif
 
     if (uO.tflag || size == 0L)  /* testing or nothing to write:  all done */
         return PK_OK;
 
-    if (G.disk_full)
+    if ((*(Uz_Globs *)pG).disk_full)
         return PK_DISK;         /* disk already full:  ignore rest of file */
 
 /*---------------------------------------------------------------------------
@@ -836,7 +836,7 @@ static int partflush(__G__ rawbuf, size, unshrink)
     necessarily checked for overflow.
   ---------------------------------------------------------------------------*/
 
-    if (!G.pInfo->textmode) {   /* write raw binary data */
+    if (!(*(Uz_Globs *)pG).pInfo->textmode) {   /* write raw binary data */
         /* GRR:  note that for standard MS-DOS compilers, size argument to
          * fwrite() can never be more than 65534, so WriteError macro will
          * have to be rewritten if size can ever be that large.  For now,
@@ -847,29 +847,29 @@ static int partflush(__G__ rawbuf, size, unshrink)
          * DEC Ultrix cc), write() is used anyway.
          */
 #ifdef DLL
-        if (G.redirect_data) {
+        if ((*(Uz_Globs *)pG).redirect_data) {
 #ifdef NO_SLIDE_REDIR
-            if (writeToMemory(__G__ rawbuf, (extent)size)) return PK_ERR;
+            if (writeToMemory(pG, rawbuf, (extent)size)) return PK_ERR;
 #else
-            writeToMemory(__G__ rawbuf, (extent)size);
+            writeToMemory(pG, rawbuf, (extent)size);
 #endif
         } else
 #endif
-        if (!uO.cflag && WriteError(rawbuf, size, G.outfile))
-            return disk_error(__G);
-        else if (uO.cflag && (*G.message)((void *)&G, rawbuf, size, 0))
+        if (!uO.cflag && WriteError(rawbuf, size, (*(Uz_Globs *)pG).outfile))
+            return disk_error(pG);
+        else if (uO.cflag && (*(*(Uz_Globs *)pG).message)((void *)&(*(Uz_Globs *)pG), rawbuf, size, 0))
             return PK_OK;
     } else {   /* textmode:  aflag is true */
         if (unshrink) {
             /* rawbuf = outbuf */
-            transbuf = G.outbuf2;
+            transbuf = (*(Uz_Globs *)pG).outbuf2;
         } else {
             /* rawbuf = slide */
-            transbuf = G.outbuf;
+            transbuf = (*(Uz_Globs *)pG).outbuf;
         }
-        if (G.newfile) {
-            G.didCRlast = FALSE;         /* no previous buffers written */
-            G.newfile = FALSE;
+        if ((*(Uz_Globs *)pG).newfile) {
+            (*(Uz_Globs *)pG).didCRlast = FALSE;         /* no previous buffers written */
+            (*(Uz_Globs *)pG).newfile = FALSE;
         }
 
 
@@ -881,15 +881,15 @@ static int partflush(__G__ rawbuf, size, unshrink)
 
         /* else not VMS text */ {
             p = rawbuf;
-            if (*p == LF && G.didCRlast)
+            if (*p == LF && (*(Uz_Globs *)pG).didCRlast)
                 ++p;
-            G.didCRlast = FALSE;
+            (*(Uz_Globs *)pG).didCRlast = FALSE;
             for (q = transbuf;  (extent)(p-rawbuf) < (extent)size;  ++p) {
                 if (*p == CR) {           /* lone CR or CR/LF: treat as EOL  */
                     PutNativeEOL
                     if ((extent)(p-rawbuf) == (extent)size-1)
                         /* last char in buffer */
-                        G.didCRlast = TRUE;
+                        (*(Uz_Globs *)pG).didCRlast = TRUE;
                     else if (p[1] == LF)  /* get rid of accompanying LF */
                         ++p;
                 } else if (*p == LF)      /* lone LF */
@@ -910,9 +910,9 @@ static int partflush(__G__ rawbuf, size, unshrink)
                           "p - rawbuf = %u   q-transbuf = %u   size = %lu\n",
                           (unsigned)(p-rawbuf), (unsigned)(q-transbuf), size));
                         if (!uO.cflag && WriteError(transbuf,
-                            (extent)(q-transbuf), G.outfile))
-                            return disk_error(__G);
-                        else if (uO.cflag && (*G.message)((void *)&G,
+                            (extent)(q-transbuf), (*(Uz_Globs *)pG).outfile))
+                            return disk_error(pG);
+                        else if (uO.cflag && (*(*(Uz_Globs *)pG).message)((void *)&(*(Uz_Globs *)pG),
                                  transbuf, (ulg)(q-transbuf), 0))
                             return PK_OK;
                         q = transbuf;
@@ -930,15 +930,15 @@ static int partflush(__G__ rawbuf, size, unshrink)
           (unsigned)(p-rawbuf), (unsigned)(q-transbuf), size));
         if (q > transbuf) {
 #ifdef DLL
-            if (G.redirect_data) {
-                if (writeToMemory(__G__ transbuf, (extent)(q-transbuf)))
+            if ((*(Uz_Globs *)pG).redirect_data) {
+                if (writeToMemory(pG, transbuf, (extent)(q-transbuf)))
                     return PK_ERR;
             } else
 #endif
             if (!uO.cflag && WriteError(transbuf, (extent)(q-transbuf),
-                G.outfile))
-                return disk_error(__G);
-            else if (uO.cflag && (*G.message)((void *)&G, transbuf,
+                (*(Uz_Globs *)pG).outfile))
+                return disk_error(pG);
+            else if (uO.cflag && (*(*(Uz_Globs *)pG).message)((void *)&(*(Uz_Globs *)pG), transbuf,
                 (ulg)(q-transbuf), 0))
                 return PK_OK;
         }
@@ -956,20 +956,20 @@ static int partflush(__G__ rawbuf, size, unshrink)
 /* Function disk_error() */
 /*************************/
 
-static int disk_error(__G)
-    __GDEF
+static int disk_error(pG)
+    Uz_Globs *pG;
 {
     /* OK to use slide[] here because this file is finished regardless */
     Info(slide, 0x4a1, ((char *)slide, LoadFarString(DiskFullQuery),
-      FnFilter1(G.filename)));
+      FnFilter1((*(Uz_Globs *)pG).filename)));
 
 #ifndef WINDLL
-    fgets(G.answerbuf, sizeof(G.answerbuf), stdin);
-    if (*G.answerbuf == 'y')   /* stop writing to this file */
-        G.disk_full = 1;       /*  (outfile bad?), but new OK */
+    fgets((*(Uz_Globs *)pG).answerbuf, sizeof((*(Uz_Globs *)pG).answerbuf), stdin);
+    if (*(*(Uz_Globs *)pG).answerbuf == 'y')   /* stop writing to this file */
+        (*(Uz_Globs *)pG).disk_full = 1;       /*  (outfile bad?), but new OK */
     else
 #endif
-        G.disk_full = 2;       /* no:  exit program */
+        (*(Uz_Globs *)pG).disk_full = 2;       /* no:  exit program */
 
     return PK_DISK;
 
@@ -994,7 +994,7 @@ int UZ_EXP UzpMessagePrnt(pG, buf, size, flag)
     /* IMPORTANT NOTE:
      *    The name of the first parameter of UzpMessagePrnt(), which passes
      *    the "Uz_Globs" address, >>> MUST <<< be identical to the string
-     *    expansion of the __G__ macro in the REENTRANT case (see globals.h).
+     *    expansion of the pG, macro in the REENTRANT case (see globals.h).
      *    This name identity is mandatory for the LoadFarString() macro
      *    (in the SMALL_MEM case) !!!
      */
@@ -1346,7 +1346,7 @@ int UZ_EXP UzpPassword (pG, rcnt, pwbuf, size, zfn, efn)
         m = (char *)LoadFarString(PasswRetry);
     }
 
-    m = getp(__G__ m, pwbuf, size);
+    m = getp(pG, m, pwbuf, size);
     if (prompt != (char *)NULL) {
         free(prompt);
     }
@@ -1381,7 +1381,7 @@ void handler(signal)   /* upon interrupt, turn on echo and exit cleanly */
     GETGLOBALS();
 
 #if !(defined(SIGBUS) || defined(SIGSEGV))      /* add a newline if not at */
-    (*G.message)((void *)&G, slide, 0L, 0x41); /*  start of line (to stderr; */
+    (*(*(Uz_Globs *)pG).message)((void *)&(*(Uz_Globs *)pG), slide, 0L, 0x41); /*  start of line (to stderr; */
 #endif                                          /*  slide[] should be safe) */
 
     echon();
@@ -1625,8 +1625,8 @@ time_t dos_to_unix_time(dosdatetime)
 /* Function check_for_newer() */  /* used for overwriting/freshening/updating */
 /******************************/
 
-int check_for_newer(__G__ filename)  /* return 1 if existing file is newer */
-    __GDEF                           /*  or equal; 0 if older; -1 if doesn't */
+int check_for_newer(pG, filename)  /* return 1 if existing file is newer */
+    Uz_Globs *pG;                           /*  or equal; 0 if older; -1 if doesn't */
     char *filename;                  /*  exist yet */
 {
     time_t existing, archive;
@@ -1655,15 +1655,15 @@ int check_for_newer(__G__ filename)  /* return 1 if existing file is newer */
 #endif /* AOS_VS */
 
     Trace((stderr, "check_for_newer:  doing stat(%s)\n", FnFilter1(filename)));
-    if (SSTAT(filename, &G.statbuf)) {
+    if (SSTAT(filename, &(*(Uz_Globs *)pG).statbuf)) {
         Trace((stderr,
           "check_for_newer:  stat(%s) returns %d:  file does not exist\n",
-          FnFilter1(filename), SSTAT(filename, &G.statbuf)));
+          FnFilter1(filename), SSTAT(filename, &(*(Uz_Globs *)pG).statbuf)));
 #ifdef SYMLINKS
         Trace((stderr, "check_for_newer:  doing lstat(%s)\n",
           FnFilter1(filename)));
-        /* GRR OPTION:  could instead do this test ONLY if G.symlnk is true */
-        if (lstat(filename, &G.statbuf) == 0) {
+        /* GRR OPTION:  could instead do this test ONLY if (*(Uz_Globs *)pG).symlnk is true */
+        if (lstat(filename, &(*(Uz_Globs *)pG).statbuf) == 0) {
             Trace((stderr,
               "check_for_newer:  lstat(%s) returns 0:  symlink does exist\n",
               FnFilter1(filename)));
@@ -1679,8 +1679,8 @@ int check_for_newer(__G__ filename)  /* return 1 if existing file is newer */
       FnFilter1(filename)));
 
 #ifdef SYMLINKS
-    /* GRR OPTION:  could instead do this test ONLY if G.symlnk is true */
-    if (lstat(filename, &G.statbuf) == 0 && S_ISLNK(G.statbuf.st_mode)) {
+    /* GRR OPTION:  could instead do this test ONLY if (*(Uz_Globs *)pG).symlnk is true */
+    if (lstat(filename, &(*(Uz_Globs *)pG).statbuf) == 0 && S_ISLNK((*(Uz_Globs *)pG).statbuf.st_mode)) {
         Trace((stderr, "check_for_newer:  %s is a symbolic link\n",
           FnFilter1(filename)));
         if (QCOND2 && !IS_OVERWRT_ALL)
@@ -1690,41 +1690,41 @@ int check_for_newer(__G__ filename)  /* return 1 if existing file is newer */
     }
 #endif /* SYMLINKS */
 
-    NATIVE_TO_TIMET(G.statbuf.st_mtime)   /* NOP unless MSC 7.0 or Macintosh */
+    NATIVE_TO_TIMET((*(Uz_Globs *)pG).statbuf.st_mtime)   /* NOP unless MSC 7.0 or Macintosh */
 
 #ifdef USE_EF_UT_TIME
     /* The `Unix extra field mtime' should be used for comparison with the
      * time stamp of the existing file >>>ONLY<<< when the EF info is also
      * used to set the modification time of the extracted file.
      */
-    if (G.extra_field &&
+    if ((*(Uz_Globs *)pG).extra_field &&
 #ifdef IZ_CHECK_TZ
-        G.tz_is_valid &&
+        (*(Uz_Globs *)pG).tz_is_valid &&
 #endif
-        (ef_scan_for_izux(G.extra_field, G.lrec.extra_field_length, 0,
-                          G.lrec.last_mod_dos_datetime, &z_utime, NULL)
+        (ef_scan_for_izux((*(Uz_Globs *)pG).extra_field, (*(Uz_Globs *)pG).lrec.extra_field_length, 0,
+                          (*(Uz_Globs *)pG).lrec.last_mod_dos_datetime, &z_utime, NULL)
          & EB_UT_FL_MTIME))
     {
         TTrace((stderr, "check_for_newer:  using Unix extra field mtime\n"));
-        existing = G.statbuf.st_mtime;
+        existing = (*(Uz_Globs *)pG).statbuf.st_mtime;
         archive  = z_utime.mtime;
     } else {
         /* round up existing filetime to nearest 2 seconds for comparison,
          * but saturate in case of arithmetic overflow
          */
-        existing = ((G.statbuf.st_mtime & 1) &&
-                    (G.statbuf.st_mtime + 1 > G.statbuf.st_mtime)) ?
-                   G.statbuf.st_mtime + 1 : G.statbuf.st_mtime;
-        archive  = dos_to_unix_time(G.lrec.last_mod_dos_datetime);
+        existing = (((*(Uz_Globs *)pG).statbuf.st_mtime & 1) &&
+                    ((*(Uz_Globs *)pG).statbuf.st_mtime + 1 > (*(Uz_Globs *)pG).statbuf.st_mtime)) ?
+                   (*(Uz_Globs *)pG).statbuf.st_mtime + 1 : (*(Uz_Globs *)pG).statbuf.st_mtime;
+        archive  = dos_to_unix_time((*(Uz_Globs *)pG).lrec.last_mod_dos_datetime);
     }
 #else /* !USE_EF_UT_TIME */
     /* round up existing filetime to nearest 2 seconds for comparison,
      * but saturate in case of arithmetic overflow
      */
-    existing = ((G.statbuf.st_mtime & 1) &&
-                (G.statbuf.st_mtime + 1 > G.statbuf.st_mtime)) ?
-               G.statbuf.st_mtime + 1 : G.statbuf.st_mtime;
-    archive  = dos_to_unix_time(G.lrec.last_mod_dos_datetime);
+    existing = (((*(Uz_Globs *)pG).statbuf.st_mtime & 1) &&
+                ((*(Uz_Globs *)pG).statbuf.st_mtime + 1 > (*(Uz_Globs *)pG).statbuf.st_mtime)) ?
+               (*(Uz_Globs *)pG).statbuf.st_mtime + 1 : (*(Uz_Globs *)pG).statbuf.st_mtime;
+    archive  = dos_to_unix_time((*(Uz_Globs *)pG).lrec.last_mod_dos_datetime);
 #endif /* ?USE_EF_UT_TIME */
 
     TTrace((stderr, "check_for_newer:  existing %lu, archive %lu, e-a %ld\n",
@@ -1744,8 +1744,8 @@ int check_for_newer(__G__ filename)  /* return 1 if existing file is newer */
 /* Function do_string() */
 /************************/
 
-int do_string(__G__ length, option)   /* return PK-type error code */
-    __GDEF
+int do_string(pG, length, option)   /* return PK-type error code */
+    Uz_Globs *pG;
     unsigned int length;        /* without prototype, ush converted to this */
     int option;
 {
@@ -1766,7 +1766,7 @@ int do_string(__G__ length, option)   /* return PK-type error code */
     going appropriate conversions (including case-conversion, if that is
     indicated: see the global variable pInfo->lcflag); and EXTRA_FIELD,
     wherein the `string' is assumed to be an extra field and is copied to
-    the (freshly malloced) buffer G.extra_field.  The third option should
+    the (freshly malloced) buffer (*(Uz_Globs *)pG).extra_field.  The third option should
     be OK since filename is dimensioned at 1025, but we check anyway.
 
     The string, by the way, is assumed to start at the current file-pointer
@@ -1790,31 +1790,31 @@ int do_string(__G__ length, option)   /* return PK-type error code */
         comment_bytes_left = length;
         if (length >= 10)
         {
-            block_len = readbuf(__G__ (char *)G.outbuf, 10);
+            block_len = readbuf(pG, (char *)(*(Uz_Globs *)pG).outbuf, 10);
             if (block_len == 0)
                 return PK_EOF;
             comment_bytes_left -= block_len;
-            G.outbuf[block_len] = '\0';
-            if (!strcmp((char *)G.outbuf, "$AUTORUN$>")) {
+            (*(Uz_Globs *)pG).outbuf[block_len] = '\0';
+            if (!strcmp((char *)(*(Uz_Globs *)pG).outbuf, "$AUTORUN$>")) {
                 char *eol;
                 length -= 10;
-                block_len = readbuf(__G__ G.autorun_command,
-                                    MIN(length, sizeof(G.autorun_command)-1));
+                block_len = readbuf(pG, (*(Uz_Globs *)pG).autorun_command,
+                                    MIN(length, sizeof((*(Uz_Globs *)pG).autorun_command)-1));
                 if (block_len == 0)
                     return PK_EOF;
                 comment_bytes_left -= block_len;
-                G.autorun_command[block_len] = '\0';
-                A_TO_N(G.autorun_command);
-                eol = strchr(G.autorun_command, '\n');
+                (*(Uz_Globs *)pG).autorun_command[block_len] = '\0';
+                A_TO_N((*(Uz_Globs *)pG).autorun_command);
+                eol = strchr((*(Uz_Globs *)pG).autorun_command, '\n');
                 if (!eol)
-                    eol = G.autorun_command + strlen(G.autorun_command) - 1;
-                length -= eol + 1 - G.autorun_command;
-                while (eol >= G.autorun_command && isspace(*eol))
+                    eol = (*(Uz_Globs *)pG).autorun_command + strlen((*(Uz_Globs *)pG).autorun_command) - 1;
+                length -= eol + 1 - (*(Uz_Globs *)pG).autorun_command;
+                while (eol >= (*(Uz_Globs *)pG).autorun_command && isspace(*eol))
                     *eol-- = '\0';
 #if (defined(WIN32) && !defined(_WIN32_WCE))
                 /* Win9x console always uses OEM character coding, and
                    WinNT console is set to OEM charset by default, too */
-                INTERN_TO_OEM(G.autorun_command, G.autorun_command);
+                INTERN_TO_OEM((*(Uz_Globs *)pG).autorun_command, (*(Uz_Globs *)pG).autorun_command);
 #endif /* (WIN32 && !_WIN32_WCE) */
             }
         }
@@ -1822,8 +1822,8 @@ int do_string(__G__ length, option)   /* return PK-type error code */
             length = 0;
         /* seek to beginning of remaining part of comment -- rewind if */
         /* displaying entire comment, or skip to end if discarding it  */
-        seek_zipf(__G__ G.cur_zipfile_bufstart - G.extra_bytes +
-                  (G.inptr - G.inbuf) + comment_bytes_left - length);
+        seek_zipf(pG, (*(Uz_Globs *)pG).cur_zipfile_bufstart - (*(Uz_Globs *)pG).extra_bytes +
+                  ((*(Uz_Globs *)pG).inptr - (*(Uz_Globs *)pG).inbuf) + comment_bytes_left - length);
         if (!length)
             break;
         /*  FALL THROUGH...  */
@@ -1845,17 +1845,17 @@ int do_string(__G__ length, option)   /* return PK-type error code */
         comment_bytes_left = length;
         block_len = OUTBUFSIZ;       /* for the while statement, first time */
         while (comment_bytes_left > 0 && block_len > 0) {
-            register uch *p = G.outbuf;
-            register uch *q = G.outbuf;
+            register uch *p = (*(Uz_Globs *)pG).outbuf;
+            register uch *q = (*(Uz_Globs *)pG).outbuf;
 
-            if ((block_len = readbuf(__G__ (char *)G.outbuf,
+            if ((block_len = readbuf(pG, (char *)(*(Uz_Globs *)pG).outbuf,
                    MIN((unsigned)OUTBUFSIZ, comment_bytes_left))) == 0)
                 return PK_EOF;
             comment_bytes_left -= block_len;
 
             /* this is why we allocated an extra byte for outbuf:  terminate
              *  with zero (ASCIIZ) */
-            G.outbuf[block_len] = '\0';
+            (*(Uz_Globs *)pG).outbuf[block_len] = '\0';
 
             /* remove all ASCII carriage returns from comment before printing
              * (since used before A_TO_N(), check for CR instead of '\r')
@@ -1872,33 +1872,33 @@ int do_string(__G__ length, option)   /* return PK-type error code */
                 /* translate the text coded in the entry's host-dependent
                    "extended ASCII" charset into the compiler's (system's)
                    internal text code page */
-                Ext_ASCII_TO_Native((char *)G.outbuf, G.pInfo->hostnum,
-                                    G.pInfo->hostver, G.pInfo->HasUxAtt,
+                Ext_ASCII_TO_Native((char *)(*(Uz_Globs *)pG).outbuf, (*(Uz_Globs *)pG).pInfo->hostnum,
+                                    (*(Uz_Globs *)pG).pInfo->hostver, (*(Uz_Globs *)pG).pInfo->HasUxAtt,
                                     FALSE);
 #ifdef WINDLL
                 /* translate to ANSI (RTL internal codepage may be OEM) */
-                INTERN_TO_ISO((char *)G.outbuf, (char *)G.outbuf);
+                INTERN_TO_ISO((char *)(*(Uz_Globs *)pG).outbuf, (char *)(*(Uz_Globs *)pG).outbuf);
 #else /* !WINDLL */
 #if (defined(WIN32) && !defined(_WIN32_WCE))
                 /* Win9x console always uses OEM character coding, and
                    WinNT console is set to OEM charset by default, too */
-                INTERN_TO_OEM((char *)G.outbuf, (char *)G.outbuf);
+                INTERN_TO_OEM((char *)(*(Uz_Globs *)pG).outbuf, (char *)(*(Uz_Globs *)pG).outbuf);
 #endif /* (WIN32 && !_WIN32_WCE) */
 #endif /* ?WINDLL */
             } else {
-                A_TO_N(G.outbuf);   /* translate string to native */
+                A_TO_N((*(Uz_Globs *)pG).outbuf);   /* translate string to native */
             }
 
 #ifdef WINDLL
             /* ran out of local mem -- had to cheat */
-            win_fprintf((void *)&G, stdout, (extent)(q-G.outbuf),
-                        (char *)G.outbuf);
-            win_fprintf((void *)&G, stdout, 2, (char *)"\n\n");
+            win_fprintf((void *)&(*(Uz_Globs *)pG), stdout, (extent)(q-(*(Uz_Globs *)pG).outbuf),
+                        (char *)(*(Uz_Globs *)pG).outbuf);
+            win_fprintf((void *)&(*(Uz_Globs *)pG), stdout, 2, (char *)"\n\n");
 #else /* !WINDLL */
 #ifdef NOANSIFILT       /* GRR:  can ANSI be used with EBCDIC? */
-            (*G.message)((void *)&G, G.outbuf, (ulg)(q-G.outbuf), 0);
+            (*(*(Uz_Globs *)pG).message)((void *)&(*(Uz_Globs *)pG), (*(Uz_Globs *)pG).outbuf, (ulg)(q-(*(Uz_Globs *)pG).outbuf), 0);
 #else /* ASCII, filter out ANSI escape sequences and handle ^S (pause) */
-            p = G.outbuf - 1;
+            p = (*(Uz_Globs *)pG).outbuf - 1;
             q = slide;
             while (*++p) {
                 int pause = FALSE;
@@ -1917,18 +1917,18 @@ int do_string(__G__ length, option)   /* return PK-type error code */
                 } else
                     *q++ = *p;
                 if ((unsigned)(q-slide) > WSIZE-3 || pause) {   /* flush */
-                    (*G.message)((void *)&G, slide, (ulg)(q-slide), 0);
+                    (*(*(Uz_Globs *)pG).message)((void *)&(*(Uz_Globs *)pG), slide, (ulg)(q-slide), 0);
                     q = slide;
-                    if (pause && G.extract_flag) /* don't pause for list/test */
-                        (*G.mpause)((void *)&G, LoadFarString(QuitPrompt), 0);
+                    if (pause && (*(Uz_Globs *)pG).extract_flag) /* don't pause for list/test */
+                        (*(*(Uz_Globs *)pG).mpause)((void *)&(*(Uz_Globs *)pG), LoadFarString(QuitPrompt), 0);
                 }
             }
-            (*G.message)((void *)&G, slide, (ulg)(q-slide), 0);
+            (*(*(Uz_Globs *)pG).message)((void *)&(*(Uz_Globs *)pG), slide, (ulg)(q-slide), 0);
 #endif /* ?NOANSIFILT */
 #endif /* ?WINDLL */
         }
         /* add '\n' if not at start of line */
-        (*G.message)((void *)&G, slide, 0L, 0x40);
+        (*(*(Uz_Globs *)pG).message)((void *)&(*(Uz_Globs *)pG), slide, 0L, 0x40);
         break;
 
     /*
@@ -1941,21 +1941,21 @@ int do_string(__G__ length, option)   /* return PK-type error code */
     case DS_FN_L:
 #ifdef UNICODE_SUPPORT
         /* get the whole filename as need it for Unicode checksum */
-        if (G.fnfull_bufsize <= length) {
+        if ((*(Uz_Globs *)pG).fnfull_bufsize <= length) {
             extent fnbufsiz = FILNAMSIZ;
 
             if (fnbufsiz <= length)
                 fnbufsiz = length + 1;
-            if (G.filename_full)
-                free(G.filename_full);
-            G.filename_full = malloc(fnbufsiz);
-            if (G.filename_full == NULL)
+            if ((*(Uz_Globs *)pG).filename_full)
+                free((*(Uz_Globs *)pG).filename_full);
+            (*(Uz_Globs *)pG).filename_full = malloc(fnbufsiz);
+            if ((*(Uz_Globs *)pG).filename_full == NULL)
                 return PK_MEM;
-            G.fnfull_bufsize = fnbufsiz;
+            (*(Uz_Globs *)pG).fnfull_bufsize = fnbufsiz;
         }
-        if (readbuf(__G__ G.filename_full, length) == 0)
+        if (readbuf(pG, (*(Uz_Globs *)pG).filename_full, length) == 0)
             return PK_EOF;
-        G.filename_full[length] = '\0';      /* terminate w/zero:  ASCIIZ */
+        (*(Uz_Globs *)pG).filename_full[length] = '\0';      /* terminate w/zero:  ASCIIZ */
 
         /* if needed, chop off end so standard filename is a valid length */
         if (length >= FILNAMSIZ) {
@@ -1966,8 +1966,8 @@ int do_string(__G__ length, option)   /* return PK-type error code */
         }
         /* no excess size */
         block_len = 0;
-        strncpy(G.filename, G.filename_full, length);
-        G.filename[length] = '\0';      /* terminate w/zero:  ASCIIZ */
+        strncpy((*(Uz_Globs *)pG).filename, (*(Uz_Globs *)pG).filename_full, length);
+        (*(Uz_Globs *)pG).filename[length] = '\0';      /* terminate w/zero:  ASCIIZ */
 #else /* !UNICODE_SUPPORT */
         if (length >= FILNAMSIZ) {
             Info(slide, 0x401, ((char *)slide,
@@ -1979,21 +1979,21 @@ int do_string(__G__ length, option)   /* return PK-type error code */
         } else
             /* no excess size */
             block_len = 0;
-        if (readbuf(__G__ G.filename, length) == 0)
+        if (readbuf(pG, (*(Uz_Globs *)pG).filename, length) == 0)
             return PK_EOF;
-        G.filename[length] = '\0';      /* terminate w/zero:  ASCIIZ */
+        (*(Uz_Globs *)pG).filename[length] = '\0';      /* terminate w/zero:  ASCIIZ */
 #endif /* ?UNICODE_SUPPORT */
 
         /* translate the Zip entry filename coded in host-dependent "extended
            ASCII" into the compiler's (system's) internal text code page */
-        Ext_ASCII_TO_Native(G.filename, G.pInfo->hostnum, G.pInfo->hostver,
-                            G.pInfo->HasUxAtt, (option == DS_FN_L));
+        Ext_ASCII_TO_Native((*(Uz_Globs *)pG).filename, (*(Uz_Globs *)pG).pInfo->hostnum, (*(Uz_Globs *)pG).pInfo->hostver,
+                            (*(Uz_Globs *)pG).pInfo->HasUxAtt, (option == DS_FN_L));
 
-        if (G.pInfo->lcflag)      /* replace with lowercase filename */
-            STRLOWER(G.filename, G.filename);
+        if ((*(Uz_Globs *)pG).pInfo->lcflag)      /* replace with lowercase filename */
+            STRLOWER((*(Uz_Globs *)pG).filename, (*(Uz_Globs *)pG).filename);
 
-        if (G.pInfo->vollabel && length > 8 && G.filename[8] == '.') {
-            char *p = G.filename+8;
+        if ((*(Uz_Globs *)pG).pInfo->vollabel && length > 8 && (*(Uz_Globs *)pG).filename[8] == '.') {
+            char *p = (*(Uz_Globs *)pG).filename+8;
             while (*p++)
                 p[-1] = *p;  /* disk label, and 8th char is dot:  remove dot */
         }
@@ -2005,7 +2005,7 @@ int do_string(__G__ length, option)   /* return PK-type error code */
          * We truncated the filename, so print what's left and then fall
          * through to the SKIP routine.
          */
-        Info(slide, 0x401, ((char *)slide, "[ %s ]\n", FnFilter1(G.filename)));
+        Info(slide, 0x401, ((char *)slide, "[ %s ]\n", FnFilter1((*(Uz_Globs *)pG).filename)));
         length = block_len;     /* SKIP the excess bytes... */
         /*  FALL THROUGH...  */
 
@@ -2018,8 +2018,8 @@ int do_string(__G__ length, option)   /* return PK-type error code */
     case SKIP:
         /* cur_zipfile_bufstart already takes account of extra_bytes, so don't
          * correct for it twice: */
-        seek_zipf(__G__ G.cur_zipfile_bufstart - G.extra_bytes +
-                  (G.inptr-G.inbuf) + length);
+        seek_zipf(pG, (*(Uz_Globs *)pG).cur_zipfile_bufstart - (*(Uz_Globs *)pG).extra_bytes +
+                  ((*(Uz_Globs *)pG).inptr-(*(Uz_Globs *)pG).inbuf) + length);
         break;
 
     /*
@@ -2028,48 +2028,48 @@ int do_string(__G__ length, option)   /* return PK-type error code */
      */
 
     case EXTRA_FIELD:
-        if (G.extra_field != (uch *)NULL)
-            free(G.extra_field);
-        if ((G.extra_field = (uch *)malloc(length)) == (uch *)NULL) {
+        if ((*(Uz_Globs *)pG).extra_field != (uch *)NULL)
+            free((*(Uz_Globs *)pG).extra_field);
+        if (((*(Uz_Globs *)pG).extra_field = (uch *)malloc(length)) == (uch *)NULL) {
             Info(slide, 0x401, ((char *)slide, LoadFarString(ExtraFieldTooLong),
               length));
             /* cur_zipfile_bufstart already takes account of extra_bytes,
              * so don't correct for it twice: */
-            seek_zipf(__G__ G.cur_zipfile_bufstart - G.extra_bytes +
-                      (G.inptr-G.inbuf) + length);
+            seek_zipf(pG, (*(Uz_Globs *)pG).cur_zipfile_bufstart - (*(Uz_Globs *)pG).extra_bytes +
+                      ((*(Uz_Globs *)pG).inptr-(*(Uz_Globs *)pG).inbuf) + length);
         } else {
-            if (readbuf(__G__ (char *)G.extra_field, length) == 0)
+            if (readbuf(pG, (char *)(*(Uz_Globs *)pG).extra_field, length) == 0)
                 return PK_EOF;
             /* Looks like here is where extra fields are read */
-            getZip64Data(__G__ G.extra_field, length);
+            getZip64Data(pG, (*(Uz_Globs *)pG).extra_field, length);
 #ifdef UNICODE_SUPPORT
-            G.unipath_filename = NULL;
-            if (G.UzO.U_flag < 2) {
+            (*(Uz_Globs *)pG).unipath_filename = NULL;
+            if ((*(Uz_Globs *)pG).UzO.U_flag < 2) {
               /* check if GPB11 (General Purpuse Bit 11) is set indicating
                  the standard path and comment are UTF-8 */
-              if (G.pInfo->GPFIsUTF8) {
+              if ((*(Uz_Globs *)pG).pInfo->GPFIsUTF8) {
                 /* if GPB11 set then filename_full is untruncated UTF-8 */
-                G.unipath_filename = G.filename_full;
+                (*(Uz_Globs *)pG).unipath_filename = (*(Uz_Globs *)pG).filename_full;
               } else {
                 /* Get the Unicode fields if exist */
-                getUnicodeData(__G__ G.extra_field, length);
-                if (G.unipath_filename && strlen(G.unipath_filename) == 0) {
+                getUnicodeData(pG, (*(Uz_Globs *)pG).extra_field, length);
+                if ((*(Uz_Globs *)pG).unipath_filename && strlen((*(Uz_Globs *)pG).unipath_filename) == 0) {
                   /* the standard filename field is UTF-8 */
-                  free(G.unipath_filename);
-                  G.unipath_filename = G.filename_full;
+                  free((*(Uz_Globs *)pG).unipath_filename);
+                  (*(Uz_Globs *)pG).unipath_filename = (*(Uz_Globs *)pG).filename_full;
                 }
               }
-              if (G.unipath_filename) {
+              if ((*(Uz_Globs *)pG).unipath_filename) {
 # ifdef UTF8_MAYBE_NATIVE
-                if (G.native_is_utf8
+                if ((*(Uz_Globs *)pG).native_is_utf8
 #  ifdef UNICODE_WCHAR
-                    && (!G.unicode_escape_all)
+                    && (!(*(Uz_Globs *)pG).unicode_escape_all)
 #  endif
                    ) {
-                  strncpy(G.filename, G.unipath_filename, FILNAMSIZ - 1);
+                  strncpy((*(Uz_Globs *)pG).filename, (*(Uz_Globs *)pG).unipath_filename, FILNAMSIZ - 1);
                   /* make sure filename is short enough */
-                  if (strlen(G.unipath_filename) >= FILNAMSIZ) {
-                    G.filename[FILNAMSIZ - 1] = '\0';
+                  if (strlen((*(Uz_Globs *)pG).unipath_filename) >= FILNAMSIZ) {
+                    (*(Uz_Globs *)pG).filename[FILNAMSIZ - 1] = '\0';
                     Info(slide, 0x401, ((char *)slide,
                       LoadFarString(UFilenameTooLongTrunc)));
                     error = PK_WARN;
@@ -2084,8 +2084,8 @@ int do_string(__G__ length, option)   /* return PK-type error code */
                   char *fn;
 
                   /* convert UTF-8 to local character set */
-                  fn = utf8_to_local_string(G.unipath_filename,
-                                            G.unicode_escape_all);
+                  fn = utf8_to_local_string((*(Uz_Globs *)pG).unipath_filename,
+                                            (*(Uz_Globs *)pG).unicode_escape_all);
                   /* make sure filename is short enough */
                   if (strlen(fn) >= FILNAMSIZ) {
                     fn[FILNAMSIZ - 1] = '\0';
@@ -2094,13 +2094,13 @@ int do_string(__G__ length, option)   /* return PK-type error code */
                     error = PK_WARN;
                   }
                   /* replace filename with converted UTF-8 */
-                  strcpy(G.filename, fn);
+                  strcpy((*(Uz_Globs *)pG).filename, fn);
                   free(fn);
                 }
 # endif /* UNICODE_WCHAR */
-                if (G.unipath_filename != G.filename_full)
-                  free(G.unipath_filename);
-                G.unipath_filename = NULL;
+                if ((*(Uz_Globs *)pG).unipath_filename != (*(Uz_Globs *)pG).filename_full)
+                  free((*(Uz_Globs *)pG).unipath_filename);
+                (*(Uz_Globs *)pG).unipath_filename = NULL;
               }
             }
 #endif /* UNICODE_SUPPORT */
@@ -2115,12 +2115,12 @@ int do_string(__G__ length, option)   /* return PK-type error code */
      */
 
     case FILENOTE:
-        if ((block_len = readbuf(__G__ tmp_fnote, (unsigned)
+        if ((block_len = readbuf(pG, tmp_fnote, (unsigned)
                                  MIN(length, 2 * AMIGA_FILENOTELEN - 1))) == 0)
             return PK_EOF;
         if ((length -= block_len) > 0)  /* treat remainder as in case SKIP: */
-            seek_zipf(__G__ G.cur_zipfile_bufstart - G.extra_bytes
-                      + (G.inptr - G.inbuf) + length);
+            seek_zipf(pG, (*(Uz_Globs *)pG).cur_zipfile_bufstart - (*(Uz_Globs *)pG).extra_bytes
+                      + ((*(Uz_Globs *)pG).inptr - (*(Uz_Globs *)pG).inbuf) + length);
         /* convert multi-line text into single line with no ctl-chars: */
         tmp_fnote[block_len] = '\0';
         while ((short int) --block_len >= 0)
@@ -2130,13 +2130,13 @@ int do_string(__G__ length, option)   /* return PK-type error code */
                 else
                     tmp_fnote[block_len] = ' ';
         tmp_fnote[AMIGA_FILENOTELEN - 1] = '\0';
-        if (G.filenotes[G.filenote_slot])
-            free(G.filenotes[G.filenote_slot]);     /* should not happen */
-        G.filenotes[G.filenote_slot] = NULL;
+        if ((*(Uz_Globs *)pG).filenotes[(*(Uz_Globs *)pG).filenote_slot])
+            free((*(Uz_Globs *)pG).filenotes[(*(Uz_Globs *)pG).filenote_slot]);     /* should not happen */
+        (*(Uz_Globs *)pG).filenotes[(*(Uz_Globs *)pG).filenote_slot] = NULL;
         if (tmp_fnote[0]) {
-            if (!(G.filenotes[G.filenote_slot] = malloc(strlen(tmp_fnote)+1)))
+            if (!((*(Uz_Globs *)pG).filenotes[(*(Uz_Globs *)pG).filenote_slot] = malloc(strlen(tmp_fnote)+1)))
                 return PK_MEM;
-            strcpy(G.filenotes[G.filenote_slot], tmp_fnote);
+            strcpy((*(Uz_Globs *)pG).filenotes[(*(Uz_Globs *)pG).filenote_slot], tmp_fnote);
         }
         break;
 #endif /* AMIGA */
@@ -2232,8 +2232,8 @@ zusz_t makeint64(sig)
 /*********************/
 
 /* Format a zoff_t value in a cylindrical buffer set. */
-char *fzofft(__G__ val, pre, post)
-    __GDEF
+char *fzofft(pG, val, pre, post)
+    Uz_Globs *pG;
     zoff_t val;
     const char *pre;
     const char *post;
@@ -2270,13 +2270,13 @@ char *fzofft(__G__ val, pre, post)
         strcat(fmt, post);     /* Caller's radix. */
 
     /* Advance the cylinder. */
-    G.fzofft_index = (G.fzofft_index + 1) % FZOFFT_NUM;
+    (*(Uz_Globs *)pG).fzofft_index = ((*(Uz_Globs *)pG).fzofft_index + 1) % FZOFFT_NUM;
 
     /* Write into the current chamber. */
-    sprintf(G.fzofft_buf[G.fzofft_index], fmt, val);
+    sprintf((*(Uz_Globs *)pG).fzofft_buf[(*(Uz_Globs *)pG).fzofft_index], fmt, val);
 
     /* Return a pointer to this chamber. */
-    return G.fzofft_buf[G.fzofft_index];
+    return (*(Uz_Globs *)pG).fzofft_buf[(*(Uz_Globs *)pG).fzofft_index];
 }
 
 
@@ -2546,22 +2546,22 @@ unsigned char *uzmbsrchr(str, c)
 /*  Function fLoadFarString()  */   /* (and friends...) */
 /*******************************/
 
-char *fLoadFarString(__GPRO__ const char *sz)
+char *fLoadFarString(Uz_Globs *pG, const char *sz)
 {
-    (void)zfstrcpy(G.rgchBigBuffer, sz);
-    return G.rgchBigBuffer;
+    (void)zfstrcpy((*(Uz_Globs *)pG).rgchBigBuffer, sz);
+    return (*(Uz_Globs *)pG).rgchBigBuffer;
 }
 
-char *fLoadFarStringSmall(__GPRO__ const char *sz)
+char *fLoadFarStringSmall(Uz_Globs *pG, const char *sz)
 {
-    (void)zfstrcpy(G.rgchSmallBuffer, sz);
-    return G.rgchSmallBuffer;
+    (void)zfstrcpy((*(Uz_Globs *)pG).rgchSmallBuffer, sz);
+    return (*(Uz_Globs *)pG).rgchSmallBuffer;
 }
 
-char *fLoadFarStringSmall2(__GPRO__ const char *sz)
+char *fLoadFarStringSmall2(Uz_Globs *pG, const char *sz)
 {
-    (void)zfstrcpy(G.rgchSmallBuffer2, sz);
-    return G.rgchSmallBuffer2;
+    (void)zfstrcpy((*(Uz_Globs *)pG).rgchSmallBuffer2, sz);
+    return (*(Uz_Globs *)pG).rgchSmallBuffer2;
 }
 
 

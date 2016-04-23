@@ -60,21 +60,21 @@ int main(argc, argv)
     printf(out_format, "h_v_t", (ulg)&t->v.t - (ulg)t);
     printf(out_format, "SIZEOF_huft", (ulg)sizeof(struct huft));
 
-    printf(out_format, "bb", (ulg)&G.bb - (ulg)&G);
-    printf(out_format, "bk", (ulg)&G.bk - (ulg)&G);
-    printf(out_format, "wp", (ulg)&G.wp - (ulg)&G);
+    printf(out_format, "bb", (ulg)&(*(Uz_Globs *)pG).bb - (ulg)&(*(Uz_Globs *)pG));
+    printf(out_format, "bk", (ulg)&(*(Uz_Globs *)pG).bk - (ulg)&(*(Uz_Globs *)pG));
+    printf(out_format, "wp", (ulg)&(*(Uz_Globs *)pG).wp - (ulg)&(*(Uz_Globs *)pG));
 #ifdef FUNZIP
-    printf(out_format, "in", (ulg)&G.in - (ulg)&G);
+    printf(out_format, "in", (ulg)&(*(Uz_Globs *)pG).in - (ulg)&(*(Uz_Globs *)pG));
 #else
-    printf(out_format, "incnt", (ulg)&G.incnt - (ulg)&G);
-    printf(out_format, "inptr", (ulg)&G.inptr - (ulg)&G);
-    printf(out_format, "csize", (ulg)&G.csize - (ulg)&G);
-    printf(out_format, "mem_mode", (ulg)&G.mem_mode - (ulg)&G);
+    printf(out_format, "incnt", (ulg)&(*(Uz_Globs *)pG).incnt - (ulg)&(*(Uz_Globs *)pG));
+    printf(out_format, "inptr", (ulg)&(*(Uz_Globs *)pG).inptr - (ulg)&(*(Uz_Globs *)pG));
+    printf(out_format, "csize", (ulg)&(*(Uz_Globs *)pG).csize - (ulg)&(*(Uz_Globs *)pG));
+    printf(out_format, "mem_mode", (ulg)&(*(Uz_Globs *)pG).mem_mode - (ulg)&(*(Uz_Globs *)pG));
 #endif
-    printf(out_format, "redirslide", (ulg)&redirSlide - (ulg)&G);
+    printf(out_format, "redirslide", (ulg)&redirSlide - (ulg)&(*(Uz_Globs *)pG));
     printf(out_format, "SIZEOF_slide", (ulg)sizeof(redirSlide));
 #if (defined(DLL) && !defined(NO_SLIDE_REDIR))
-    printf(out_format, "_wsize", (ulg)&G._wsize - (ulg)&G);
+    printf(out_format, "_wsize", (ulg)&(*(Uz_Globs *)pG)._wsize - (ulg)&(*(Uz_Globs *)pG));
 #endif /* DLL && !NO_SLIDE_REDIR */
     printf(out_format, "CRYPT", (ulg)CRYPT);
 #ifdef FUNZIP

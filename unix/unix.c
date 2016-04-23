@@ -74,7 +74,7 @@ typedef struct uxdirattr {      /* struct for holding unix style directory */
 /* static int created_dir;      */      /* used in mapname(), checkdir() */
 /* static int renamed_fullpath; */      /* ditto */
 
-static unsigned filtattr (__GPRO__ unsigned perms);
+static unsigned filtattr (Uz_Globs *pG, unsigned perms);
 
 
 /*****************************/
@@ -157,8 +157,8 @@ struct dirent *readdir(dirp)
 /* Function do_wild() */   /* for porting: dir separator; match(ignore_case) */
 /**********************/
 
-char *do_wild(__G__ wildspec)
-    __GDEF
+char *do_wild(pG, wildspec)
+    Uz_Globs *pG;
     const char *wildspec;  /* only used first time on a given dir */
 {
 /* these statics are now declared in SYSTEM_SPECIFIC_GLOBALS in unxcfg.h:
@@ -173,76 +173,76 @@ char *do_wild(__G__ wildspec)
      * matchname[]--calling routine is allowed to append four characters
      * to the returned string, and wildspec may be a pointer to argv[].
      */
-    if (!G.notfirstcall) {  /* first call:  must initialize everything */
-        G.notfirstcall = TRUE;
+    if (!(*(Uz_Globs *)pG).notfirstcall) {  /* first call:  must initialize everything */
+        (*(Uz_Globs *)pG).notfirstcall = TRUE;
 
         if (!iswild(wildspec)) {
-            strncpy(G.matchname, wildspec, FILNAMSIZ);
-            G.matchname[FILNAMSIZ-1] = '\0';
-            G.have_dirname = FALSE;
-            G.wild_dir = NULL;
-            return G.matchname;
+            strncpy((*(Uz_Globs *)pG).matchname, wildspec, FILNAMSIZ);
+            (*(Uz_Globs *)pG).matchname[FILNAMSIZ-1] = '\0';
+            (*(Uz_Globs *)pG).have_dirname = FALSE;
+            (*(Uz_Globs *)pG).wild_dir = NULL;
+            return (*(Uz_Globs *)pG).matchname;
         }
 
         /* break the wildspec into a directory part and a wildcard filename */
-        if ((G.wildname = (const char *)strrchr(wildspec, '/')) == NULL) {
-            G.dirname = ".";
-            G.dirnamelen = 1;
-            G.have_dirname = FALSE;
-            G.wildname = wildspec;
+        if (((*(Uz_Globs *)pG).wildname = (const char *)strrchr(wildspec, '/')) == NULL) {
+            (*(Uz_Globs *)pG).dirname = ".";
+            (*(Uz_Globs *)pG).dirnamelen = 1;
+            (*(Uz_Globs *)pG).have_dirname = FALSE;
+            (*(Uz_Globs *)pG).wildname = wildspec;
         } else {
-            ++G.wildname;     /* point at character after '/' */
-            G.dirnamelen = G.wildname - wildspec;
-            if ((G.dirname = (char *)malloc(G.dirnamelen+1)) == (char *)NULL) {
+            ++(*(Uz_Globs *)pG).wildname;     /* point at character after '/' */
+            (*(Uz_Globs *)pG).dirnamelen = (*(Uz_Globs *)pG).wildname - wildspec;
+            if (((*(Uz_Globs *)pG).dirname = (char *)malloc((*(Uz_Globs *)pG).dirnamelen+1)) == (char *)NULL) {
                 Info(slide, 0x201, ((char *)slide,
                   "warning:  cannot allocate wildcard buffers\n"));
-                strncpy(G.matchname, wildspec, FILNAMSIZ);
-                G.matchname[FILNAMSIZ-1] = '\0';
-                return G.matchname; /* but maybe filespec was not a wildcard */
+                strncpy((*(Uz_Globs *)pG).matchname, wildspec, FILNAMSIZ);
+                (*(Uz_Globs *)pG).matchname[FILNAMSIZ-1] = '\0';
+                return (*(Uz_Globs *)pG).matchname; /* but maybe filespec was not a wildcard */
             }
-            strncpy(G.dirname, wildspec, G.dirnamelen);
-            G.dirname[G.dirnamelen] = '\0';   /* terminate for strcpy below */
-            G.have_dirname = TRUE;
+            strncpy((*(Uz_Globs *)pG).dirname, wildspec, (*(Uz_Globs *)pG).dirnamelen);
+            (*(Uz_Globs *)pG).dirname[(*(Uz_Globs *)pG).dirnamelen] = '\0';   /* terminate for strcpy below */
+            (*(Uz_Globs *)pG).have_dirname = TRUE;
         }
 
-        if ((G.wild_dir = (void *)opendir(G.dirname)) != (void *)NULL) {
-            while ((file = readdir((DIR *)G.wild_dir)) !=
+        if (((*(Uz_Globs *)pG).wild_dir = (void *)opendir((*(Uz_Globs *)pG).dirname)) != (void *)NULL) {
+            while ((file = readdir((DIR *)(*(Uz_Globs *)pG).wild_dir)) !=
                    (struct dirent *)NULL) {
                 Trace((stderr, "do_wild:  readdir returns %s\n",
                   FnFilter1(file->d_name)));
-                if (file->d_name[0] == '.' && G.wildname[0] != '.')
+                if (file->d_name[0] == '.' && (*(Uz_Globs *)pG).wildname[0] != '.')
                     continue; /* Unix:  '*' and '?' do not match leading dot */
-                if (match(file->d_name, G.wildname, 0 WISEP) &&/*0=case sens.*/
+                if (match(file->d_name, (*(Uz_Globs *)pG).wildname, 0 WISEP) &&/*0=case sens.*/
                     /* skip "." and ".." directory entries */
                     strcmp(file->d_name, ".") && strcmp(file->d_name, "..")) {
                     Trace((stderr, "do_wild:  match() succeeds\n"));
-                    if (G.have_dirname) {
-                        strcpy(G.matchname, G.dirname);
-                        strcpy(G.matchname+G.dirnamelen, file->d_name);
+                    if ((*(Uz_Globs *)pG).have_dirname) {
+                        strcpy((*(Uz_Globs *)pG).matchname, (*(Uz_Globs *)pG).dirname);
+                        strcpy((*(Uz_Globs *)pG).matchname+(*(Uz_Globs *)pG).dirnamelen, file->d_name);
                     } else
-                        strcpy(G.matchname, file->d_name);
-                    return G.matchname;
+                        strcpy((*(Uz_Globs *)pG).matchname, file->d_name);
+                    return (*(Uz_Globs *)pG).matchname;
                 }
             }
             /* if we get to here directory is exhausted, so close it */
-            closedir((DIR *)G.wild_dir);
-            G.wild_dir = (void *)NULL;
+            closedir((DIR *)(*(Uz_Globs *)pG).wild_dir);
+            (*(Uz_Globs *)pG).wild_dir = (void *)NULL;
         }
         Trace((stderr, "do_wild:  opendir(%s) returns NULL\n",
-          FnFilter1(G.dirname)));
+          FnFilter1((*(Uz_Globs *)pG).dirname)));
 
         /* return the raw wildspec in case that works (e.g., directory not
          * searchable, but filespec was not wild and file is readable) */
-        strncpy(G.matchname, wildspec, FILNAMSIZ);
-        G.matchname[FILNAMSIZ-1] = '\0';
-        return G.matchname;
+        strncpy((*(Uz_Globs *)pG).matchname, wildspec, FILNAMSIZ);
+        (*(Uz_Globs *)pG).matchname[FILNAMSIZ-1] = '\0';
+        return (*(Uz_Globs *)pG).matchname;
     }
 
     /* last time through, might have failed opendir but returned raw wildspec */
-    if ((DIR *)G.wild_dir == (DIR *)NULL) {
-        G.notfirstcall = FALSE; /* nothing left--reset for new wildspec */
-        if (G.have_dirname)
-            free(G.dirname);
+    if ((DIR *)(*(Uz_Globs *)pG).wild_dir == (DIR *)NULL) {
+        (*(Uz_Globs *)pG).notfirstcall = FALSE; /* nothing left--reset for new wildspec */
+        if ((*(Uz_Globs *)pG).have_dirname)
+            free((*(Uz_Globs *)pG).dirname);
         return (char *)NULL;
     }
 
@@ -250,27 +250,27 @@ char *do_wild(__G__ wildspec)
      * successfully (in a previous call), so dirname has been copied into
      * matchname already.
      */
-    while ((file = readdir((DIR *)G.wild_dir)) != (struct dirent *)NULL) {
+    while ((file = readdir((DIR *)(*(Uz_Globs *)pG).wild_dir)) != (struct dirent *)NULL) {
         Trace((stderr, "do_wild:  readdir returns %s\n",
           FnFilter1(file->d_name)));
-        if (file->d_name[0] == '.' && G.wildname[0] != '.')
+        if (file->d_name[0] == '.' && (*(Uz_Globs *)pG).wildname[0] != '.')
             continue;   /* Unix:  '*' and '?' do not match leading dot */
-        if (match(file->d_name, G.wildname, 0 WISEP)) { /* 0 == case sens. */
+        if (match(file->d_name, (*(Uz_Globs *)pG).wildname, 0 WISEP)) { /* 0 == case sens. */
             Trace((stderr, "do_wild:  match() succeeds\n"));
-            if (G.have_dirname) {
-                /* strcpy(G.matchname, G.dirname); */
-                strcpy(G.matchname+G.dirnamelen, file->d_name);
+            if ((*(Uz_Globs *)pG).have_dirname) {
+                /* strcpy((*(Uz_Globs *)pG).matchname, (*(Uz_Globs *)pG).dirname); */
+                strcpy((*(Uz_Globs *)pG).matchname+(*(Uz_Globs *)pG).dirnamelen, file->d_name);
             } else
-                strcpy(G.matchname, file->d_name);
-            return G.matchname;
+                strcpy((*(Uz_Globs *)pG).matchname, file->d_name);
+            return (*(Uz_Globs *)pG).matchname;
         }
     }
 
-    closedir((DIR *)G.wild_dir);  /* at least one entry read; nothing left */
-    G.wild_dir = (void *)NULL;
-    G.notfirstcall = FALSE;       /* reset for new wildspec */
-    if (G.have_dirname)
-        free(G.dirname);
+    closedir((DIR *)(*(Uz_Globs *)pG).wild_dir);  /* at least one entry read; nothing left */
+    (*(Uz_Globs *)pG).wild_dir = (void *)NULL;
+    (*(Uz_Globs *)pG).notfirstcall = FALSE;       /* reset for new wildspec */
+    if ((*(Uz_Globs *)pG).have_dirname)
+        free((*(Uz_Globs *)pG).dirname);
     return (char *)NULL;
 
 } /* end function do_wild() */
@@ -299,8 +299,8 @@ char *do_wild(__G__ wildspec)
  * file as the user or group.  The new option -K bypasses this check.
  */
 
-static unsigned filtattr(__G__ perms)
-__GDEF
+static unsigned filtattr(pG, perms)
+Uz_Globs *pG;
 unsigned perms;
 {
     /* keep setuid/setgid/tacky perms? */
@@ -318,19 +318,19 @@ unsigned perms;
 /* Function mapattr() */
 /**********************/
 
-int mapattr(__G)
-    __GDEF
+int mapattr(pG)
+    Uz_Globs *pG;
 {
     int r;
-    ulg tmp = G.crec.external_file_attributes;
+    ulg tmp = (*(Uz_Globs *)pG).crec.external_file_attributes;
 
-    G.pInfo->file_attr = 0;
+    (*(Uz_Globs *)pG).pInfo->file_attr = 0;
     /* initialized to 0 for check in "default" branch below... */
 
-    switch (G.pInfo->hostnum) {
+    switch ((*(Uz_Globs *)pG).pInfo->hostnum) {
         case AMIGA_:
             tmp = (unsigned)(tmp>>17 & 7);   /* Amiga RWE bits */
-            G.pInfo->file_attr = (unsigned)(tmp<<6 | tmp<<3 | tmp);
+            (*(Uz_Globs *)pG).pInfo->file_attr = (unsigned)(tmp<<6 | tmp<<3 | tmp);
             break;
         case THEOS_:
             tmp &= 0xF1FFFFFFL;
@@ -348,8 +348,8 @@ int mapattr(__G)
         case QDOS_:
         case TANDEM_:
             r = FALSE;
-            G.pInfo->file_attr = (unsigned)(tmp >> 16);
-            if (G.pInfo->file_attr == 0 && G.extra_field) {
+            (*(Uz_Globs *)pG).pInfo->file_attr = (unsigned)(tmp >> 16);
+            if ((*(Uz_Globs *)pG).pInfo->file_attr == 0 && (*(Uz_Globs *)pG).extra_field) {
                 /* Some (non-Info-ZIP) implementations of Zip for Unix and
                  * VMS (and probably others ??) leave 0 in the upper 16-bit
                  * part of the external_file_attributes field. Instead, they
@@ -366,8 +366,8 @@ int mapattr(__G)
                  */
                 ush ebID;
                 unsigned ebLen;
-                uch *ef = G.extra_field;
-                unsigned ef_len = G.crec.extra_field_length;
+                uch *ef = (*(Uz_Globs *)pG).extra_field;
+                unsigned ef_len = (*(Uz_Globs *)pG).crec.extra_field_length;
 
                 while (!r && ef_len >= EB_HEADSIZE) {
                     ebID = makeword(ef);
@@ -378,7 +378,7 @@ int mapattr(__G)
                     switch (ebID) {
                       case EF_ASIUNIX:
                         if (ebLen >= (EB_ASI_MODE+2)) {
-                            G.pInfo->file_attr =
+                            (*(Uz_Globs *)pG).pInfo->file_attr =
                               (unsigned)makeword(ef+(EB_HEADSIZE+EB_ASI_MODE));
                             /* force stop of loop: */
                             ef_len = (ebLen + EB_HEADSIZE);
@@ -401,8 +401,8 @@ int mapattr(__G)
                  * We restrict symlink support to those "made-by" hosts that
                  * are known to support symbolic links.
                  */
-                G.pInfo->symlink = S_ISLNK(G.pInfo->file_attr) &&
-                                   SYMLINK_HOST(G.pInfo->hostnum);
+                (*(Uz_Globs *)pG).pInfo->symlink = S_ISLNK((*(Uz_Globs *)pG).pInfo->file_attr) &&
+                                   SYMLINK_HOST((*(Uz_Globs *)pG).pInfo->hostnum);
 #endif
                 return 0;
             }
@@ -415,7 +415,7 @@ int mapattr(__G)
              * value, after a check for consistency with the MSDOS attribute
              * bits (see below).
              */
-            G.pInfo->file_attr = (unsigned)(tmp >> 16);
+            (*(Uz_Globs *)pG).pInfo->file_attr = (unsigned)(tmp >> 16);
             /* fall through! */
         case FS_HPFS_:
         case FS_NTFS_:
@@ -427,32 +427,32 @@ int mapattr(__G)
              * bit for directory entries.
              */
             if ((tmp & 0x10) == 0) {
-                extent fnlen = strlen(G.filename);
-                if (fnlen > 0 && G.filename[fnlen-1] == '/')
+                extent fnlen = strlen((*(Uz_Globs *)pG).filename);
+                if (fnlen > 0 && (*(Uz_Globs *)pG).filename[fnlen-1] == '/')
                     tmp |= 0x10;
             }
             /* read-only bit --> write perms; subdir bit --> dir exec bit */
             tmp = !(tmp & 1) << 1  |  (tmp & 0x10) >> 4;
-            if ((G.pInfo->file_attr & 0700) == (unsigned)(0400 | tmp<<6)) {
-                /* keep previous G.pInfo->file_attr setting, when its "owner"
+            if (((*(Uz_Globs *)pG).pInfo->file_attr & 0700) == (unsigned)(0400 | tmp<<6)) {
+                /* keep previous (*(Uz_Globs *)pG).pInfo->file_attr setting, when its "owner"
                  * part appears to be consistent with DOS attribute flags!
                  */
 #ifdef SYMLINKS
                 /* Entries "made by FS_FAT_" could have been zipped on a
                  * system that supports POSIX-style symbolic links.
                  */
-                G.pInfo->symlink = S_ISLNK(G.pInfo->file_attr) &&
-                                   (G.pInfo->hostnum == FS_FAT_);
+                (*(Uz_Globs *)pG).pInfo->symlink = S_ISLNK((*(Uz_Globs *)pG).pInfo->file_attr) &&
+                                   ((*(Uz_Globs *)pG).pInfo->hostnum == FS_FAT_);
 #endif
                 return 0;
             }
-            G.pInfo->file_attr = (unsigned)(0444 | tmp<<6 | tmp<<3 | tmp);
+            (*(Uz_Globs *)pG).pInfo->file_attr = (unsigned)(0444 | tmp<<6 | tmp<<3 | tmp);
             break;
     } /* end switch (host-OS-created-by) */
 
     /* for originating systems with no concept of "group," "other," "system": */
     umask( (int)(tmp=umask(0)) );    /* apply mask to expanded r/w(/x) perms */
-    G.pInfo->file_attr &= ~tmp;
+    (*(Uz_Globs *)pG).pInfo->file_attr &= ~tmp;
 
     return 0;
 
@@ -466,8 +466,8 @@ int mapattr(__G)
 /*  Function mapname()  */
 /************************/
 
-int mapname(__G__ renamed)
-    __GDEF
+int mapname(pG, renamed)
+    Uz_Globs *pG;
     int renamed;
 /*
  * returns:
@@ -496,26 +496,26 @@ int mapname(__G__ renamed)
     Initialize various pointers and counters and stuff.
   ---------------------------------------------------------------------------*/
 
-    if (G.pInfo->vollabel)
+    if ((*(Uz_Globs *)pG).pInfo->vollabel)
         return MPN_VOL_LABEL;   /* can't set disk volume labels in Unix */
 
     /* can create path as long as not just freshening, or if user told us */
-    G.create_dirs = (!uO.fflag || renamed);
+    (*(Uz_Globs *)pG).create_dirs = (!uO.fflag || renamed);
 
-    G.created_dir = FALSE;      /* not yet */
+    (*(Uz_Globs *)pG).created_dir = FALSE;      /* not yet */
 
     /* user gave full pathname:  don't prepend rootpath */
-    G.renamed_fullpath = (renamed && (*G.filename == '/'));
+    (*(Uz_Globs *)pG).renamed_fullpath = (renamed && (*(*(Uz_Globs *)pG).filename == '/'));
 
-    if (checkdir(__G__ (char *)NULL, INIT) == MPN_NOMEM)
+    if (checkdir(pG, (char *)NULL, INIT) == MPN_NOMEM)
         return MPN_NOMEM;       /* initialize path buffer, unless no memory */
 
     *pathcomp = '\0';           /* initialize translation buffer */
     pp = pathcomp;              /* point to translation buffer */
     if (uO.jflag)               /* junking directories */
-        cp = (char *)strrchr(G.filename, '/');
+        cp = (char *)strrchr((*(Uz_Globs *)pG).filename, '/');
     if (cp == (char *)NULL)     /* no '/' or not junking dirs */
-        cp = G.filename;        /* point to internal zipfile-member pathname */
+        cp = (*(Uz_Globs *)pG).filename;        /* point to internal zipfile-member pathname */
     else
         ++cp;                   /* point to start of last component of path */
 
@@ -538,7 +538,7 @@ int mapname(__G__ renamed)
                 }
                 /* when path component is not empty, append it now */
                 if (*pathcomp != '\0' &&
-                    ((error = checkdir(__G__ pathcomp, APPEND_DIR))
+                    ((error = checkdir(pG, pathcomp, APPEND_DIR))
                      & MPN_MASK) > MPN_INF_TRUNC)
                     return error;
                 pp = pathcomp;    /* reset conversion buffer for next piece */
@@ -591,7 +591,7 @@ int mapname(__G__ renamed)
     if (killed_ddot && QCOND2) {
         Info(slide, 0, ((char *)slide,
           "warning:  skipped \"../\" path component(s) in %s\n",
-          FnFilter1(G.filename)));
+          FnFilter1((*(Uz_Globs *)pG).filename)));
         if (!(error & ~MPN_MASK))
             error = (error & MPN_MASK) | PK_WARN;
     }
@@ -602,33 +602,33 @@ int mapname(__G__ renamed)
     fore exiting.
   ---------------------------------------------------------------------------*/
 
-    if (G.filename[strlen(G.filename) - 1] == '/') {
-        checkdir(__G__ G.filename, GETPATH);
-        if (G.created_dir) {
+    if ((*(Uz_Globs *)pG).filename[strlen((*(Uz_Globs *)pG).filename) - 1] == '/') {
+        checkdir(pG, (*(Uz_Globs *)pG).filename, GETPATH);
+        if ((*(Uz_Globs *)pG).created_dir) {
             if (QCOND2) {
                 Info(slide, 0, ((char *)slide, "   creating: %s\n",
-                  FnFilter1(G.filename)));
+                  FnFilter1((*(Uz_Globs *)pG).filename)));
             }
 #ifndef NO_CHMOD
             /* Filter out security-relevant attributes bits. */
-            G.pInfo->file_attr = filtattr(__G__ G.pInfo->file_attr);
+            (*(Uz_Globs *)pG).pInfo->file_attr = filtattr(pG, (*(Uz_Globs *)pG).pInfo->file_attr);
             /* When extracting non-UNIX directories or when extracting
              * without UID/GID restoration or SGID preservation, any
              * SGID flag inherited from the parent directory should be
              * maintained to allow files extracted into this new folder
              * to inherit the GID setting from the parent directory.
              */
-            if (G.pInfo->hostnum != UNIX_ || !(uO.X_flag || uO.K_flag)) {
+            if ((*(Uz_Globs *)pG).pInfo->hostnum != UNIX_ || !(uO.X_flag || uO.K_flag)) {
                 /* preserve SGID bit when inherited from parent dir */
-                if (!SSTAT(G.filename, &G.statbuf)) {
-                    G.pInfo->file_attr |= G.statbuf.st_mode & S_ISGID;
+                if (!SSTAT((*(Uz_Globs *)pG).filename, &(*(Uz_Globs *)pG).statbuf)) {
+                    (*(Uz_Globs *)pG).pInfo->file_attr |= (*(Uz_Globs *)pG).statbuf.st_mode & S_ISGID;
                 } else {
                     perror("Could not read directory attributes");
                 }
             }
 
             /* set approx. dir perms (make sure can still read/write in dir) */
-            if (chmod(G.filename, G.pInfo->file_attr | 0700))
+            if (chmod((*(Uz_Globs *)pG).filename, (*(Uz_Globs *)pG).pInfo->file_attr | 0700))
                 perror("chmod (directory attributes) error");
 #endif
             /* set dir time (note trailing '/') */
@@ -662,7 +662,7 @@ int mapname(__G__ renamed)
     /* translate Acorn filetype information if asked to do so */
     if (uO.acorn_nfs_ext &&
         (ef_spark = (RO_extra_block *)
-                    getRISCOSexfield(G.extra_field, G.lrec.extra_field_length))
+                    getRISCOSexfield((*(Uz_Globs *)pG).extra_field, (*(Uz_Globs *)pG).lrec.extra_field_length))
         != (RO_extra_block *)NULL)
     {
         /* file *must* have a RISC OS extra field */
@@ -680,12 +680,12 @@ int mapname(__G__ renamed)
 
     if (*pathcomp == '\0') {
         Info(slide, 1, ((char *)slide, "mapname:  conversion of %s failed\n",
-          FnFilter1(G.filename)));
+          FnFilter1((*(Uz_Globs *)pG).filename)));
         return (error & ~MPN_MASK) | MPN_ERR_SKIP;
     }
 
-    checkdir(__G__ pathcomp, APPEND_NAME);  /* returns 1 if truncated: care? */
-    checkdir(__G__ G.filename, GETPATH);
+    checkdir(pG, pathcomp, APPEND_NAME);  /* returns 1 if truncated: care? */
+    checkdir(pG, (*(Uz_Globs *)pG).filename, GETPATH);
 
     return error;
 
@@ -719,8 +719,8 @@ int mapname(__G__ renamed)
 /* Function checkdir() */
 /***********************/
 
-int checkdir(__G__ pathcomp, flag)
-    __GDEF
+int checkdir(pG, pathcomp, flag)
+    Uz_Globs *pG;
     char *pathcomp;
     int flag;
 /*
@@ -757,11 +757,11 @@ int checkdir(__G__ pathcomp, flag)
 #endif
 
         Trace((stderr, "appending dir segment [%s]\n", FnFilter1(pathcomp)));
-        while ((*G.end = *pathcomp++) != '\0')
-            ++G.end;
+        while ((*(*(Uz_Globs *)pG).end = *pathcomp++) != '\0')
+            ++(*(Uz_Globs *)pG).end;
 #ifdef SHORT_NAMES   /* path components restricted to 14 chars, typically */
-        if ((G.end-old_end) > FILENAME_MAX)  /* GRR:  proper constant? */
-            *(G.end = old_end + FILENAME_MAX) = '\0';
+        if (((*(Uz_Globs *)pG).end-old_end) > FILENAME_MAX)  /* GRR:  proper constant? */
+            *((*(Uz_Globs *)pG).end = old_end + FILENAME_MAX) = '\0';
 #endif
 
         /* GRR:  could do better check, see if overrunning buffer as we go:
@@ -770,68 +770,68 @@ int checkdir(__G__ pathcomp, flag)
          * appending.  Clear variable when begin new path. */
 
         /* next check: need to append '/', at least one-char name, '\0' */
-        if ((G.end-G.buildpath) > FILNAMSIZ-3)
+        if (((*(Uz_Globs *)pG).end-(*(Uz_Globs *)pG).buildpath) > FILNAMSIZ-3)
             too_long = TRUE;                    /* check if extracting dir? */
-        if (SSTAT(G.buildpath, &G.statbuf)) {   /* path doesn't exist */
-            if (!G.create_dirs) { /* told not to create (freshening) */
-                free(G.buildpath);
+        if (SSTAT((*(Uz_Globs *)pG).buildpath, &(*(Uz_Globs *)pG).statbuf)) {   /* path doesn't exist */
+            if (!(*(Uz_Globs *)pG).create_dirs) { /* told not to create (freshening) */
+                free((*(Uz_Globs *)pG).buildpath);
                 return MPN_INF_SKIP;    /* path doesn't exist: nothing to do */
             }
             if (too_long) {
                 Info(slide, 1, ((char *)slide,
                   "checkdir error:  path too long: %s\n",
-                  FnFilter1(G.buildpath)));
-                free(G.buildpath);
+                  FnFilter1((*(Uz_Globs *)pG).buildpath)));
+                free((*(Uz_Globs *)pG).buildpath);
                 /* no room for filenames:  fatal */
                 return MPN_ERR_TOOLONG;
             }
-            if (mkdir(G.buildpath, 0777) == -1) {   /* create the directory */
+            if (mkdir((*(Uz_Globs *)pG).buildpath, 0777) == -1) {   /* create the directory */
                 Info(slide, 1, ((char *)slide,
                   "checkdir error:  cannot create %s\n\
                  %s\n\
                  unable to process %s.\n",
-                  FnFilter2(G.buildpath),
+                  FnFilter2((*(Uz_Globs *)pG).buildpath),
                   strerror(errno),
-                  FnFilter1(G.filename)));
-                free(G.buildpath);
+                  FnFilter1((*(Uz_Globs *)pG).filename)));
+                free((*(Uz_Globs *)pG).buildpath);
                 /* path didn't exist, tried to create, failed */
                 return MPN_ERR_SKIP;
             }
-            G.created_dir = TRUE;
-        } else if (!S_ISDIR(G.statbuf.st_mode)) {
+            (*(Uz_Globs *)pG).created_dir = TRUE;
+        } else if (!S_ISDIR((*(Uz_Globs *)pG).statbuf.st_mode)) {
             Info(slide, 1, ((char *)slide,
               "checkdir error:  %s exists but is not directory\n\
                  unable to process %s.\n",
-              FnFilter2(G.buildpath), FnFilter1(G.filename)));
-            free(G.buildpath);
+              FnFilter2((*(Uz_Globs *)pG).buildpath), FnFilter1((*(Uz_Globs *)pG).filename)));
+            free((*(Uz_Globs *)pG).buildpath);
             /* path existed but wasn't dir */
             return MPN_ERR_SKIP;
         }
         if (too_long) {
             Info(slide, 1, ((char *)slide,
-              "checkdir error:  path too long: %s\n", FnFilter1(G.buildpath)));
-            free(G.buildpath);
+              "checkdir error:  path too long: %s\n", FnFilter1((*(Uz_Globs *)pG).buildpath)));
+            free((*(Uz_Globs *)pG).buildpath);
             /* no room for filenames:  fatal */
             return MPN_ERR_TOOLONG;
         }
-        *G.end++ = '/';
-        *G.end = '\0';
-        Trace((stderr, "buildpath now = [%s]\n", FnFilter1(G.buildpath)));
+        *(*(Uz_Globs *)pG).end++ = '/';
+        *(*(Uz_Globs *)pG).end = '\0';
+        Trace((stderr, "buildpath now = [%s]\n", FnFilter1((*(Uz_Globs *)pG).buildpath)));
         return MPN_OK;
 
     } /* end if (FUNCTION == APPEND_DIR) */
 
 /*---------------------------------------------------------------------------
     GETPATH:  copy full path to the string pointed at by pathcomp, and free
-    G.buildpath.
+    (*(Uz_Globs *)pG).buildpath.
   ---------------------------------------------------------------------------*/
 
     if (FUNCTION == GETPATH) {
-        strcpy(pathcomp, G.buildpath);
+        strcpy(pathcomp, (*(Uz_Globs *)pG).buildpath);
         Trace((stderr, "getting and freeing path [%s]\n",
           FnFilter1(pathcomp)));
-        free(G.buildpath);
-        G.buildpath = G.end = (char *)NULL;
+        free((*(Uz_Globs *)pG).buildpath);
+        (*(Uz_Globs *)pG).buildpath = (*(Uz_Globs *)pG).end = (char *)NULL;
         return MPN_OK;
     }
 
@@ -846,22 +846,22 @@ int checkdir(__G__ pathcomp, flag)
 #endif
 
         Trace((stderr, "appending filename [%s]\n", FnFilter1(pathcomp)));
-        while ((*G.end = *pathcomp++) != '\0') {
-            ++G.end;
+        while ((*(*(Uz_Globs *)pG).end = *pathcomp++) != '\0') {
+            ++(*(Uz_Globs *)pG).end;
 #ifdef SHORT_NAMES  /* truncate name at 14 characters, typically */
-            if ((G.end-old_end) > FILENAME_MAX)    /* GRR:  proper constant? */
-                *(G.end = old_end + FILENAME_MAX) = '\0';
+            if (((*(Uz_Globs *)pG).end-old_end) > FILENAME_MAX)    /* GRR:  proper constant? */
+                *((*(Uz_Globs *)pG).end = old_end + FILENAME_MAX) = '\0';
 #endif
-            if ((G.end-G.buildpath) >= FILNAMSIZ) {
-                *--G.end = '\0';
+            if (((*(Uz_Globs *)pG).end-(*(Uz_Globs *)pG).buildpath) >= FILNAMSIZ) {
+                *--(*(Uz_Globs *)pG).end = '\0';
                 Info(slide, 0x201, ((char *)slide,
                   "checkdir warning:  path too long; truncating\n\
                    %s\n                -> %s\n",
-                  FnFilter1(G.filename), FnFilter2(G.buildpath)));
+                  FnFilter1((*(Uz_Globs *)pG).filename), FnFilter2((*(Uz_Globs *)pG).buildpath)));
                 return MPN_INF_TRUNC;   /* filename truncated */
             }
         }
-        Trace((stderr, "buildpath now = [%s]\n", FnFilter1(G.buildpath)));
+        Trace((stderr, "buildpath now = [%s]\n", FnFilter1((*(Uz_Globs *)pG).buildpath)));
         /* could check for existence here, prompt for new name... */
         return MPN_OK;
     }
@@ -877,21 +877,21 @@ int checkdir(__G__ pathcomp, flag)
     if (FUNCTION == INIT) {
         Trace((stderr, "initializing buildpath to "));
 #ifdef ACORN_FTYPE_NFS
-        if ((G.buildpath = (char *)malloc(strlen(G.filename)+G.rootlen+
+        if (((*(Uz_Globs *)pG).buildpath = (char *)malloc(strlen((*(Uz_Globs *)pG).filename)+(*(Uz_Globs *)pG).rootlen+
                                           (uO.acorn_nfs_ext ? 5 : 1)))
 #else
-        if ((G.buildpath = (char *)malloc(strlen(G.filename)+G.rootlen+1))
+        if (((*(Uz_Globs *)pG).buildpath = (char *)malloc(strlen((*(Uz_Globs *)pG).filename)+(*(Uz_Globs *)pG).rootlen+1))
 #endif
             == (char *)NULL)
             return MPN_NOMEM;
-        if ((G.rootlen > 0) && !G.renamed_fullpath) {
-            strcpy(G.buildpath, G.rootpath);
-            G.end = G.buildpath + G.rootlen;
+        if (((*(Uz_Globs *)pG).rootlen > 0) && !(*(Uz_Globs *)pG).renamed_fullpath) {
+            strcpy((*(Uz_Globs *)pG).buildpath, (*(Uz_Globs *)pG).rootpath);
+            (*(Uz_Globs *)pG).end = (*(Uz_Globs *)pG).buildpath + (*(Uz_Globs *)pG).rootlen;
         } else {
-            *G.buildpath = '\0';
-            G.end = G.buildpath;
+            *(*(Uz_Globs *)pG).buildpath = '\0';
+            (*(Uz_Globs *)pG).end = (*(Uz_Globs *)pG).buildpath;
         }
-        Trace((stderr, "[%s]\n", FnFilter1(G.buildpath)));
+        Trace((stderr, "[%s]\n", FnFilter1((*(Uz_Globs *)pG).buildpath)));
         return MPN_OK;
     }
 
@@ -907,28 +907,28 @@ int checkdir(__G__ pathcomp, flag)
         Trace((stderr, "initializing root path to [%s]\n",
           FnFilter1(pathcomp)));
         if (pathcomp == (char *)NULL) {
-            G.rootlen = 0;
+            (*(Uz_Globs *)pG).rootlen = 0;
             return MPN_OK;
         }
-        if (G.rootlen > 0)      /* rootpath was already set, nothing to do */
+        if ((*(Uz_Globs *)pG).rootlen > 0)      /* rootpath was already set, nothing to do */
             return MPN_OK;
-        if ((G.rootlen = strlen(pathcomp)) > 0) {
+        if (((*(Uz_Globs *)pG).rootlen = strlen(pathcomp)) > 0) {
             char *tmproot;
 
-            if ((tmproot = (char *)malloc(G.rootlen+2)) == (char *)NULL) {
-                G.rootlen = 0;
+            if ((tmproot = (char *)malloc((*(Uz_Globs *)pG).rootlen+2)) == (char *)NULL) {
+                (*(Uz_Globs *)pG).rootlen = 0;
                 return MPN_NOMEM;
             }
             strcpy(tmproot, pathcomp);
-            if (tmproot[G.rootlen-1] == '/') {
-                tmproot[--G.rootlen] = '\0';
+            if (tmproot[(*(Uz_Globs *)pG).rootlen-1] == '/') {
+                tmproot[--(*(Uz_Globs *)pG).rootlen] = '\0';
             }
-            if (G.rootlen > 0 && (SSTAT(tmproot, &G.statbuf) ||
-                                  !S_ISDIR(G.statbuf.st_mode)))
+            if ((*(Uz_Globs *)pG).rootlen > 0 && (SSTAT(tmproot, &(*(Uz_Globs *)pG).statbuf) ||
+                                  !S_ISDIR((*(Uz_Globs *)pG).statbuf.st_mode)))
             {   /* path does not exist */
-                if (!G.create_dirs /* || iswild(tmproot) */ ) {
+                if (!(*(Uz_Globs *)pG).create_dirs /* || iswild(tmproot) */ ) {
                     free(tmproot);
-                    G.rootlen = 0;
+                    (*(Uz_Globs *)pG).rootlen = 0;
                     /* skip (or treat as stored file) */
                     return MPN_INF_SKIP;
                 }
@@ -940,20 +940,20 @@ int checkdir(__G__ pathcomp, flag)
            %s\n",
                       FnFilter1(tmproot), strerror(errno)));
                     free(tmproot);
-                    G.rootlen = 0;
+                    (*(Uz_Globs *)pG).rootlen = 0;
                     /* path didn't exist, tried to create, and failed: */
                     /* file exists, or 2+ subdir levels required */
                     return MPN_ERR_SKIP;
                 }
             }
-            tmproot[G.rootlen++] = '/';
-            tmproot[G.rootlen] = '\0';
-            if ((G.rootpath = (char *)realloc(tmproot, G.rootlen+1)) == NULL) {
+            tmproot[(*(Uz_Globs *)pG).rootlen++] = '/';
+            tmproot[(*(Uz_Globs *)pG).rootlen] = '\0';
+            if (((*(Uz_Globs *)pG).rootpath = (char *)realloc(tmproot, (*(Uz_Globs *)pG).rootlen+1)) == NULL) {
                 free(tmproot);
-                G.rootlen = 0;
+                (*(Uz_Globs *)pG).rootlen = 0;
                 return MPN_NOMEM;
             }
-            Trace((stderr, "rootpath now = [%s]\n", FnFilter1(G.rootpath)));
+            Trace((stderr, "rootpath now = [%s]\n", FnFilter1((*(Uz_Globs *)pG).rootpath)));
         }
         return MPN_OK;
     }
@@ -965,9 +965,9 @@ int checkdir(__G__ pathcomp, flag)
 
     if (FUNCTION == END) {
         Trace((stderr, "freeing rootpath\n"));
-        if (G.rootlen > 0) {
-            free(G.rootpath);
-            G.rootlen = 0;
+        if ((*(Uz_Globs *)pG).rootlen > 0) {
+            free((*(Uz_Globs *)pG).rootpath);
+            (*(Uz_Globs *)pG).rootlen = 0;
         }
         return MPN_OK;
     }
@@ -1010,10 +1010,10 @@ int mkdir(path, mode)
 
 
 #if (!defined(MTS) || defined(SET_DIR_ATTRIB))
-static int get_extattribs (__GPRO__ iztimes *pzt, ulg z_uidgid[2]);
+static int get_extattribs (Uz_Globs *pG, iztimes *pzt, ulg z_uidgid[2]);
 
-static int get_extattribs(__G__ pzt, z_uidgid)
-    __GDEF
+static int get_extattribs(pG, pzt, z_uidgid)
+    Uz_Globs *pG;
     iztimes *pzt;
     ulg z_uidgid[2];
 {
@@ -1028,10 +1028,10 @@ static int get_extattribs(__G__ pzt, z_uidgid)
     int have_uidgid_flg;
     unsigned eb_izux_flg;
 
-    eb_izux_flg = (G.extra_field ? ef_scan_for_izux(G.extra_field,
-                   G.lrec.extra_field_length, 0, G.lrec.last_mod_dos_datetime,
+    eb_izux_flg = ((*(Uz_Globs *)pG).extra_field ? ef_scan_for_izux((*(Uz_Globs *)pG).extra_field,
+                   (*(Uz_Globs *)pG).lrec.extra_field_length, 0, (*(Uz_Globs *)pG).lrec.last_mod_dos_datetime,
 #ifdef IZ_CHECK_TZ
-                   (G.tz_is_valid ? pzt : NULL),
+                   ((*(Uz_Globs *)pG).tz_is_valid ? pzt : NULL),
 #else
                    pzt,
 #endif
@@ -1040,7 +1040,7 @@ static int get_extattribs(__G__ pzt, z_uidgid)
         TTrace((stderr, "\nget_extattribs:  Unix e.f. modif. time = %ld\n",
           pzt->mtime));
     } else {
-        pzt->mtime = dos_to_unix_time(G.lrec.last_mod_dos_datetime);
+        pzt->mtime = dos_to_unix_time((*(Uz_Globs *)pG).lrec.last_mod_dos_datetime);
     }
     if (eb_izux_flg & EB_UT_FL_ATIME) {
         TTrace((stderr, "get_extattribs:  Unix e.f. access time = %ld\n",
@@ -1070,8 +1070,8 @@ static int get_extattribs(__G__ pzt, z_uidgid)
 /* Function close_outfile() */
 /****************************/
 
-void close_outfile(__G)    /* GRR: change to return PK-style warning level */
-    __GDEF
+void close_outfile(pG)    /* GRR: change to return PK-style warning level */
+    Uz_Globs *pG;
 {
     union {
         iztimes t3;             /* mtime, atime, ctime */
@@ -1080,7 +1080,7 @@ void close_outfile(__G)    /* GRR: change to return PK-style warning level */
     ulg z_uidgid[2];
     int have_uidgid_flg;
 
-    have_uidgid_flg = get_extattribs(__G__ &(zt.t3), z_uidgid);
+    have_uidgid_flg = get_extattribs(pG, &(zt.t3), z_uidgid);
 
 /*---------------------------------------------------------------------------
     If symbolic links are supported, allocate storage for a symlink control
@@ -1091,8 +1091,8 @@ void close_outfile(__G)    /* GRR: change to return PK-style warning level */
   ---------------------------------------------------------------------------*/
 
 #ifdef SYMLINKS
-    if (G.symlnk) {
-        extent ucsize = (extent)G.lrec.ucsize;
+    if ((*(Uz_Globs *)pG).symlnk) {
+        extent ucsize = (extent)(*(Uz_Globs *)pG).lrec.ucsize;
 # ifdef SET_SYMLINK_ATTRIBS
         extent attribsize = sizeof(unsigned) +
                             (have_uidgid_flg ? sizeof(z_uidgid) : 0);
@@ -1105,74 +1105,74 @@ void close_outfile(__G)    /* GRR: change to return PK-style warning level */
          *  and the lengths of name and link target.
          */
         extent slnk_entrysize = (sizeof(slinkentry) + 1) + attribsize +
-                                ucsize + strlen(G.filename);
+                                ucsize + strlen((*(Uz_Globs *)pG).filename);
         slinkentry *slnk_entry;
 
         if (slnk_entrysize < ucsize) {
             Info(slide, 0x201, ((char *)slide,
               "warning:  symbolic link (%s) failed: mem alloc overflow\n",
-              FnFilter1(G.filename)));
-            fclose(G.outfile);
+              FnFilter1((*(Uz_Globs *)pG).filename)));
+            fclose((*(Uz_Globs *)pG).outfile);
             return;
         }
 
         if ((slnk_entry = (slinkentry *)malloc(slnk_entrysize)) == NULL) {
             Info(slide, 0x201, ((char *)slide,
               "warning:  symbolic link (%s) failed: no mem\n",
-              FnFilter1(G.filename)));
-            fclose(G.outfile);
+              FnFilter1((*(Uz_Globs *)pG).filename)));
+            fclose((*(Uz_Globs *)pG).outfile);
             return;
         }
         slnk_entry->next = NULL;
         slnk_entry->targetlen = ucsize;
         slnk_entry->attriblen = attribsize;
 # ifdef SET_SYMLINK_ATTRIBS
-        memcpy(slnk_entry->buf, &(G.pInfo->file_attr),
+        memcpy(slnk_entry->buf, &((*(Uz_Globs *)pG).pInfo->file_attr),
                sizeof(unsigned));
         if (have_uidgid_flg)
             memcpy(slnk_entry->buf + 4, z_uidgid, sizeof(z_uidgid));
 # endif
         slnk_entry->target = slnk_entry->buf + slnk_entry->attriblen;
         slnk_entry->fname = slnk_entry->target + ucsize + 1;
-        strcpy(slnk_entry->fname, G.filename);
+        strcpy(slnk_entry->fname, (*(Uz_Globs *)pG).filename);
 
         /* move back to the start of the file to re-read the "link data" */
-        rewind(G.outfile);
+        rewind((*(Uz_Globs *)pG).outfile);
 
-        if (fread(slnk_entry->target, 1, ucsize, G.outfile) != ucsize)
+        if (fread(slnk_entry->target, 1, ucsize, (*(Uz_Globs *)pG).outfile) != ucsize)
         {
             Info(slide, 0x201, ((char *)slide,
               "warning:  symbolic link (%s) failed\n",
-              FnFilter1(G.filename)));
+              FnFilter1((*(Uz_Globs *)pG).filename)));
             free(slnk_entry);
-            fclose(G.outfile);
+            fclose((*(Uz_Globs *)pG).outfile);
             return;
         }
-        fclose(G.outfile);                  /* close "link" file for good... */
+        fclose((*(Uz_Globs *)pG).outfile);                  /* close "link" file for good... */
         slnk_entry->target[ucsize] = '\0';
         if (QCOND2)
             Info(slide, 0, ((char *)slide, "-> %s ",
               FnFilter1(slnk_entry->target)));
         /* add this symlink record to the list of deferred symlinks */
-        if (G.slink_last != NULL)
-            G.slink_last->next = slnk_entry;
+        if ((*(Uz_Globs *)pG).slink_last != NULL)
+            (*(Uz_Globs *)pG).slink_last->next = slnk_entry;
         else
-            G.slink_head = slnk_entry;
-        G.slink_last = slnk_entry;
+            (*(Uz_Globs *)pG).slink_head = slnk_entry;
+        (*(Uz_Globs *)pG).slink_last = slnk_entry;
         return;
     }
 #endif /* SYMLINKS */
 
 #ifdef QLZIP
-    if (G.extra_field) {
-        static void qlfix OF((__GPRO__ uch *ef_ptr, unsigned ef_len));
+    if ((*(Uz_Globs *)pG).extra_field) {
+        static void qlfix OF((Uz_Globs *pG, uch *ef_ptr, unsigned ef_len));
 
-        qlfix(__G__ G.extra_field, G.lrec.extra_field_length);
+        qlfix(pG, (*(Uz_Globs *)pG).extra_field, (*(Uz_Globs *)pG).lrec.extra_field_length);
     }
 #endif
 
 #if (defined(NO_FCHOWN))
-    fclose(G.outfile);
+    fclose((*(Uz_Globs *)pG).outfile);
 #endif
 
     /* if -X option was specified and we have UID/GID info, restore it */
@@ -1182,14 +1182,14 @@ void close_outfile(__G)    /* GRR: change to return PK-style warning level */
         && ((ulg)(gid_t)(z_uidgid[1]) == z_uidgid[1])) {
         TTrace((stderr, "close_outfile:  restoring Unix UID/GID info\n"));
 #if (defined(NO_FCHOWN))
-        if (chown(G.filename, (uid_t)z_uidgid[0], (gid_t)z_uidgid[1]))
+        if (chown((*(Uz_Globs *)pG).filename, (uid_t)z_uidgid[0], (gid_t)z_uidgid[1]))
 #else
-        if (fchown(fileno(G.outfile), (uid_t)z_uidgid[0], (gid_t)z_uidgid[1]))
+        if (fchown(fileno((*(Uz_Globs *)pG).outfile), (uid_t)z_uidgid[0], (gid_t)z_uidgid[1]))
 #endif
         {
             if (uO.qflag)
                 Info(slide, 0x201, ((char *)slide, CannotSetItemUidGid,
-                  z_uidgid[0], z_uidgid[1], FnFilter1(G.filename),
+                  z_uidgid[0], z_uidgid[1], FnFilter1((*(Uz_Globs *)pG).filename),
                   strerror(errno)));
             else
                 Info(slide, 0x201, ((char *)slide, CannotSetUidGid,
@@ -1198,7 +1198,7 @@ void close_outfile(__G)    /* GRR: change to return PK-style warning level */
     }
 
 #if (!defined(NO_FCHOWN) && defined(NO_FCHMOD))
-    fclose(G.outfile);
+    fclose((*(Uz_Globs *)pG).outfile);
 #endif
 
 #if (!defined(NO_FCHOWN) && !defined(NO_FCHMOD))
@@ -1207,19 +1207,19 @@ void close_outfile(__G)    /* GRR: change to return PK-style warning level */
     zipfile.
   ---------------------------------------------------------------------------*/
 
-    if (fchmod(fileno(G.outfile), filtattr(__G__ G.pInfo->file_attr)))
+    if (fchmod(fileno((*(Uz_Globs *)pG).outfile), filtattr(pG, (*(Uz_Globs *)pG).pInfo->file_attr)))
         perror("fchmod (file attributes) error");
 
-    fclose(G.outfile);
+    fclose((*(Uz_Globs *)pG).outfile);
 #endif /* !NO_FCHOWN && !NO_FCHMOD */
 
     /* skip restoring time stamps on user's request */
     if (uO.D_flag <= 1) {
         /* set the file's access and modification times */
-        if (utime(G.filename, &(zt.t2))) {
+        if (utime((*(Uz_Globs *)pG).filename, &(zt.t2))) {
             if (uO.qflag)
                 Info(slide, 0x201, ((char *)slide, CannotSetItemTimestamps,
-                  FnFilter1(G.filename), strerror(errno)));
+                  FnFilter1((*(Uz_Globs *)pG).filename), strerror(errno)));
             else
                 Info(slide, 0x201, ((char *)slide, CannotSetTimestamps,
                   strerror(errno)));
@@ -1233,7 +1233,7 @@ void close_outfile(__G)    /* GRR: change to return PK-style warning level */
   ---------------------------------------------------------------------------*/
 
 #ifndef NO_CHMOD
-    if (chmod(G.filename, filtattr(__G__ G.pInfo->file_attr)))
+    if (chmod((*(Uz_Globs *)pG).filename, filtattr(pG, (*(Uz_Globs *)pG).pInfo->file_attr)))
         perror("chmod (file attributes) error");
 #endif
 #endif /* NO_FCHOWN || NO_FCHMOD */
@@ -1244,8 +1244,8 @@ void close_outfile(__G)    /* GRR: change to return PK-style warning level */
 
 
 #if (defined(SYMLINKS) && defined(SET_SYMLINK_ATTRIBS))
-int set_symlnk_attribs(__G__ slnk_entry)
-    __GDEF
+int set_symlnk_attribs(pG, slnk_entry)
+    Uz_Globs *pG;
     slinkentry *slnk_entry;
 {
     if (slnk_entry->attriblen > 0) {
@@ -1274,7 +1274,7 @@ int set_symlnk_attribs(__G__ slnk_entry)
         "set_symlnk_attribs:  restoring Unix attributes for\n        %s\n",
         FnFilter1(slnk_entry->fname)));
       if (lchmod(slnk_entry->fname,
-                 filtattr(__G__ *(unsigned *)(void *)slnk_entry->buf)))
+                 filtattr(pG, *(unsigned *)(void *)slnk_entry->buf)))
           perror("lchmod (file attributes) error");
 # endif /* !NO_LCHMOD */
     }
@@ -1292,30 +1292,30 @@ int set_symlnk_attribs(__G__ slnk_entry)
 #  endif
 
 
-int defer_dir_attribs(__G__ pd)
-    __GDEF
+int defer_dir_attribs(pG, pd)
+    Uz_Globs *pG;
     direntry **pd;
 {
     uxdirattr *d_entry;
 
-    d_entry = (uxdirattr *)malloc(sizeof(uxdirattr) + strlen(G.filename));
+    d_entry = (uxdirattr *)malloc(sizeof(uxdirattr) + strlen((*(Uz_Globs *)pG).filename));
     *pd = (direntry *)d_entry;
     if (d_entry == (uxdirattr *)NULL) {
         return PK_MEM;
     }
     d_entry->fn = d_entry->fnbuf;
-    strcpy(d_entry->fn, G.filename);
+    strcpy(d_entry->fn, (*(Uz_Globs *)pG).filename);
 
-    d_entry->perms = G.pInfo->file_attr;
+    d_entry->perms = (*(Uz_Globs *)pG).pInfo->file_attr;
 
-    d_entry->have_uidgid = get_extattribs(__G__ &(d_entry->u.t3),
+    d_entry->have_uidgid = get_extattribs(pG, &(d_entry->u.t3),
                                           d_entry->uidgid);
     return PK_OK;
 } /* end function defer_dir_attribs() */
 
 
-int set_direc_attribs(__G__ d)
-    __GDEF
+int set_direc_attribs(pG, d)
+    Uz_Globs *pG;
     direntry *d;
 {
     int errval = PK_OK;
@@ -1387,8 +1387,8 @@ int stamp_file(fname, modtime)
 /*  Function version()  */
 /************************/
 
-void version(__G)
-    __GDEF
+void version(pG)
+    Uz_Globs *pG;
 {
 #if (defined(__GNUC__) && defined(NX_CURRENT_COMPILER_RELEASE))
     char cc_namebuf[40];
@@ -1683,7 +1683,7 @@ void version(__G)
 #endif
     );
 
-    (*G.message)((void *)&G, slide, (ulg)strlen((char *)slide), 0);
+    (*(*(Uz_Globs *)pG).message)((void *)&(*(Uz_Globs *)pG), slide, (ulg)strlen((char *)slide), 0);
 
 } /* end function version() */
 
@@ -1755,8 +1755,8 @@ static ulg LG(ulg val)
 
 
 
-static void qlfix(__G__ ef_ptr, ef_len)
-    __GDEF
+static void qlfix(pG, ef_ptr, ef_len)
+    Uz_Globs *pG;
     uch *ef_ptr;
     unsigned ef_len;
 {
@@ -1792,7 +1792,7 @@ static void qlfix(__G__ ef_ptr, ef_len)
                     if (uO.qflag)
                         Info(slide, 0x201, ((char *)slide,
                           "warning:  invalid length in Qdos field for %s\n",
-                          FnFilter1(G.filename)));
+                          FnFilter1((*(Uz_Globs *)pG).filename)));
                     else
                         Info(slide, 0x201, ((char *)slide,
                           "warning:  invalid length in Qdos field"));
@@ -1809,7 +1809,7 @@ static void qlfix(__G__ ef_ptr, ef_len)
                     if (uO.qflag)
                         Info(slide, 0x201, ((char *)slide,
                           "warning:  invalid length in QZ field for %s\n",
-                          FnFilter1(G.filename)));
+                          FnFilter1((*(Uz_Globs *)pG).filename)));
                     else
                         Info(slide, 0x201, ((char *)slide,
                           "warning:  invalid length in QZ field"));
@@ -1821,13 +1821,13 @@ static void qlfix(__G__ ef_ptr, ef_len)
 
             if ((long)LG(dlen) > 0)
             {
-                zfseeko(G.outfile, -8, SEEK_END);
-                fread(&ntc, 8, 1, G.outfile);
+                zfseeko((*(Uz_Globs *)pG).outfile, -8, SEEK_END);
+                fread(&ntc, 8, 1, (*(Uz_Globs *)pG).outfile);
                 if (ntc.id != *(long *)"XTcc")
                 {
                     ntc.id = *(long *)"XTcc";
                     ntc.dlen = dlen;
-                    fwrite (&ntc, 8, 1, G.outfile);
+                    fwrite (&ntc, 8, 1, (*(Uz_Globs *)pG).outfile);
                 }
                 Info(slide, 0x201, ((char *)slide, "QData = %d", LG(dlen)));
             }

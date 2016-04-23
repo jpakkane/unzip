@@ -28,7 +28,7 @@
 
 
 #ifdef TIMESTAMP
-   static int  fn_is_dir   (__GPRO);
+   static int  fn_is_dir   (Uz_Globs *pG);
 #endif
 
 #ifndef WINDLL
@@ -69,8 +69,8 @@
 /* Function list_files() */
 /*************************/
 
-int list_files(__G)    /* return PK-type error code */
-    __GDEF
+int list_files(pG)    /* return PK-type error code */
+    Uz_Globs *pG;
 {
     int do_this_file=FALSE, cfactor, error, error_in_archive=PK_COOL;
 #ifndef WINDLL
@@ -115,7 +115,7 @@ int list_files(__G)    /* return PK-type error code */
    64159            20502  68%                            3 files
   ---------------------------------------------------------------------------*/
 
-    G.pInfo = &info;
+    (*(Uz_Globs *)pG).pInfo = &info;
     date_format = DATE_FORMAT;
     dt_sepchar = DATE_SEPCHAR;
 
@@ -134,16 +134,16 @@ int list_files(__G)    /* return PK-type error code */
 
     for (j = 1L;;j++) {
 
-        if (readbuf(__G__ G.sig, 4) == 0)
+        if (readbuf(pG, (*(Uz_Globs *)pG).sig, 4) == 0)
             return PK_EOF;
-        if (memcmp(G.sig, central_hdr_sig, 4)) {  /* is it a CentDir entry? */
+        if (memcmp((*(Uz_Globs *)pG).sig, central_hdr_sig, 4)) {  /* is it a CentDir entry? */
             /* no new central directory entry
              * -> is the number of processed entries compatible with the
              *    number of entries as stored in the end_central record?
              */
             if (((j - 1) &
-                 (ulg)(G.ecrec.have_ecr64 ? MASK_ZUCN64 : MASK_ZUCN16))
-                == (ulg)G.ecrec.total_entries_central_dir)
+                 (ulg)((*(Uz_Globs *)pG).ecrec.have_ecr64 ? MASK_ZUCN64 : MASK_ZUCN16))
+                == (ulg)(*(Uz_Globs *)pG).ecrec.total_entries_central_dir)
             {
                 /* "j modulus 4T/64k" matches the reported 64/16-bit-unsigned
                  * number of directory entries -> probably, the regular
@@ -159,7 +159,7 @@ int list_files(__G)    /* return PK-type error code */
             }
         }
         /* process_cdir_file_hdr() sets pInfo->hostnum, pInfo->lcflag, ...: */
-        if ((error = process_cdir_file_hdr(__G)) != PK_COOL)
+        if ((error = process_cdir_file_hdr(pG)) != PK_COOL)
             return error;       /* only PK_EOF defined */
 
         /*
@@ -173,40 +173,40 @@ int list_files(__G)    /* return PK-type error code */
          * note of it if it is.
          */
 
-        if ((error = do_string(__G__ G.crec.filename_length, DS_FN)) !=
+        if ((error = do_string(pG, (*(Uz_Globs *)pG).crec.filename_length, DS_FN)) !=
              PK_COOL)   /*  ^--(uses pInfo->lcflag) */
         {
             error_in_archive = error;
             if (error > PK_WARN)   /* fatal:  can't continue */
                 return error;
         }
-        if (G.extra_field != (uch *)NULL) {
-            free(G.extra_field);
-            G.extra_field = (uch *)NULL;
+        if ((*(Uz_Globs *)pG).extra_field != (uch *)NULL) {
+            free((*(Uz_Globs *)pG).extra_field);
+            (*(Uz_Globs *)pG).extra_field = (uch *)NULL;
         }
-        if ((error = do_string(__G__ G.crec.extra_field_length, EXTRA_FIELD))
+        if ((error = do_string(pG, (*(Uz_Globs *)pG).crec.extra_field_length, EXTRA_FIELD))
             != 0)
         {
             error_in_archive = error;
             if (error > PK_WARN)      /* fatal */
                 return error;
         }
-        if (!G.process_all_files) {   /* check if specified on command line */
+        if (!(*(Uz_Globs *)pG).process_all_files) {   /* check if specified on command line */
             unsigned i;
 
-            if (G.filespecs == 0)
+            if ((*(Uz_Globs *)pG).filespecs == 0)
                 do_this_file = TRUE;
             else {  /* check if this entry matches an `include' argument */
                 do_this_file = FALSE;
-                for (i = 0; i < G.filespecs; i++)
-                    if (match(G.filename, G.pfnames[i], uO.C_flag WISEP)) {
+                for (i = 0; i < (*(Uz_Globs *)pG).filespecs; i++)
+                    if (match((*(Uz_Globs *)pG).filename, (*(Uz_Globs *)pG).pfnames[i], uO.C_flag WISEP)) {
                         do_this_file = TRUE;
                         break;       /* found match, so stop looping */
                     }
             }
             if (do_this_file) {  /* check if this is an excluded file */
-                for (i = 0; i < G.xfilespecs; i++)
-                    if (match(G.filename, G.pxnames[i], uO.C_flag WISEP)) {
+                for (i = 0; i < (*(Uz_Globs *)pG).xfilespecs; i++)
+                    if (match((*(Uz_Globs *)pG).filename, (*(Uz_Globs *)pG).pxnames[i], uO.C_flag WISEP)) {
                         do_this_file = FALSE;  /* ^-- ignore case in match */
                         break;
                     }
@@ -218,15 +218,15 @@ int list_files(__G)    /* return PK-type error code */
          * file comment and go back for the next file.
          */
 
-        if (G.process_all_files || do_this_file) {
+        if ((*(Uz_Globs *)pG).process_all_files || do_this_file) {
 
 #ifdef USE_EF_UT_TIME
-            if (G.extra_field &&
+            if ((*(Uz_Globs *)pG).extra_field &&
 #ifdef IZ_CHECK_TZ
-                G.tz_is_valid &&
+                (*(Uz_Globs *)pG).tz_is_valid &&
 #endif
-                (ef_scan_for_izux(G.extra_field, G.crec.extra_field_length, 1,
-                                  G.crec.last_mod_dos_datetime, &z_utime, NULL)
+                (ef_scan_for_izux((*(Uz_Globs *)pG).extra_field, (*(Uz_Globs *)pG).crec.extra_field_length, 1,
+                                  (*(Uz_Globs *)pG).crec.last_mod_dos_datetime, &z_utime, NULL)
                  & EB_UT_FL_MTIME))
             {
                 TIMET_TO_NATIVE(z_utime.mtime)   /* NOP unless MSC 7.0, Mac */
@@ -242,12 +242,12 @@ int list_files(__G)    /* return PK-type error code */
             } else
 #endif /* USE_EF_UT_TIME */
             {
-                yr = ((((unsigned)(G.crec.last_mod_dos_datetime >> 25) & 0x7f)
+                yr = ((((unsigned)((*(Uz_Globs *)pG).crec.last_mod_dos_datetime >> 25) & 0x7f)
                        + 1980));
-                mo = ((unsigned)(G.crec.last_mod_dos_datetime >> 21) & 0x0f);
-                dy = ((unsigned)(G.crec.last_mod_dos_datetime >> 16) & 0x1f);
-                hh = (((unsigned)G.crec.last_mod_dos_datetime >> 11) & 0x1f);
-                mm = (((unsigned)G.crec.last_mod_dos_datetime >> 5) & 0x3f);
+                mo = ((unsigned)((*(Uz_Globs *)pG).crec.last_mod_dos_datetime >> 21) & 0x0f);
+                dy = ((unsigned)((*(Uz_Globs *)pG).crec.last_mod_dos_datetime >> 16) & 0x1f);
+                hh = (((unsigned)(*(Uz_Globs *)pG).crec.last_mod_dos_datetime >> 11) & 0x1f);
+                mm = (((unsigned)(*(Uz_Globs *)pG).crec.last_mod_dos_datetime >> 5) & 0x3f);
             }
             /* permute date so it displays according to nat'l convention
              * ('methnum' is not yet set, it is used as temporary buffer) */
@@ -261,10 +261,10 @@ int list_files(__G)    /* return PK-type error code */
                     mo = dy; dy = methnum;
             }
 
-            csiz = G.crec.csize;
-            if (G.crec.general_purpose_bit_flag & 1)
+            csiz = (*(Uz_Globs *)pG).crec.csize;
+            if ((*(Uz_Globs *)pG).crec.general_purpose_bit_flag & 1)
                 csiz -= 12;   /* if encrypted, don't count encryption header */
-            if ((cfactor = ratio(G.crec.ucsize, csiz)) < 0) {
+            if ((cfactor = ratio((*(Uz_Globs *)pG).crec.ucsize, csiz)) < 0) {
 #ifndef WINDLL
                 sgn = '-';
 #endif
@@ -276,40 +276,40 @@ int list_files(__G)    /* return PK-type error code */
                 cfactor = (cfactor + 5) / 10;
             }
 
-            methnum = find_compr_idx(G.crec.compression_method);
+            methnum = find_compr_idx((*(Uz_Globs *)pG).crec.compression_method);
             strcpy(methbuf, method[methnum]);
-            if (G.crec.compression_method == DEFLATED ||
-                G.crec.compression_method == ENHDEFLATED) {
-                methbuf[5] = dtype[(G.crec.general_purpose_bit_flag>>1) & 3];
+            if ((*(Uz_Globs *)pG).crec.compression_method == DEFLATED ||
+                (*(Uz_Globs *)pG).crec.compression_method == ENHDEFLATED) {
+                methbuf[5] = dtype[((*(Uz_Globs *)pG).crec.general_purpose_bit_flag>>1) & 3];
             } else if (methnum >= NUM_METHODS) {
-                sprintf(&methbuf[4], "%03u", G.crec.compression_method);
+                sprintf(&methbuf[4], "%03u", (*(Uz_Globs *)pG).crec.compression_method);
             }
 
 #ifdef WINDLL
             /* send data to application for formatting and printing */
-            if (G.lpUserFunctions->SendApplicationMessage != NULL)
-                (*G.lpUserFunctions->SendApplicationMessage)(G.crec.ucsize,
+            if ((*(Uz_Globs *)pG).lpUserFunctions->SendApplicationMessage != NULL)
+                (*(*(Uz_Globs *)pG).lpUserFunctions->SendApplicationMessage)((*(Uz_Globs *)pG).crec.ucsize,
                   csiz, (unsigned)cfactor, mo, dy, yr, hh, mm,
-                  (char)(G.pInfo->lcflag ? '^' : ' '),
-                  (LPCSTR)fnfilter(G.filename, slide, (WSIZE>>1)),
-                  (LPCSTR)methbuf, G.crec.crc32,
-                  (char)((G.crec.general_purpose_bit_flag & 1) ? 'E' : ' '));
-            else if (G.lpUserFunctions->SendApplicationMessage_i32 != NULL) {
+                  (char)((*(Uz_Globs *)pG).pInfo->lcflag ? '^' : ' '),
+                  (LPCSTR)fnfilter((*(Uz_Globs *)pG).filename, slide, (WSIZE>>1)),
+                  (LPCSTR)methbuf, (*(Uz_Globs *)pG).crec.crc32,
+                  (char)(((*(Uz_Globs *)pG).crec.general_purpose_bit_flag & 1) ? 'E' : ' '));
+            else if ((*(Uz_Globs *)pG).lpUserFunctions->SendApplicationMessage_i32 != NULL) {
                 unsigned long ucsize_lo, csiz_lo;
                 unsigned long ucsize_hi=0L, csiz_hi=0L;
-                ucsize_lo = (unsigned long)(G.crec.ucsize);
+                ucsize_lo = (unsigned long)((*(Uz_Globs *)pG).crec.ucsize);
                 csiz_lo = (unsigned long)(csiz);
 #ifdef ZIP64_SUPPORT
-                ucsize_hi = (unsigned long)(G.crec.ucsize >> 32);
+                ucsize_hi = (unsigned long)((*(Uz_Globs *)pG).crec.ucsize >> 32);
                 csiz_hi = (unsigned long)(csiz >> 32);
 #endif /* ZIP64_SUPPORT */
-                (*G.lpUserFunctions->SendApplicationMessage_i32)(ucsize_lo,
+                (*(*(Uz_Globs *)pG).lpUserFunctions->SendApplicationMessage_i32)(ucsize_lo,
                     ucsize_hi, csiz_lo, csiz_hi, (unsigned)cfactor,
                     mo, dy, yr, hh, mm,
-                    (char)(G.pInfo->lcflag ? '^' : ' '),
-                    (LPCSTR)fnfilter(G.filename, slide, (WSIZE>>1)),
-                    (LPCSTR)methbuf, G.crec.crc32,
-                    (char)((G.crec.general_purpose_bit_flag & 1) ? 'E' : ' '));
+                    (char)((*(Uz_Globs *)pG).pInfo->lcflag ? '^' : ' '),
+                    (LPCSTR)fnfilter((*(Uz_Globs *)pG).filename, slide, (WSIZE>>1)),
+                    (LPCSTR)methbuf, (*(Uz_Globs *)pG).crec.crc32,
+                    (char)(((*(Uz_Globs *)pG).crec.general_purpose_bit_flag & 1) ? 'E' : ' '));
             }
 #else /* !WINDLL */
             if (cfactor == 100)
@@ -318,33 +318,33 @@ int list_files(__G)    /* return PK-type error code */
                 sprintf(cfactorstr, LoadFarString(CompFactorStr), sgn, cfactor);
             if (longhdr)
                 Info(slide, 0, ((char *)slide, LoadFarString(LongHdrStats),
-                  FmZofft(G.crec.ucsize, "8", "u"), methbuf,
+                  FmZofft((*(Uz_Globs *)pG).crec.ucsize, "8", "u"), methbuf,
                   FmZofft(csiz, "8", "u"), cfactorstr,
                   mo, dt_sepchar, dy, dt_sepchar, yr, hh, mm,
-                  G.crec.crc32, (G.pInfo->lcflag? '^':' ')));
+                  (*(Uz_Globs *)pG).crec.crc32, ((*(Uz_Globs *)pG).pInfo->lcflag? '^':' ')));
             else
 #ifdef OS2_EAS
                 Info(slide, 0, ((char *)slide, LoadFarString(ShortHdrStats),
-                  FmZofft(G.crec.ucsize, "9", "u"), ea_size, acl_size,
+                  FmZofft((*(Uz_Globs *)pG).crec.ucsize, "9", "u"), ea_size, acl_size,
                   mo, dt_sepchar, dy, dt_sepchar, yr, hh, mm,
-                  (G.pInfo->lcflag? '^':' ')));
+                  ((*(Uz_Globs *)pG).pInfo->lcflag? '^':' ')));
 #else
                 Info(slide, 0, ((char *)slide, LoadFarString(ShortHdrStats),
-                  FmZofft(G.crec.ucsize, "9", "u"),
+                  FmZofft((*(Uz_Globs *)pG).crec.ucsize, "9", "u"),
                   mo, dt_sepchar, dy, dt_sepchar, yr, hh, mm,
-                  (G.pInfo->lcflag? '^':' ')));
+                  ((*(Uz_Globs *)pG).pInfo->lcflag? '^':' ')));
 #endif
-            fnprint(__G);
+            fnprint(pG);
 #endif /* ?WINDLL */
 
-            if ((error = do_string(__G__ G.crec.file_comment_length,
+            if ((error = do_string(pG, (*(Uz_Globs *)pG).crec.file_comment_length,
                                    QCOND? DISPL_8 : SKIP)) != 0)
             {
                 error_in_archive = error;  /* might be just warning */
                 if (error > PK_WARN)       /* fatal */
                     return error;
             }
-            tot_ucsize += G.crec.ucsize;
+            tot_ucsize += (*(Uz_Globs *)pG).crec.ucsize;
             tot_csize += csiz;
             ++members;
 #ifdef OS2_EAS
@@ -358,10 +358,10 @@ int list_files(__G)    /* return PK-type error code */
             }
 #endif
 #ifdef OS2DLL
-            } /* end of "if (G.processExternally) {...} else {..." */
+            } /* end of "if ((*(Uz_Globs *)pG).processExternally) {...} else {..." */
 #endif
         } else {        /* not listing this file */
-            SKIP_(G.crec.file_comment_length)
+            SKIP_((*(Uz_Globs *)pG).crec.file_comment_length)
         }
     } /* end for-loop (j: files in central directory) */
 
@@ -372,7 +372,7 @@ int list_files(__G)    /* return PK-type error code */
 
     if (uO.qflag < 2
 #ifdef OS2DLL
-                     && !G.processExternally
+                     && !(*(Uz_Globs *)pG).processExternally
 #endif
                                             ) {
         if ((cfactor = ratio(tot_ucsize, tot_csize)) < 0) {
@@ -388,10 +388,10 @@ int list_files(__G)    /* return PK-type error code */
         }
 #ifdef WINDLL
         /* pass the totals back to the calling application */
-        G.lpUserFunctions->TotalSizeComp = tot_csize;
-        G.lpUserFunctions->TotalSize = tot_ucsize;
-        G.lpUserFunctions->CompFactor = (ulg)cfactor;
-        G.lpUserFunctions->NumMembers = members;
+        (*(Uz_Globs *)pG).lpUserFunctions->TotalSizeComp = tot_csize;
+        (*(Uz_Globs *)pG).lpUserFunctions->TotalSize = tot_ucsize;
+        (*(Uz_Globs *)pG).lpUserFunctions->CompFactor = (ulg)cfactor;
+        (*(Uz_Globs *)pG).lpUserFunctions->NumMembers = members;
 
 #else /* !WINDLL */
         if (cfactor == 100)
@@ -435,12 +435,12 @@ int list_files(__G)    /* return PK-type error code */
     Double check that we're back at the end-of-central-directory record.
   ---------------------------------------------------------------------------*/
 
-        if ( (memcmp(G.sig,
-                     (G.ecrec.have_ecr64 ?
+        if ( (memcmp((*(Uz_Globs *)pG).sig,
+                     ((*(Uz_Globs *)pG).ecrec.have_ecr64 ?
                       end_central64_sig : end_central_sig),
                      4) != 0)
-            && (!G.ecrec.is_zip64_archive)
-            && (memcmp(G.sig, end_central_sig, 4) != 0)
+            && (!(*(Uz_Globs *)pG).ecrec.is_zip64_archive)
+            && (memcmp((*(Uz_Globs *)pG).sig, end_central_sig, 4) != 0)
            ) {          /* just to make sure again */
             Info(slide, 0x401, ((char *)slide, LoadFarString(EndSigMsg)));
             error_in_archive = PK_WARN;   /* didn't find sig */
@@ -466,15 +466,15 @@ int list_files(__G)    /* return PK-type error code */
 /* Function fn_is_dir() */
 /************************/
 
-static int fn_is_dir(__G)    /* returns TRUE if G.filename is directory */
-    __GDEF
+static int fn_is_dir(pG)    /* returns TRUE if (*(Uz_Globs *)pG).filename is directory */
+    Uz_Globs *pG;
 {
-    extent fn_len = strlen(G.filename);
+    extent fn_len = strlen((*(Uz_Globs *)pG).filename);
     register char   endc;
 
     return  fn_len > 0 &&
-            ((endc = lastchar(G.filename, fn_len)) == '/' ||
-             (G.pInfo->hostnum == FS_FAT_ && !MBSCHR(G.filename, '/') &&
+            ((endc = lastchar((*(Uz_Globs *)pG).filename, fn_len)) == '/' ||
+             ((*(Uz_Globs *)pG).pInfo->hostnum == FS_FAT_ && !MBSCHR((*(Uz_Globs *)pG).filename, '/') &&
               endc == '\\'));
 }
 
@@ -486,8 +486,8 @@ static int fn_is_dir(__G)    /* returns TRUE if G.filename is directory */
 /* Function get_time_stamp() */
 /*****************************/
 
-int get_time_stamp(__G__ last_modtime, nmember)  /* return PK-type error code */
-    __GDEF
+int get_time_stamp(pG, last_modtime, nmember)  /* return PK-type error code */
+    Uz_Globs *pG;
     time_t *last_modtime;
     ulg *nmember;
 {
@@ -508,15 +508,15 @@ int get_time_stamp(__G__ last_modtime, nmember)  /* return PK-type error code */
 
     *last_modtime = 0L;         /* assuming no zipfile data older than 1970 */
     *nmember = 0L;
-    G.pInfo = &info;
+    (*(Uz_Globs *)pG).pInfo = &info;
 
     for (j = 1L;; j++) {
 
-        if (readbuf(__G__ G.sig, 4) == 0)
+        if (readbuf(pG, (*(Uz_Globs *)pG).sig, 4) == 0)
             return PK_EOF;
-        if (memcmp(G.sig, central_hdr_sig, 4)) {  /* is it a CentDir entry? */
+        if (memcmp((*(Uz_Globs *)pG).sig, central_hdr_sig, 4)) {  /* is it a CentDir entry? */
             if (((unsigned)(j - 1) & (unsigned)0xFFFF) ==
-                (unsigned)G.ecrec.total_entries_central_dir) {
+                (unsigned)(*(Uz_Globs *)pG).ecrec.total_entries_central_dir) {
                 /* "j modulus 64k" matches the reported 16-bit-unsigned
                  * number of directory entries -> probably, the regular
                  * end of the central directory has been reached
@@ -531,41 +531,41 @@ int get_time_stamp(__G__ last_modtime, nmember)  /* return PK-type error code */
             }
         }
         /* process_cdir_file_hdr() sets pInfo->lcflag: */
-        if ((error = process_cdir_file_hdr(__G)) != PK_COOL)
+        if ((error = process_cdir_file_hdr(pG)) != PK_COOL)
             return error;       /* only PK_EOF defined */
-        if ((error = do_string(__G__ G.crec.filename_length, DS_FN)) != PK_OK)
+        if ((error = do_string(pG, (*(Uz_Globs *)pG).crec.filename_length, DS_FN)) != PK_OK)
         {        /*  ^-- (uses pInfo->lcflag) */
             error_in_archive = error;
             if (error > PK_WARN)   /* fatal:  can't continue */
                 return error;
         }
-        if (G.extra_field != (uch *)NULL) {
-            free(G.extra_field);
-            G.extra_field = (uch *)NULL;
+        if ((*(Uz_Globs *)pG).extra_field != (uch *)NULL) {
+            free((*(Uz_Globs *)pG).extra_field);
+            (*(Uz_Globs *)pG).extra_field = (uch *)NULL;
         }
-        if ((error = do_string(__G__ G.crec.extra_field_length, EXTRA_FIELD))
+        if ((error = do_string(pG, (*(Uz_Globs *)pG).crec.extra_field_length, EXTRA_FIELD))
             != 0)
         {
             error_in_archive = error;
             if (error > PK_WARN)      /* fatal */
                 return error;
         }
-        if (!G.process_all_files) {   /* check if specified on command line */
+        if (!(*(Uz_Globs *)pG).process_all_files) {   /* check if specified on command line */
             unsigned i;
 
-            if (G.filespecs == 0)
+            if ((*(Uz_Globs *)pG).filespecs == 0)
                 do_this_file = TRUE;
             else {  /* check if this entry matches an `include' argument */
                 do_this_file = FALSE;
-                for (i = 0; i < G.filespecs; i++)
-                    if (match(G.filename, G.pfnames[i], uO.C_flag WISEP)) {
+                for (i = 0; i < (*(Uz_Globs *)pG).filespecs; i++)
+                    if (match((*(Uz_Globs *)pG).filename, (*(Uz_Globs *)pG).pfnames[i], uO.C_flag WISEP)) {
                         do_this_file = TRUE;
                         break;       /* found match, so stop looping */
                     }
             }
             if (do_this_file) {  /* check if this is an excluded file */
-                for (i = 0; i < G.xfilespecs; i++)
-                    if (match(G.filename, G.pxnames[i], uO.C_flag WISEP)) {
+                for (i = 0; i < (*(Uz_Globs *)pG).xfilespecs; i++)
+                    if (match((*(Uz_Globs *)pG).filename, (*(Uz_Globs *)pG).pxnames[i], uO.C_flag WISEP)) {
                         do_this_file = FALSE;  /* ^-- ignore case in match */
                         break;
                     }
@@ -578,14 +578,14 @@ int get_time_stamp(__G__ last_modtime, nmember)  /* return PK-type error code */
          * Directory entries are always ignored, to stay compatible with both
          * Zip and PKZIP.
          */
-        if ((G.process_all_files || do_this_file) && !fn_is_dir(__G)) {
+        if (((*(Uz_Globs *)pG).process_all_files || do_this_file) && !fn_is_dir(pG)) {
 #ifdef USE_EF_UT_TIME
-            if (G.extra_field &&
+            if ((*(Uz_Globs *)pG).extra_field &&
 #ifdef IZ_CHECK_TZ
-                G.tz_is_valid &&
+                (*(Uz_Globs *)pG).tz_is_valid &&
 #endif
-                (ef_scan_for_izux(G.extra_field, G.crec.extra_field_length, 1,
-                                  G.crec.last_mod_dos_datetime, &z_utime, NULL)
+                (ef_scan_for_izux((*(Uz_Globs *)pG).extra_field, (*(Uz_Globs *)pG).crec.extra_field_length, 1,
+                                  (*(Uz_Globs *)pG).crec.last_mod_dos_datetime, &z_utime, NULL)
                  & EB_UT_FL_MTIME))
             {
                 if (*last_modtime < z_utime.mtime)
@@ -593,14 +593,14 @@ int get_time_stamp(__G__ last_modtime, nmember)  /* return PK-type error code */
             } else
 #endif /* USE_EF_UT_TIME */
             {
-                time_t modtime = dos_to_unix_time(G.crec.last_mod_dos_datetime);
+                time_t modtime = dos_to_unix_time((*(Uz_Globs *)pG).crec.last_mod_dos_datetime);
 
                 if (*last_modtime < modtime)
                     *last_modtime = modtime;
             }
             ++*nmember;
         }
-        SKIP_(G.crec.file_comment_length)
+        SKIP_((*(Uz_Globs *)pG).crec.file_comment_length)
 
     } /* end for-loop (j: files in central directory) */
 
@@ -608,7 +608,7 @@ int get_time_stamp(__G__ last_modtime, nmember)  /* return PK-type error code */
     Double check that we're back at the end-of-central-directory record.
   ---------------------------------------------------------------------------*/
 
-    if (memcmp(G.sig, end_central_sig, 4)) {    /* just to make sure again */
+    if (memcmp((*(Uz_Globs *)pG).sig, end_central_sig, 4)) {    /* just to make sure again */
         Info(slide, 0x401, ((char *)slide, LoadFarString(EndSigMsg)));
         error_in_archive = PK_WARN;
     }
@@ -657,12 +657,12 @@ int ratio(uc, c)
 /*  Function fnprint()  */    /* also used by ZipInfo routines */
 /************************/
 
-void fnprint(__G)    /* print filename (after filtering) and newline */
-    __GDEF
+void fnprint(pG)    /* print filename (after filtering) and newline */
+    Uz_Globs *pG;
 {
-    char *name = fnfilter(G.filename, slide, (extent)(WSIZE>>1));
+    char *name = fnfilter((*(Uz_Globs *)pG).filename, slide, (extent)(WSIZE>>1));
 
-    (*G.message)((void *)&G, (uch *)name, (ulg)strlen(name), 0);
-    (*G.message)((void *)&G, (uch *)"\n", 1L, 0);
+    (*(*(Uz_Globs *)pG).message)((void *)&(*(Uz_Globs *)pG), (uch *)name, (ulg)strlen(name), 0);
+    (*(*(Uz_Globs *)pG).message)((void *)&(*(Uz_Globs *)pG), (uch *)"\n", 1L, 0);
 
 } /* end function fnprint() */

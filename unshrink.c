@@ -72,7 +72,7 @@
 
 #ifndef LZW_CLEAN
 
-static void  partial_clear  (__GPRO__ int lastcodeused);
+static void  partial_clear  (Uz_Globs *pG, int lastcodeused);
 
 #ifdef DEBUG
 #  define OUTDBG(c) \
@@ -88,17 +88,17 @@ static void  partial_clear  (__GPRO__ int lastcodeused);
 #define FREE_CODE  HSIZE         /* 0x2000 (code is unused or was cleared) */
 #define HAS_CHILD  (HSIZE << 1)  /* 0x4000 (code has a child--do not clear) */
 
-#define parent G.area.shrink.Parent
-#define Value  G.area.shrink.value /* "value" conflicts with Pyramid ioctl.h */
-#define stack  G.area.shrink.Stack
+#define parent (*(Uz_Globs *)pG).area.shrink.Parent
+#define Value  (*(Uz_Globs *)pG).area.shrink.value /* "value" conflicts with Pyramid ioctl.h */
+#define stack  (*(Uz_Globs *)pG).area.shrink.Stack
 
 
 /***********************/
 /* Function unshrink() */
 /***********************/
 
-int unshrink(__G)
-     __GDEF
+int unshrink(pG)
+     Uz_Globs *pG;
 {
     uch *stacktop = stack + (HSIZE - 1);
     register uch *newstr;
@@ -112,9 +112,9 @@ int unshrink(__G)
      * are redirected to a large memory buffer, realbuf will point to the
      * new location while outbuf will remain pointing to the malloc'd
      * memory buffer. */
-    uch *realbuf = G.outbuf;
+    uch *realbuf = (*(Uz_Globs *)pG).outbuf;
 #else
-#   define realbuf G.outbuf
+#   define realbuf (*(Uz_Globs *)pG).outbuf
 #endif
 
 
@@ -128,8 +128,8 @@ int unshrink(__G)
 #ifndef SMALL_MEM
     /* non-memory-limited machines:  allocate second (large) buffer for
      * textmode conversion in flush(), but only if needed */
-    if (G.pInfo->textmode && !G.outbuf2 &&
-        (G.outbuf2 = (uch *)malloc(TRANSBUFSIZ)) == (uch *)NULL)
+    if ((*(Uz_Globs *)pG).pInfo->textmode && !(*(Uz_Globs *)pG).outbuf2 &&
+        ((*(Uz_Globs *)pG).outbuf2 = (uch *)malloc(TRANSBUFSIZ)) == (uch *)NULL)
         return PK_MEM3;
 #endif
 #endif /* !VMS */
@@ -142,42 +142,42 @@ int unshrink(__G)
         parent[code] = FREE_CODE;
 
 #if (defined(DLL) && !defined(NO_SLIDE_REDIR))
-    if (G.redirect_slide) { /* use normal outbuf unless we're a DLL routine */
-        realbuf = G.redirect_buffer;
-        outbufsiz = (unsigned)G.redirect_size;
+    if ((*(Uz_Globs *)pG).redirect_slide) { /* use normal outbuf unless we're a DLL routine */
+        realbuf = (*(Uz_Globs *)pG).redirect_buffer;
+        outbufsiz = (unsigned)(*(Uz_Globs *)pG).redirect_size;
     } else
 #endif
 #ifdef DLL
-    if (G.pInfo->textmode && !G.redirect_data)
+    if ((*(Uz_Globs *)pG).pInfo->textmode && !(*(Uz_Globs *)pG).redirect_data)
 #else
-    if (G.pInfo->textmode)
+    if ((*(Uz_Globs *)pG).pInfo->textmode)
 #endif
         outbufsiz = RAWBUFSIZ;
     else
         outbufsiz = OUTBUFSIZ;
-    G.outptr = realbuf;
-    G.outcnt = 0L;
+    (*(Uz_Globs *)pG).outptr = realbuf;
+    (*(Uz_Globs *)pG).outcnt = 0L;
 
 /*---------------------------------------------------------------------------
     Get and output first code, then loop over remaining ones.
   ---------------------------------------------------------------------------*/
 
     READBITS(codesize, oldcode)
-    if (G.zipeof)
+    if ((*(Uz_Globs *)pG).zipeof)
         return PK_OK;
 
     finalval = (uch)oldcode;
     OUTDBG(finalval)
-    *G.outptr++ = finalval;
-    ++G.outcnt;
+    *(*(Uz_Globs *)pG).outptr++ = finalval;
+    ++(*(Uz_Globs *)pG).outcnt;
 
     while (TRUE) {
         READBITS(codesize, code)
-        if (G.zipeof)
+        if ((*(Uz_Globs *)pG).zipeof)
             break;
         if (code == BOGUSCODE) {   /* possible to have consecutive escapes? */
             READBITS(codesize, code)
-            if (G.zipeof)
+            if ((*(Uz_Globs *)pG).zipeof)
                 break;
             if (code == 1) {
                 ++codesize;
@@ -186,7 +186,7 @@ int unshrink(__G)
             } else if (code == 2) {
                 Trace((stderr, " (partial clear code)\n"));
                 /* clear leafs (nodes with no children) */
-                partial_clear(__G__ lastfreecode);
+                partial_clear(pG, lastfreecode);
                 Trace((stderr, " (done with partial clear)\n"));
                 lastfreecode = BOGUSCODE; /* reset start of free-node search */
             }
@@ -242,17 +242,17 @@ int unshrink(__G)
             register uch *p;
 
             for (p = newstr;  p < newstr+len;  ++p) {
-                *G.outptr++ = *p;
+                *(*(Uz_Globs *)pG).outptr++ = *p;
                 OUTDBG(*p)
-                if (++G.outcnt == outbufsiz) {
-                    Trace((stderr, "doing flush(), outcnt = %lu\n", G.outcnt));
-                    if ((error = flush(__G__ realbuf, G.outcnt, TRUE)) != 0) {
+                if (++(*(Uz_Globs *)pG).outcnt == outbufsiz) {
+                    Trace((stderr, "doing flush(), outcnt = %lu\n", (*(Uz_Globs *)pG).outcnt));
+                    if ((error = flush(pG, realbuf, (*(Uz_Globs *)pG).outcnt, TRUE)) != 0) {
                         Trace((stderr, "unshrink:  flush() error (%d)\n",
                           error));
                         return error;
                     }
-                    G.outptr = realbuf;
-                    G.outcnt = 0L;
+                    (*(Uz_Globs *)pG).outptr = realbuf;
+                    (*(Uz_Globs *)pG).outcnt = 0L;
                     Trace((stderr, "done with flush()\n"));
                 }
             }
@@ -283,9 +283,9 @@ int unshrink(__G)
     Flush any remaining data and return to sender...
   ---------------------------------------------------------------------------*/
 
-    if (G.outcnt > 0L) {
-        Trace((stderr, "doing final flush(), outcnt = %lu\n", G.outcnt));
-        if ((error = flush(__G__ realbuf, G.outcnt, TRUE)) != 0) {
+    if ((*(Uz_Globs *)pG).outcnt > 0L) {
+        Trace((stderr, "doing final flush(), outcnt = %lu\n", (*(Uz_Globs *)pG).outcnt));
+        if ((error = flush(pG, realbuf, (*(Uz_Globs *)pG).outcnt, TRUE)) != 0) {
             Trace((stderr, "unshrink:  flush() error (%d)\n", error));
             return error;
         }
@@ -304,8 +304,8 @@ int unshrink(__G)
 /* Function partial_clear() */      /* no longer recursive... */
 /****************************/
 
-static void partial_clear(__G__ lastcodeused)
-    __GDEF
+static void partial_clear(pG, lastcodeused)
+    Uz_Globs *pG;
     int lastcodeused;
 {
     register shrint code;

@@ -21,18 +21,6 @@
  * Non-echo keyboard/console input support is needed and enabled.
  */
 
-#ifndef __G         /* UnZip only, for now (DLL stuff) */
-#  define __G
-#  define __G__
-#  define __GDEF
-#  define __GPRO    void
-#  define __GPRO__
-#endif
-
-#ifndef const      /* UnZip only (until have configure script like Zip) */
-#  define const const
-#endif
-
 #if (defined(MSDOS) || defined(OS2) || defined(WIN32))
 #  ifndef DOS_OS2_W32
 #    define DOS_OS2_W32
@@ -191,10 +179,10 @@
  * Echon() for suppressing and (re)enabling console input echo.
  */
 #ifndef echoff
-#  define echoff(f)  Echoff(__G__ f)
-#  define echon()    Echon(__G)
-   void Echoff (__GPRO__ int f);
-   void Echon (__GPRO);
+#  define echoff(f)  Echoff(pG, f)
+#  define echon()    Echon(pG)
+   void Echoff (Uz_Globs *pG, int f);
+   void Echon (Uz_Globs *pG);
 #endif
 
 /* this stuff is used by MORE and also now by the ctrl-S code; fileio.c only */
@@ -204,13 +192,13 @@
 #  endif
 #  ifndef FGETCH
      /* default for all systems where no getch()-like function is available */
-     int zgetch (__GPRO__ int f);
-#    define FGETCH(f)  zgetch(__G__ f)
+     int zgetch (Uz_Globs *pG, int f);
+#    define FGETCH(f)  zgetch(pG, f)
 #  endif
 #endif /* UNZIP && !FUNZIP */
 
 #if (CRYPT && !defined(WINDLL))
-   char *getp (__GPRO__ const char *m, char *p, int n);
+   char *getp (Uz_Globs *pG, const char *m, char *p, int n);
 #endif
 
 #else /* !(CRYPT || (UNZIP && !FUNZIP)) */

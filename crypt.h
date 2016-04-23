@@ -115,14 +115,14 @@
 /* the crc_32_tab array has to be provided externally for the crypt calculus */
 
 /* encode byte c, using temp t.  Warning: c must not have side effects. */
-#define zencode(c,t)  (t=decrypt_byte(__G), update_keys(c), t^(c))
+#define zencode(c,t)  (t=decrypt_byte(pG), update_keys(c), t^(c))
 
 /* decode byte c in place */
-#define zdecode(c)   update_keys(__G__ c ^= decrypt_byte(__G))
+#define zdecode(c)   update_keys(pG, c ^= decrypt_byte(pG))
 
-int  decrypt_byte (__GPRO);
-int  update_keys (__GPRO__ int c);
-void init_keys (__GPRO__ const char *passwd);
+int  decrypt_byte (Uz_Globs *pG);
+int  update_keys (Uz_Globs *pG, int c);
+void init_keys (Uz_Globs *pG, const char *passwd);
 
 #ifdef ZIP
    void crypthead OF((const char *, ulg, FILE *));
@@ -136,7 +136,7 @@ void init_keys (__GPRO__ const char *passwd);
 #endif /* ZIP */
 
 #if (defined(UNZIP) && !defined(FUNZIP))
-   int  decrypt (__GPRO__ const char *passwrd);
+   int  decrypt (Uz_Globs *pG, const char *passwrd);
 #endif
 
 #ifdef FUNZIP
@@ -145,7 +145,7 @@ void init_keys (__GPRO__ const char *passwd);
 #    undef NEXTBYTE
 #  endif
 #  define NEXTBYTE \
-   (encrypted? update_keys(__G__ getc(G.in)^decrypt_byte(__G)) : getc(G.in))
+   (encrypted? update_keys(pG, getc((*(Uz_Globs *)pG).in)^decrypt_byte(pG)) : getc((*(Uz_Globs *)pG).in))
 #endif /* FUNZIP */
 
 #else /* !CRYPT */

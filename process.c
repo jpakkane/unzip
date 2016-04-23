@@ -43,7 +43,7 @@
 #  include "crc32.h"
 #endif
 
-static int    do_seekable        (__GPRO__ int lastchance);
+static int    do_seekable        (Uz_Globs *pG, int lastchance);
 #ifdef DO_SAFECHECK_2GB
 # ifdef USE_STRM_INPUT
 static zoff_t file_size          (FILE *file);
@@ -51,11 +51,11 @@ static zoff_t file_size          (FILE *file);
 static zoff_t file_size          (int fh);
 # endif
 #endif /* DO_SAFECHECK_2GB */
-static int    rec_find           (__GPRO__ zoff_t, char *, int);
-static int    find_ecrec64       (__GPRO__ zoff_t searchlen);
-static int    find_ecrec         (__GPRO__ zoff_t searchlen);
-static int    process_zip_cmmnt  (__GPRO);
-static int    get_cdir_ent       (__GPRO);
+static int    rec_find           (Uz_Globs *pG, zoff_t, char *, int);
+static int    find_ecrec64       (Uz_Globs *pG, zoff_t searchlen);
+static int    find_ecrec         (Uz_Globs *pG, zoff_t searchlen);
+static int    process_zip_cmmnt  (Uz_Globs *pG);
+static int    get_cdir_ent       (Uz_Globs *pG);
 #ifdef IZ_HAVE_UXUIDGID
 static int    read_ux3_value     OF((const uch *dbuf, unsigned uidgid_sz,
                                      ulg *p_uidgid));
@@ -226,8 +226,8 @@ static const char ZipfileCommTrunc1[] =
 /* Function process_zipfiles() */
 /*******************************/
 
-int process_zipfiles(__G)    /* return PK-type error code */
-    __GDEF
+int process_zipfiles(pG)    /* return PK-type error code */
+    Uz_Globs *pG;
 {
 #ifndef SFX
     char *lastzipfn = (char *)NULL;
@@ -242,15 +242,15 @@ int process_zipfiles(__G)    /* return PK-type error code */
     strings.
   ---------------------------------------------------------------------------*/
 
-    G.inbuf = (uch *)malloc(INBUFSIZ + 4);    /* 4 extra for hold[] (below) */
-    G.outbuf = (uch *)malloc(OUTBUFSIZ + 1);  /* 1 extra for string term. */
+    (*(Uz_Globs *)pG).inbuf = (uch *)malloc(INBUFSIZ + 4);    /* 4 extra for hold[] (below) */
+    (*(Uz_Globs *)pG).outbuf = (uch *)malloc(OUTBUFSIZ + 1);  /* 1 extra for string term. */
 
-    if ((G.inbuf == (uch *)NULL) || (G.outbuf == (uch *)NULL)) {
+    if (((*(Uz_Globs *)pG).inbuf == (uch *)NULL) || ((*(Uz_Globs *)pG).outbuf == (uch *)NULL)) {
         Info(slide, 0x401, ((char *)slide,
           LoadFarString(CannotAllocateBuffers)));
         return(PK_MEM);
     }
-    G.hold = G.inbuf + INBUFSIZ;     /* to check for boundary-spanning sigs */
+    (*(Uz_Globs *)pG).hold = (*(Uz_Globs *)pG).inbuf + INBUFSIZ;     /* to check for boundary-spanning sigs */
 
 #if 0 /* CRC_32_TAB has been NULLified by CONSTRUCTGLOBALS !!!! */
     /* allocate the CRC table later when we know we can read zipfile data */
@@ -288,9 +288,9 @@ int process_zipfiles(__G)    /* return PK-type error code */
 #  endif
     {
         char *p;
-        G.tz_is_valid = VALID_TIMEZONE(p);
+        (*(Uz_Globs *)pG).tz_is_valid = VALID_TIMEZONE(p);
 #  ifndef SFX
-        if (!G.tz_is_valid) {
+        if (!(*(Uz_Globs *)pG).tz_is_valid) {
             Info(slide, 0x401, ((char *)slide, LoadFarString(WarnInvalidTZ)));
             error_in_archive = error = PK_WARN;
         }
@@ -303,7 +303,7 @@ int process_zipfiles(__G)    /* return PK-type error code */
 /* Initialize UnZip's built-in pseudo hard-coded "ISO <--> OEM" translation,
    depending on the detected codepage setup.  */
 #ifdef NEED_ISO_OEM_INIT
-    prepare_ISO_OEM_translat(__G);
+    prepare_ISO_OEM_translat(pG);
 #endif
 
 /*---------------------------------------------------------------------------
@@ -315,7 +315,7 @@ int process_zipfiles(__G)    /* return PK-type error code */
     In case of conflicting options, the 'safer' flag uO.overwrite_none takes
     precedence.
   ---------------------------------------------------------------------------*/
-    G.overwrite_mode = (uO.overwrite_none ? OVERWRT_NEVER :
+    (*(Uz_Globs *)pG).overwrite_mode = (uO.overwrite_none ? OVERWRT_NEVER :
                         (uO.overwrite_all ? OVERWRT_ALWAYS : OVERWRT_QUERY));
 
 /*---------------------------------------------------------------------------
@@ -325,22 +325,22 @@ int process_zipfiles(__G)    /* return PK-type error code */
   ---------------------------------------------------------------------------*/
 
 #ifdef SFX
-    if ((error = do_seekable(__G__ 0)) == PK_NOZIP) {
+    if ((error = do_seekable(pG, 0)) == PK_NOZIP) {
 #ifdef EXE_EXTENSION
-        int len=strlen(G.argv0);
+        int len=strlen((*(Uz_Globs *)pG).argv0);
 
         /* append .exe if appropriate; also .sfx? */
-        if ( (G.zipfn = (char *)malloc(len+sizeof(EXE_EXTENSION))) !=
+        if ( ((*(Uz_Globs *)pG).zipfn = (char *)malloc(len+sizeof(EXE_EXTENSION))) !=
              (char *)NULL ) {
-            strcpy(G.zipfn, G.argv0);
-            strcpy(G.zipfn+len, EXE_EXTENSION);
-            error = do_seekable(__G__ 0);
-            free(G.zipfn);
-            G.zipfn = G.argv0;  /* for "cannot find myself" message only */
+            strcpy((*(Uz_Globs *)pG).zipfn, (*(Uz_Globs *)pG).argv0);
+            strcpy((*(Uz_Globs *)pG).zipfn+len, EXE_EXTENSION);
+            error = do_seekable(pG, 0);
+            free((*(Uz_Globs *)pG).zipfn);
+            (*(Uz_Globs *)pG).zipfn = (*(Uz_Globs *)pG).argv0;  /* for "cannot find myself" message only */
         }
 #endif /* EXE_EXTENSION */
 #ifdef WIN32
-        G.zipfn = G.argv0;  /* for "cannot find myself" message only */
+        (*(Uz_Globs *)pG).zipfn = (*(Uz_Globs *)pG).argv0;  /* for "cannot find myself" message only */
 #endif
     }
     if (error) {
@@ -350,15 +350,15 @@ int process_zipfiles(__G)    /* return PK-type error code */
             error_in_archive = error;
         if (error == PK_NOZIP)
             Info(slide, 1, ((char *)slide, LoadFarString(CannotFindMyself),
-              G.zipfn));
+              (*(Uz_Globs *)pG).zipfn));
     }
 #ifdef CHEAP_SFX_AUTORUN
-    if (G.autorun_command[0] && !uO.qflag) { /* NO autorun without prompt! */
+    if ((*(Uz_Globs *)pG).autorun_command[0] && !uO.qflag) { /* NO autorun without prompt! */
         Info(slide, 0x81, ((char *)slide, LoadFarString(AutorunPrompt),
-                      FnFilter1(G.autorun_command)));
-        if (fgets(G.answerbuf, 9, stdin) != (char *)NULL
-            && toupper(*G.answerbuf) == 'Y')
-            system(G.autorun_command);
+                      FnFilter1((*(Uz_Globs *)pG).autorun_command)));
+        if (fgets((*(Uz_Globs *)pG).answerbuf, 9, stdin) != (char *)NULL
+            && toupper(*(*(Uz_Globs *)pG).answerbuf) == 'Y')
+            system((*(Uz_Globs *)pG).autorun_command);
         else
             Info(slide, 1, ((char *)slide, LoadFarString(NotAutoRunning)));
     }
@@ -368,10 +368,10 @@ int process_zipfiles(__G)    /* return PK-type error code */
     NumWinFiles = NumLoseFiles = NumWarnFiles = 0;
     NumMissDirs = NumMissFiles = 0;
 
-    while ((G.zipfn = do_wild(__G__ G.wildzipfn)) != (char *)NULL) {
-        Trace((stderr, "do_wild( %s ) returns %s\n", G.wildzipfn, G.zipfn));
+    while (((*(Uz_Globs *)pG).zipfn = do_wild(pG, (*(Uz_Globs *)pG).wildzipfn)) != (char *)NULL) {
+        Trace((stderr, "do_wild( %s ) returns %s\n", (*(Uz_Globs *)pG).wildzipfn, (*(Uz_Globs *)pG).zipfn));
 
-        lastzipfn = G.zipfn;
+        lastzipfn = (*(Uz_Globs *)pG).zipfn;
 
         /* print a blank line between the output of different zipfiles */
         if (!uO.qflag  &&  error != PK_NOZIP  &&  error != IZ_DIR
@@ -379,9 +379,9 @@ int process_zipfiles(__G)    /* return PK-type error code */
             && (!uO.T_flag || uO.zipinfo_mode)
 #endif
             && (NumWinFiles+NumLoseFiles+NumWarnFiles+NumMissFiles) > 0)
-            (*G.message)((void *)&G, (uch *)"\n", 1L, 0);
+            (*(*(Uz_Globs *)pG).message)((void *)&(*(Uz_Globs *)pG), (uch *)"\n", 1L, 0);
 
-        if ((error = do_seekable(__G__ 0)) == PK_WARN)
+        if ((error = do_seekable(pG, 0)) == PK_WARN)
             ++NumWarnFiles;
         else if (error == IZ_DIR)
             ++NumMissDirs;
@@ -397,7 +397,7 @@ int process_zipfiles(__G)    /* return PK-type error code */
             error_in_archive = error;
 #ifdef WINDLL
         if (error == IZ_CTRLC) {
-            free_G_buffers(__G);
+            free_G_buffers(pG);
             return error;
         }
 #endif
@@ -408,7 +408,7 @@ int process_zipfiles(__G)    /* return PK-type error code */
         (NumMissDirs + NumMissFiles) == 1  &&  lastzipfn != (char *)NULL)
     {
 #if (!defined(UNIX) && !defined(AMIGA)) /* filenames with wildcard characters */
-        if (iswild(G.wildzipfn)) {
+        if (iswild((*(Uz_Globs *)pG).wildzipfn)) {
             if (iswild(lastzipfn)) {
                 NumMissDirs = NumMissFiles = 0;
                 error_in_archive = PK_COOL;
@@ -416,7 +416,7 @@ int process_zipfiles(__G)    /* return PK-type error code */
                     Info(slide, 0x401, ((char *)slide,
                       LoadFarString(CannotFindWildcardMatch),
                       LoadFarStringSmall((uO.zipinfo_mode ? Zipnfo : Unzip)),
-                      G.wildzipfn));
+                      (*(Uz_Globs *)pG).wildzipfn));
             }
         } else
 #endif
@@ -440,7 +440,7 @@ int process_zipfiles(__G)    /* return PK-type error code */
               strcpy(lastzipfn + strlen(lastzipfn), ZSUFX);
 #endif /* !VMS */
 
-            G.zipfn = lastzipfn;
+            (*(Uz_Globs *)pG).zipfn = lastzipfn;
 
             NumMissDirs = NumMissFiles = 0;
             error_in_archive = PK_COOL;
@@ -450,14 +450,14 @@ int process_zipfiles(__G)    /* return PK-type error code */
    /* Well FlexOS (sometimes) also has them,  but support is per media */
    /* and a pig to code for,  so treat as case insensitive for now */
    /* we do this under QDOS to check for .zip as well as _zip */
-            if ((error = do_seekable(__G__ 0)) == PK_NOZIP || error == IZ_DIR) {
+            if ((error = do_seekable(pG, 0)) == PK_NOZIP || error == IZ_DIR) {
                 if (error == IZ_DIR)
                     ++NumMissDirs;
                 strcpy(p, ALT_ZSUFX);
-                error = do_seekable(__G__ 1);
+                error = do_seekable(pG, 1);
             }
 #else
-            error = do_seekable(__G__ 1);
+            error = do_seekable(pG, 1);
 #endif
             Trace((stderr, "do_seekable(1) returns %d\n", error));
             switch (error) {
@@ -485,7 +485,7 @@ int process_zipfiles(__G)    /* return PK-type error code */
                 error_in_archive = error;
 #ifdef WINDLL
             if (error == IZ_CTRLC) {
-                free_G_buffers(__G);
+                free_G_buffers(pG);
                 return error;
             }
 #endif
@@ -499,7 +499,7 @@ int process_zipfiles(__G)    /* return PK-type error code */
   ---------------------------------------------------------------------------*/
 
 #ifndef SFX
-    if (iswild(G.wildzipfn) && uO.qflag < 3
+    if (iswild((*(Uz_Globs *)pG).wildzipfn) && uO.qflag < 3
 #ifdef TIMESTAMP
         && !(uO.T_flag && !uO.zipinfo_mode && uO.qflag > 1)
 #endif
@@ -510,7 +510,7 @@ int process_zipfiles(__G)    /* return PK-type error code */
             && !(uO.T_flag && !uO.zipinfo_mode && uO.qflag)
 #endif
             && !(uO.tflag && uO.qflag > 1))
-            (*G.message)((void *)&G, (uch *)"\n", 1L, 0x401);
+            (*(*(Uz_Globs *)pG).message)((void *)&(*(Uz_Globs *)pG), (uch *)"\n", 1L, 0x401);
         if ((NumWinFiles > 1) ||
             (NumWinFiles == 1 &&
              NumMissDirs + NumMissFiles + NumLoseFiles + NumWarnFiles > 0))
@@ -537,7 +537,7 @@ int process_zipfiles(__G)    /* return PK-type error code */
 #endif /* !SFX */
 
     /* free allocated memory */
-    free_G_buffers(__G);
+    free_G_buffers(pG);
 
     return error_in_archive;
 
@@ -551,19 +551,19 @@ int process_zipfiles(__G)    /* return PK-type error code */
 /* Function free_G_buffers() */
 /*****************************/
 
-void free_G_buffers(__G)     /* releases all memory allocated in global vars */
-    __GDEF
+void free_G_buffers(pG)     /* releases all memory allocated in global vars */
+    Uz_Globs *pG;
 {
 #ifndef SFX
     unsigned i;
 #endif
 
 #ifdef SYSTEM_SPECIFIC_DTOR
-    SYSTEM_SPECIFIC_DTOR(__G);
+    SYSTEM_SPECIFIC_DTOR(pG);
 #endif
 
-    inflate_free(__G);
-    checkdir(__G__ (char *)NULL, END);
+    inflate_free(pG);
+    checkdir(pG, (char *)NULL, END);
 
 #ifdef DYNALLOC_CRCTAB
     if (CRC_32_TAB) {
@@ -572,51 +572,51 @@ void free_G_buffers(__G)     /* releases all memory allocated in global vars */
     }
 #endif
 
-   if (G.key != (char *)NULL) {
-        free(G.key);
-        G.key = (char *)NULL;
+   if ((*(Uz_Globs *)pG).key != (char *)NULL) {
+        free((*(Uz_Globs *)pG).key);
+        (*(Uz_Globs *)pG).key = (char *)NULL;
    }
 
-   if (G.extra_field != (uch *)NULL) {
-        free(G.extra_field);
-        G.extra_field = (uch *)NULL;
+   if ((*(Uz_Globs *)pG).extra_field != (uch *)NULL) {
+        free((*(Uz_Globs *)pG).extra_field);
+        (*(Uz_Globs *)pG).extra_field = (uch *)NULL;
    }
 
 #if (!defined(VMS) && !defined(SMALL_MEM))
     /* VMS uses its own buffer scheme for textmode flush() */
-    if (G.outbuf2) {
-        free(G.outbuf2);   /* malloc'd ONLY if unshrink and -a */
-        G.outbuf2 = (uch *)NULL;
+    if ((*(Uz_Globs *)pG).outbuf2) {
+        free((*(Uz_Globs *)pG).outbuf2);   /* malloc'd ONLY if unshrink and -a */
+        (*(Uz_Globs *)pG).outbuf2 = (uch *)NULL;
     }
 #endif
 
-    if (G.outbuf)
-        free(G.outbuf);
-    if (G.inbuf)
-        free(G.inbuf);
-    G.inbuf = G.outbuf = (uch *)NULL;
+    if ((*(Uz_Globs *)pG).outbuf)
+        free((*(Uz_Globs *)pG).outbuf);
+    if ((*(Uz_Globs *)pG).inbuf)
+        free((*(Uz_Globs *)pG).inbuf);
+    (*(Uz_Globs *)pG).inbuf = (*(Uz_Globs *)pG).outbuf = (uch *)NULL;
 
 #ifdef UNICODE_SUPPORT
-    if (G.filename_full) {
-        free(G.filename_full);
-        G.filename_full = (char *)NULL;
-        G.fnfull_bufsize = 0;
+    if ((*(Uz_Globs *)pG).filename_full) {
+        free((*(Uz_Globs *)pG).filename_full);
+        (*(Uz_Globs *)pG).filename_full = (char *)NULL;
+        (*(Uz_Globs *)pG).fnfull_bufsize = 0;
     }
 #endif /* UNICODE_SUPPORT */
 
 #ifndef SFX
     for (i = 0; i < DIR_BLKSIZ; i++) {
-        if (G.info[i].cfilname != (char *)NULL) {
-            free(G.info[i].cfilname);
-            G.info[i].cfilname = (char *)NULL;
+        if ((*(Uz_Globs *)pG).info[i].cfilname != (char *)NULL) {
+            free((*(Uz_Globs *)pG).info[i].cfilname);
+            (*(Uz_Globs *)pG).info[i].cfilname = (char *)NULL;
         }
     }
 #endif
 
 #ifdef MALLOC_WORK
-    if (G.area.Slide) {
-        free(G.area.Slide);
-        G.area.Slide = (uch *)NULL;
+    if ((*(Uz_Globs *)pG).area.Slide) {
+        free((*(Uz_Globs *)pG).area.Slide);
+        (*(Uz_Globs *)pG).area.Slide = (uch *)NULL;
     }
 #endif
 
@@ -630,8 +630,8 @@ void free_G_buffers(__G)     /* releases all memory allocated in global vars */
 /* Function do_seekable() */
 /**************************/
 
-static int do_seekable(__G__ lastchance)        /* return PK-type error code */
-    __GDEF
+static int do_seekable(pG, lastchance)        /* return PK-type error code */
+    Uz_Globs *pG;
     int lastchance;
 {
 #ifndef SFX
@@ -651,57 +651,57 @@ static int do_seekable(__G__ lastchance)        /* return PK-type error code */
     which would corrupt the bit streams.
   ---------------------------------------------------------------------------*/
 
-    if (SSTAT(G.zipfn, &G.statbuf) ||
-        (error = S_ISDIR(G.statbuf.st_mode)) != 0)
+    if (SSTAT((*(Uz_Globs *)pG).zipfn, &(*(Uz_Globs *)pG).statbuf) ||
+        (error = S_ISDIR((*(Uz_Globs *)pG).statbuf.st_mode)) != 0)
     {
 #ifndef SFX
         if (lastchance && (uO.qflag < 3)) {
 #if defined(UNIX)
-            if (G.no_ecrec)
+            if ((*(Uz_Globs *)pG).no_ecrec)
                 Info(slide, 1, ((char *)slide,
                   LoadFarString(CannotFindZipfileDirMsg),
                   LoadFarStringSmall((uO.zipinfo_mode ? Zipnfo : Unzip)),
-                  G.wildzipfn, uO.zipinfo_mode? "  " : "", G.wildzipfn,
-                  G.zipfn));
+                  (*(Uz_Globs *)pG).wildzipfn, uO.zipinfo_mode? "  " : "", (*(Uz_Globs *)pG).wildzipfn,
+                  (*(Uz_Globs *)pG).zipfn));
             else
                 Info(slide, 1, ((char *)slide,
                   LoadFarString(CannotFindEitherZipfile),
                   LoadFarStringSmall((uO.zipinfo_mode ? Zipnfo : Unzip)),
-                  G.wildzipfn, G.wildzipfn, G.zipfn));
+                  (*(Uz_Globs *)pG).wildzipfn, (*(Uz_Globs *)pG).wildzipfn, (*(Uz_Globs *)pG).zipfn));
 #else /* !(UNIX || QDOS) */
-            if (G.no_ecrec)
+            if ((*(Uz_Globs *)pG).no_ecrec)
                 Info(slide, 0x401, ((char *)slide,
                   LoadFarString(CannotFindZipfileDirMsg),
                   LoadFarStringSmall((uO.zipinfo_mode ? Zipnfo : Unzip)),
-                  G.wildzipfn, uO.zipinfo_mode? "  " : "", G.zipfn));
+                  (*(Uz_Globs *)pG).wildzipfn, uO.zipinfo_mode? "  " : "", (*(Uz_Globs *)pG).zipfn));
             else
                 Info(slide, 0x401, ((char *)slide,
                   LoadFarString(CannotFindEitherZipfile),
                   LoadFarStringSmall((uO.zipinfo_mode ? Zipnfo : Unzip)),
-                  G.wildzipfn, G.zipfn));
+                  (*(Uz_Globs *)pG).wildzipfn, (*(Uz_Globs *)pG).zipfn));
 #endif /* ?(UNIX ) */
         }
 #endif /* !SFX */
         return error? IZ_DIR : PK_NOZIP;
     }
-    G.ziplen = G.statbuf.st_size;
+    (*(Uz_Globs *)pG).ziplen = (*(Uz_Globs *)pG).statbuf.st_size;
 
 #ifndef SFX
 #if defined(UNIX) || defined(DOS_OS2_W32) || defined(THEOS)
-    if (G.statbuf.st_mode & S_IEXEC)   /* no extension on Unix exes:  might */
+    if ((*(Uz_Globs *)pG).statbuf.st_mode & S_IEXEC)   /* no extension on Unix exes:  might */
         maybe_exe = TRUE;               /*  find unzip, not unzip.zip; etc. */
 #endif
 #endif /* !SFX */
 
-    if (open_input_file(__G))   /* this should never happen, given */
+    if (open_input_file(pG))   /* this should never happen, given */
         return PK_NOZIP;        /*  the stat() test above, but... */
 
 #ifdef DO_SAFECHECK_2GB
     /* Need more care: Do not trust the size returned by stat() but
        determine it by reading beyond the end of the file. */
-    G.ziplen = file_size(G.zipfd);
+    (*(Uz_Globs *)pG).ziplen = file_size((*(Uz_Globs *)pG).zipfd);
 
-    if (G.ziplen == EOF) {
+    if ((*(Uz_Globs *)pG).ziplen == EOF) {
         Info(slide, 0x401, ((char *)slide, LoadFarString(ZipfileTooBig)));
         /*
         printf(
@@ -720,8 +720,8 @@ static int do_seekable(__G__ lastchance)        /* return PK-type error code */
     a debugging tool, search the whole zipfile if zipinfo_mode is true.
   ---------------------------------------------------------------------------*/
 
-    G.cur_zipfile_bufstart = 0;
-    G.inptr = G.inbuf;
+    (*(Uz_Globs *)pG).cur_zipfile_bufstart = 0;
+    (*(Uz_Globs *)pG).inptr = (*(Uz_Globs *)pG).inbuf;
 
 #if ((!defined(WINDLL) && !defined(SFX)) || !defined(NO_ZIPINFO))
 # if (!defined(WINDLL) && !defined(SFX))
@@ -737,19 +737,19 @@ static int do_seekable(__G__ lastchance)        /* return PK-type error code */
 # else /* not (!WINDLL && !SFX) ==> !NO_ZIPINFO !! */
     if (uO.zipinfo_mode && uO.hflag)
 # endif /* if..else..: (!WINDLL && !SFX) */
-# ifdef WIN32   /* Win32 console may require codepage conversion for G.zipfn */
+# ifdef WIN32   /* Win32 console may require codepage conversion for (*(Uz_Globs *)pG).zipfn */
         Info(slide, 0, ((char *)slide, LoadFarString(LogInitline),
-          FnFilter1(G.zipfn)));
+          FnFilter1((*(Uz_Globs *)pG).zipfn)));
 # else
-        Info(slide, 0, ((char *)slide, LoadFarString(LogInitline), G.zipfn));
+        Info(slide, 0, ((char *)slide, LoadFarString(LogInitline), (*(Uz_Globs *)pG).zipfn));
 # endif
 #endif /* (!WINDLL && !SFX) || !NO_ZIPINFO */
 
-    if ( (error_in_archive = find_ecrec(__G__
+    if ( (error_in_archive = find_ecrec(pG,
 #ifndef NO_ZIPINFO
-                                        uO.zipinfo_mode ? G.ziplen :
+                                        uO.zipinfo_mode ? (*(Uz_Globs *)pG).ziplen :
 #endif
-                                        MIN(G.ziplen, 66000L)))
+                                        MIN((*(Uz_Globs *)pG).ziplen, 66000L)))
          > PK_WARN )
     {
         CLOSE_INFILE();
@@ -760,11 +760,11 @@ static int do_seekable(__G__ lastchance)        /* return PK-type error code */
 #else
         if (maybe_exe)
             Info(slide, 0x401, ((char *)slide, LoadFarString(MaybeExe),
-            G.zipfn));
+            (*(Uz_Globs *)pG).zipfn));
         if (lastchance)
             return error_in_archive;
         else {
-            G.no_ecrec = TRUE;    /* assume we found wrong file:  e.g., */
+            (*(Uz_Globs *)pG).no_ecrec = TRUE;    /* assume we found wrong file:  e.g., */
             return PK_NOZIP;       /*  unzip instead of unzip.zip */
         }
 #endif /* ?SFX */
@@ -781,34 +781,34 @@ static int do_seekable(__G__ lastchance)        /* return PK-type error code */
   ---------------------------------------------------------------------------*/
 
 #ifdef NO_MULTIPART
-    error = !uO.zipinfo_mode && (G.ecrec.number_this_disk == 1) &&
-            (G.ecrec.num_disk_start_cdir == 1);
+    error = !uO.zipinfo_mode && ((*(Uz_Globs *)pG).ecrec.number_this_disk == 1) &&
+            ((*(Uz_Globs *)pG).ecrec.num_disk_start_cdir == 1);
 #else
-    error = !uO.zipinfo_mode && (G.ecrec.number_this_disk != 0);
+    error = !uO.zipinfo_mode && ((*(Uz_Globs *)pG).ecrec.number_this_disk != 0);
 #endif
 
 #ifndef SFX
     if (uO.zipinfo_mode &&
-        G.ecrec.number_this_disk != G.ecrec.num_disk_start_cdir)
+        (*(Uz_Globs *)pG).ecrec.number_this_disk != (*(Uz_Globs *)pG).ecrec.num_disk_start_cdir)
     {
-        if (G.ecrec.number_this_disk > G.ecrec.num_disk_start_cdir) {
+        if ((*(Uz_Globs *)pG).ecrec.number_this_disk > (*(Uz_Globs *)pG).ecrec.num_disk_start_cdir) {
             Info(slide, 0x401, ((char *)slide,
-              LoadFarString(CentDirNotInZipMsg), G.zipfn,
-              (ulg)G.ecrec.number_this_disk,
-              (ulg)G.ecrec.num_disk_start_cdir));
+              LoadFarString(CentDirNotInZipMsg), (*(Uz_Globs *)pG).zipfn,
+              (ulg)(*(Uz_Globs *)pG).ecrec.number_this_disk,
+              (ulg)(*(Uz_Globs *)pG).ecrec.num_disk_start_cdir));
             error_in_archive = PK_FIND;
             too_weird_to_continue = TRUE;
         } else {
             Info(slide, 0x401, ((char *)slide,
-              LoadFarString(EndCentDirBogus), G.zipfn,
-              (ulg)G.ecrec.number_this_disk,
-              (ulg)G.ecrec.num_disk_start_cdir));
+              LoadFarString(EndCentDirBogus), (*(Uz_Globs *)pG).zipfn,
+              (ulg)(*(Uz_Globs *)pG).ecrec.number_this_disk,
+              (ulg)(*(Uz_Globs *)pG).ecrec.num_disk_start_cdir));
             error_in_archive = PK_WARN;
         }
 #ifdef NO_MULTIPART   /* concatenation of multiple parts works in some cases */
-    } else if (!uO.zipinfo_mode && !error && G.ecrec.number_this_disk != 0) {
+    } else if (!uO.zipinfo_mode && !error && (*(Uz_Globs *)pG).ecrec.number_this_disk != 0) {
         Info(slide, 0x401, ((char *)slide, LoadFarString(NoMultiDiskArcSupport),
-          G.zipfn));
+          (*(Uz_Globs *)pG).zipfn));
         error_in_archive = PK_FIND;
         too_weird_to_continue = TRUE;
 #endif
@@ -817,32 +817,32 @@ static int do_seekable(__G__ lastchance)        /* return PK-type error code */
     if (!too_weird_to_continue) {  /* (relatively) normal zipfile:  go for it */
         if (error) {
             Info(slide, 0x401, ((char *)slide, LoadFarString(MaybePakBug),
-              G.zipfn));
+              (*(Uz_Globs *)pG).zipfn));
             error_in_archive = PK_WARN;
         }
 #endif /* !SFX */
-        if ((G.extra_bytes = G.real_ecrec_offset-G.expect_ecrec_offset) <
+        if (((*(Uz_Globs *)pG).extra_bytes = (*(Uz_Globs *)pG).real_ecrec_offset-(*(Uz_Globs *)pG).expect_ecrec_offset) <
             (zoff_t)0)
         {
             Info(slide, 0x401, ((char *)slide, LoadFarString(MissingBytes),
-              G.zipfn, FmZofft((-G.extra_bytes), NULL, NULL)));
+              (*(Uz_Globs *)pG).zipfn, FmZofft((-(*(Uz_Globs *)pG).extra_bytes), NULL, NULL)));
             error_in_archive = PK_ERR;
-        } else if (G.extra_bytes > 0) {
-            if ((G.ecrec.offset_start_central_directory == 0) &&
-                (G.ecrec.size_central_directory != 0))   /* zip 1.5 -go bug */
+        } else if ((*(Uz_Globs *)pG).extra_bytes > 0) {
+            if (((*(Uz_Globs *)pG).ecrec.offset_start_central_directory == 0) &&
+                ((*(Uz_Globs *)pG).ecrec.size_central_directory != 0))   /* zip 1.5 -go bug */
             {
                 Info(slide, 0x401, ((char *)slide,
-                  LoadFarString(NullCentDirOffset), G.zipfn));
-                G.ecrec.offset_start_central_directory = G.extra_bytes;
-                G.extra_bytes = 0;
+                  LoadFarString(NullCentDirOffset), (*(Uz_Globs *)pG).zipfn));
+                (*(Uz_Globs *)pG).ecrec.offset_start_central_directory = (*(Uz_Globs *)pG).extra_bytes;
+                (*(Uz_Globs *)pG).extra_bytes = 0;
                 error_in_archive = PK_ERR;
             }
 #ifndef SFX
             else {
                 Info(slide, 0x401, ((char *)slide,
-                  LoadFarString(ExtraBytesAtStart), G.zipfn,
-                  FmZofft(G.extra_bytes, NULL, NULL),
-                  (G.extra_bytes == 1)? "":"s"));
+                  LoadFarString(ExtraBytesAtStart), (*(Uz_Globs *)pG).zipfn,
+                  FmZofft((*(Uz_Globs *)pG).extra_bytes, NULL, NULL),
+                  ((*(Uz_Globs *)pG).extra_bytes == 1)? "":"s"));
                 error_in_archive = PK_WARN;
             }
 #endif /* !SFX */
@@ -852,13 +852,13 @@ static int do_seekable(__G__ lastchance)        /* return PK-type error code */
         Check for empty zipfile and exit now if so.
       -----------------------------------------------------------------------*/
 
-        if (G.expect_ecrec_offset==0L && G.ecrec.size_central_directory==0) {
+        if ((*(Uz_Globs *)pG).expect_ecrec_offset==0L && (*(Uz_Globs *)pG).ecrec.size_central_directory==0) {
             if (uO.zipinfo_mode)
                 Info(slide, 0, ((char *)slide, "%sEmpty zipfile.\n",
                   uO.lflag>9? "\n  " : ""));
             else
                 Info(slide, 0x401, ((char *)slide, LoadFarString(ZipfileEmpty),
-                                    G.zipfn));
+                                    (*(Uz_Globs *)pG).zipfn));
             CLOSE_INFILE();
             return (error_in_archive > PK_WARN)? error_in_archive : PK_WARN;
         }
@@ -870,41 +870,41 @@ static int do_seekable(__G__ lastchance)        /* return PK-type error code */
         with STZip, as well as archives created by J.H. Holm's ZIPSPLIT 1.1).
       -----------------------------------------------------------------------*/
 
-        error = seek_zipf(__G__ G.ecrec.offset_start_central_directory);
+        error = seek_zipf(pG, (*(Uz_Globs *)pG).ecrec.offset_start_central_directory);
         if (error == PK_BADERR) {
             CLOSE_INFILE();
             return PK_BADERR;
         }
 #ifdef OLD_SEEK_TEST
-        if (error != PK_OK || readbuf(__G__ G.sig, 4) == 0) {
+        if (error != PK_OK || readbuf(pG, (*(Uz_Globs *)pG).sig, 4) == 0) {
             CLOSE_INFILE();
             return PK_ERR;  /* file may be locked, or possibly disk error(?) */
         }
-        if (memcmp(G.sig, central_hdr_sig, 4))
+        if (memcmp((*(Uz_Globs *)pG).sig, central_hdr_sig, 4))
 #else
-        if ((error != PK_OK) || (readbuf(__G__ G.sig, 4) == 0) ||
-            memcmp(G.sig, central_hdr_sig, 4))
+        if ((error != PK_OK) || (readbuf(pG, (*(Uz_Globs *)pG).sig, 4) == 0) ||
+            memcmp((*(Uz_Globs *)pG).sig, central_hdr_sig, 4))
 #endif
         {
 #ifndef SFX
-            zoff_t tmp = G.extra_bytes;
+            zoff_t tmp = (*(Uz_Globs *)pG).extra_bytes;
 #endif
 
-            G.extra_bytes = 0;
-            error = seek_zipf(__G__ G.ecrec.offset_start_central_directory);
-            if ((error != PK_OK) || (readbuf(__G__ G.sig, 4) == 0) ||
-                memcmp(G.sig, central_hdr_sig, 4))
+            (*(Uz_Globs *)pG).extra_bytes = 0;
+            error = seek_zipf(pG, (*(Uz_Globs *)pG).ecrec.offset_start_central_directory);
+            if ((error != PK_OK) || (readbuf(pG, (*(Uz_Globs *)pG).sig, 4) == 0) ||
+                memcmp((*(Uz_Globs *)pG).sig, central_hdr_sig, 4))
             {
                 if (error != PK_BADERR)
                   Info(slide, 0x401, ((char *)slide,
-                    LoadFarString(CentDirStartNotFound), G.zipfn,
+                    LoadFarString(CentDirStartNotFound), (*(Uz_Globs *)pG).zipfn,
                     LoadFarStringSmall(ReportMsg)));
                 CLOSE_INFILE();
                 return (error != PK_OK ? error : PK_BADERR);
             }
 #ifndef SFX
             Info(slide, 0x401, ((char *)slide, LoadFarString(CentDirTooLong),
-              G.zipfn, FmZofft((-tmp), NULL, NULL)));
+              (*(Uz_Globs *)pG).zipfn, FmZofft((-tmp), NULL, NULL)));
 #endif
             error_in_archive = PK_ERR;
         }
@@ -915,7 +915,7 @@ static int do_seekable(__G__ lastchance)        /* return PK-type error code */
         or test member files as instructed, and close the zipfile.
       -----------------------------------------------------------------------*/
 
-        error = seek_zipf(__G__ G.ecrec.offset_start_central_directory);
+        error = seek_zipf(pG, (*(Uz_Globs *)pG).ecrec.offset_start_central_directory);
         if (error != PK_OK) {
             CLOSE_INFILE();
             return error;
@@ -925,7 +925,7 @@ static int do_seekable(__G__ lastchance)        /* return PK-type error code */
           error_in_archive));
 
 #ifdef DLL
-        /* G.fValidate is used only to look at an archive to see if
+        /* (*(Uz_Globs *)pG).fValidate is used only to look at an archive to see if
            it appears to be a valid archive.  There is no interest
            in what the archive contains, nor in validating that the
            entries in the archive are in good condition.  This is
@@ -933,25 +933,25 @@ static int do_seekable(__G__ lastchance)        /* return PK-type error code */
            checking archives within an archive to determine whether
            or not to display the inner archives.
          */
-        if (!G.fValidate)
+        if (!(*(Uz_Globs *)pG).fValidate)
 #endif
         {
 #ifndef NO_ZIPINFO
             if (uO.zipinfo_mode)
-                error = zipinfo(__G);                 /* ZIPINFO 'EM */
+                error = zipinfo(pG);                 /* ZIPINFO 'EM */
             else
 #endif
 #ifndef SFX
 #ifdef TIMESTAMP
             if (uO.T_flag)
-                error = get_time_stamp(__G__ &uxstamp, &nmember);
+                error = get_time_stamp(pG, &uxstamp, &nmember);
             else
 #endif
             if (uO.vflag && !uO.tflag && !uO.cflag)
-                error = list_files(__G);              /* LIST 'EM */
+                error = list_files(pG);              /* LIST 'EM */
             else
 #endif /* !SFX */
-                error = extract_or_test_files(__G);   /* EXTRACT OR TEST 'EM */
+                error = extract_or_test_files(pG);   /* EXTRACT OR TEST 'EM */
 
             Trace((stderr, "done with extract/list files (error = %d)\n",
                    error));
@@ -968,19 +968,19 @@ static int do_seekable(__G__ lastchance)        /* return PK-type error code */
 #ifdef TIMESTAMP
     if (uO.T_flag && !uO.zipinfo_mode && (nmember > 0L)) {
 # ifdef WIN32
-        if (stamp_file(__G__ G.zipfn, uxstamp)) {       /* TIME-STAMP 'EM */
+        if (stamp_file(pG, (*(Uz_Globs *)pG).zipfn, uxstamp)) {       /* TIME-STAMP 'EM */
 # else
-        if (stamp_file(G.zipfn, uxstamp)) {             /* TIME-STAMP 'EM */
+        if (stamp_file((*(Uz_Globs *)pG).zipfn, uxstamp)) {             /* TIME-STAMP 'EM */
 # endif
             if (uO.qflag < 3)
                 Info(slide, 0x201, ((char *)slide,
-                  LoadFarString(ZipTimeStampFailed), G.zipfn));
+                  LoadFarString(ZipTimeStampFailed), (*(Uz_Globs *)pG).zipfn));
             if (error_in_archive < PK_WARN)
                 error_in_archive = PK_WARN;
         } else {
             if (!uO.qflag)
                 Info(slide, 0, ((char *)slide,
-                  LoadFarString(ZipTimeStampSuccess), G.zipfn));
+                  LoadFarString(ZipTimeStampSuccess), (*(Uz_Globs *)pG).zipfn));
         }
     }
 #endif
@@ -1082,9 +1082,9 @@ static zoff_t file_size(fh)
 /* Function rec_find() */
 /***********************/
 
-static int rec_find(__G__ searchlen, signature, rec_size)
+static int rec_find(pG, searchlen, signature, rec_size)
     /* return 0 when rec found, 1 when not found, 2 in case of read error */
-    __GDEF
+    Uz_Globs *pG;
     zoff_t searchlen;
     char* signature;
     int rec_size;
@@ -1097,32 +1097,32 @@ static int rec_find(__G__ searchlen, signature, rec_size)
     block at end of zipfile (if not TOO short).
   ---------------------------------------------------------------------------*/
 
-    if ((tail_len = G.ziplen % INBUFSIZ) > rec_size) {
+    if ((tail_len = (*(Uz_Globs *)pG).ziplen % INBUFSIZ) > rec_size) {
 #ifdef USE_STRM_INPUT
-        zfseeko(G.zipfd, G.ziplen-tail_len, SEEK_SET);
-        G.cur_zipfile_bufstart = zftello(G.zipfd);
+        zfseeko((*(Uz_Globs *)pG).zipfd, (*(Uz_Globs *)pG).ziplen-tail_len, SEEK_SET);
+        (*(Uz_Globs *)pG).cur_zipfile_bufstart = zftello((*(Uz_Globs *)pG).zipfd);
 #else /* !USE_STRM_INPUT */
-        G.cur_zipfile_bufstart = zlseek(G.zipfd, G.ziplen-tail_len, SEEK_SET);
+        (*(Uz_Globs *)pG).cur_zipfile_bufstart = zlseek((*(Uz_Globs *)pG).zipfd, (*(Uz_Globs *)pG).ziplen-tail_len, SEEK_SET);
 #endif /* ?USE_STRM_INPUT */
-        if ((G.incnt = read(G.zipfd, (char *)G.inbuf,
+        if (((*(Uz_Globs *)pG).incnt = read((*(Uz_Globs *)pG).zipfd, (char *)(*(Uz_Globs *)pG).inbuf,
             (unsigned int)tail_len)) != (int)tail_len)
             return 2;      /* it's expedient... */
 
         /* 'P' must be at least (rec_size+4) bytes from end of zipfile */
-        for (G.inptr = G.inbuf+(int)tail_len-(rec_size+4);
-             G.inptr >= G.inbuf;
-             --G.inptr) {
-            if ( (*G.inptr == (uch)0x50) &&         /* ASCII 'P' */
-                 !memcmp((char *)G.inptr, signature, 4) ) {
-                G.incnt -= (int)(G.inptr - G.inbuf);
+        for ((*(Uz_Globs *)pG).inptr = (*(Uz_Globs *)pG).inbuf+(int)tail_len-(rec_size+4);
+             (*(Uz_Globs *)pG).inptr >= (*(Uz_Globs *)pG).inbuf;
+             --(*(Uz_Globs *)pG).inptr) {
+            if ( (*(*(Uz_Globs *)pG).inptr == (uch)0x50) &&         /* ASCII 'P' */
+                 !memcmp((char *)(*(Uz_Globs *)pG).inptr, signature, 4) ) {
+                (*(Uz_Globs *)pG).incnt -= (int)((*(Uz_Globs *)pG).inptr - (*(Uz_Globs *)pG).inbuf);
                 found = TRUE;
                 break;
             }
         }
         /* sig may span block boundary: */
-        memcpy((char *)G.hold, (char *)G.inbuf, 3);
+        memcpy((char *)(*(Uz_Globs *)pG).hold, (char *)(*(Uz_Globs *)pG).inbuf, 3);
     } else
-        G.cur_zipfile_bufstart = G.ziplen - tail_len;
+        (*(Uz_Globs *)pG).cur_zipfile_bufstart = (*(Uz_Globs *)pG).ziplen - tail_len;
 
 /*-----------------------------------------------------------------------
     Loop through blocks of zipfile data, starting at the end and going
@@ -1134,25 +1134,25 @@ static int rec_find(__G__ searchlen, signature, rec_size)
     /*               ==amount=   ==done==   ==rounding==    =blksiz=  */
 
     for (i = 1;  !found && (i <= numblks);  ++i) {
-        G.cur_zipfile_bufstart -= INBUFSIZ;
+        (*(Uz_Globs *)pG).cur_zipfile_bufstart -= INBUFSIZ;
 #ifdef USE_STRM_INPUT
-        zfseeko(G.zipfd, G.cur_zipfile_bufstart, SEEK_SET);
+        zfseeko((*(Uz_Globs *)pG).zipfd, (*(Uz_Globs *)pG).cur_zipfile_bufstart, SEEK_SET);
 #else /* !USE_STRM_INPUT */
-        zlseek(G.zipfd, G.cur_zipfile_bufstart, SEEK_SET);
+        zlseek((*(Uz_Globs *)pG).zipfd, (*(Uz_Globs *)pG).cur_zipfile_bufstart, SEEK_SET);
 #endif /* ?USE_STRM_INPUT */
-        if ((G.incnt = read(G.zipfd,(char *)G.inbuf,INBUFSIZ))
+        if (((*(Uz_Globs *)pG).incnt = read((*(Uz_Globs *)pG).zipfd,(char *)(*(Uz_Globs *)pG).inbuf,INBUFSIZ))
             != INBUFSIZ)
             return 2;          /* read error is fatal failure */
 
-        for (G.inptr = G.inbuf+INBUFSIZ-1;  G.inptr >= G.inbuf; --G.inptr)
-            if ( (*G.inptr == (uch)0x50) &&         /* ASCII 'P' */
-                 !memcmp((char *)G.inptr, signature, 4) ) {
-                G.incnt -= (int)(G.inptr - G.inbuf);
+        for ((*(Uz_Globs *)pG).inptr = (*(Uz_Globs *)pG).inbuf+INBUFSIZ-1;  (*(Uz_Globs *)pG).inptr >= (*(Uz_Globs *)pG).inbuf; --(*(Uz_Globs *)pG).inptr)
+            if ( (*(*(Uz_Globs *)pG).inptr == (uch)0x50) &&         /* ASCII 'P' */
+                 !memcmp((char *)(*(Uz_Globs *)pG).inptr, signature, 4) ) {
+                (*(Uz_Globs *)pG).incnt -= (int)((*(Uz_Globs *)pG).inptr - (*(Uz_Globs *)pG).inbuf);
                 found = TRUE;
                 break;
             }
         /* sig may span block boundary: */
-        memcpy((char *)G.hold, (char *)G.inbuf, 3);
+        memcpy((char *)(*(Uz_Globs *)pG).hold, (char *)(*(Uz_Globs *)pG).inbuf, 3);
     }
     return (found ? 0 : 1);
 } /* end function rec_find() */
@@ -1165,8 +1165,8 @@ static int rec_find(__G__ searchlen, signature, rec_size)
 /* Function find_ecrec64() */
 /***************************/
 
-static int find_ecrec64(__G__ searchlen)         /* return PK-class error */
-    __GDEF
+static int find_ecrec64(pG, searchlen)         /* return PK-class error */
+    Uz_Globs *pG;
     zoff_t searchlen;
 {
     ec_byte_rec64 byterec;          /* buf for ecrec64 */
@@ -1185,22 +1185,22 @@ static int find_ecrec64(__G__ searchlen)         /* return PK-class error */
        ecrec with nothing in between.  We back up the size of the ecrec64
        locator and check.  */
 
-    ecloc64_start_offset = G.real_ecrec_offset - (ECLOC64_SIZE+4);
+    ecloc64_start_offset = (*(Uz_Globs *)pG).real_ecrec_offset - (ECLOC64_SIZE+4);
     if (ecloc64_start_offset < 0)
       /* Seeking would go past beginning, so probably empty archive */
       return PK_COOL;
 
 #ifdef USE_STRM_INPUT
-    zfseeko(G.zipfd, ecloc64_start_offset, SEEK_SET);
-    G.cur_zipfile_bufstart = zftello(G.zipfd);
+    zfseeko((*(Uz_Globs *)pG).zipfd, ecloc64_start_offset, SEEK_SET);
+    (*(Uz_Globs *)pG).cur_zipfile_bufstart = zftello((*(Uz_Globs *)pG).zipfd);
 #else /* !USE_STRM_INPUT */
-    G.cur_zipfile_bufstart = zlseek(G.zipfd, ecloc64_start_offset, SEEK_SET);
+    (*(Uz_Globs *)pG).cur_zipfile_bufstart = zlseek((*(Uz_Globs *)pG).zipfd, ecloc64_start_offset, SEEK_SET);
 #endif /* ?USE_STRM_INPUT */
 
-    if ((G.incnt = read(G.zipfd, (char *)byterecL, ECLOC64_SIZE+4))
+    if (((*(Uz_Globs *)pG).incnt = read((*(Uz_Globs *)pG).zipfd, (char *)byterecL, ECLOC64_SIZE+4))
         != (ECLOC64_SIZE+4)) {
       if (uO.qflag || uO.zipinfo_mode)
-          Info(slide, 0x401, ((char *)slide, "[%s]\n", G.zipfn));
+          Info(slide, 0x401, ((char *)slide, "[%s]\n", (*(Uz_Globs *)pG).zipfn));
       Info(slide, 0x401, ((char *)slide,
         LoadFarString(Cent64EndSigSearchErr)));
       return PK_ERR;
@@ -1219,10 +1219,10 @@ static int find_ecrec64(__G__ searchlen)         /* return PK-class error */
     /* Check for consistency */
 #ifdef TEST
     fprintf(stdout,"\nnumber of disks (ECR) %u, (ECLOC64) %lu\n",
-            G.ecrec.number_this_disk, ecloc64_total_disks); fflush(stdout);
+            (*(Uz_Globs *)pG).ecrec.number_this_disk, ecloc64_total_disks); fflush(stdout);
 #endif
-    if ((G.ecrec.number_this_disk != 0xFFFF) &&
-        (G.ecrec.number_this_disk != ecloc64_total_disks - 1)) {
+    if (((*(Uz_Globs *)pG).ecrec.number_this_disk != 0xFFFF) &&
+        ((*(Uz_Globs *)pG).ecrec.number_this_disk != ecloc64_total_disks - 1)) {
       /* Note: For some unknown reason, the developers at PKWARE decided to
          store the "zip64 total disks" value as a counter starting from 1,
          whereas all other "split/span volume" related fields use 0-based
@@ -1234,7 +1234,7 @@ static int find_ecrec64(__G__ searchlen)         /* return PK-class error */
        */
       Trace((stderr,
              "\ninvalid ECLOC64, differing disk# (ECR %u, ECL64 %lu)\n",
-             G.ecrec.number_this_disk, ecloc64_total_disks - 1));
+             (*(Uz_Globs *)pG).ecrec.number_this_disk, ecloc64_total_disks - 1));
       return PK_COOL;
     }
 
@@ -1251,23 +1251,23 @@ static int find_ecrec64(__G__ searchlen)         /* return PK-class error */
     if (ecrec64_start_offset > (zusz_t)ecloc64_start_offset) {
       /* ecrec64 has to be before ecrec64 locator */
       if (uO.qflag || uO.zipinfo_mode)
-          Info(slide, 0x401, ((char *)slide, "[%s]\n", G.zipfn));
+          Info(slide, 0x401, ((char *)slide, "[%s]\n", (*(Uz_Globs *)pG).zipfn));
       Info(slide, 0x401, ((char *)slide,
         LoadFarString(Cent64EndSigSearchErr)));
       return PK_ERR;
     }
 
 #ifdef USE_STRM_INPUT
-    zfseeko(G.zipfd, ecrec64_start_offset, SEEK_SET);
-    G.cur_zipfile_bufstart = zftello(G.zipfd);
+    zfseeko((*(Uz_Globs *)pG).zipfd, ecrec64_start_offset, SEEK_SET);
+    (*(Uz_Globs *)pG).cur_zipfile_bufstart = zftello((*(Uz_Globs *)pG).zipfd);
 #else /* !USE_STRM_INPUT */
-    G.cur_zipfile_bufstart = zlseek(G.zipfd, ecrec64_start_offset, SEEK_SET);
+    (*(Uz_Globs *)pG).cur_zipfile_bufstart = zlseek((*(Uz_Globs *)pG).zipfd, ecrec64_start_offset, SEEK_SET);
 #endif /* ?USE_STRM_INPUT */
 
-    if ((G.incnt = read(G.zipfd, (char *)byterec, ECREC64_SIZE+4))
+    if (((*(Uz_Globs *)pG).incnt = read((*(Uz_Globs *)pG).zipfd, (char *)byterec, ECREC64_SIZE+4))
         != (ECREC64_SIZE+4)) {
       if (uO.qflag || uO.zipinfo_mode)
-          Info(slide, 0x401, ((char *)slide, "[%s]\n", G.zipfn));
+          Info(slide, 0x401, ((char *)slide, "[%s]\n", (*(Uz_Globs *)pG).zipfn));
       Info(slide, 0x401, ((char *)slide,
         LoadFarString(Cent64EndSigSearchErr)));
       return PK_ERR;
@@ -1283,16 +1283,16 @@ static int find_ecrec64(__G__ searchlen)         /* return PK-class error */
       ecrec64_start_offset = ecloc64_start_offset - ECREC64_SIZE - 4;
 
 #ifdef USE_STRM_INPUT
-      zfseeko(G.zipfd, ecrec64_start_offset, SEEK_SET);
-      G.cur_zipfile_bufstart = zftello(G.zipfd);
+      zfseeko((*(Uz_Globs *)pG).zipfd, ecrec64_start_offset, SEEK_SET);
+      (*(Uz_Globs *)pG).cur_zipfile_bufstart = zftello((*(Uz_Globs *)pG).zipfd);
 #else /* !USE_STRM_INPUT */
-      G.cur_zipfile_bufstart = zlseek(G.zipfd, ecrec64_start_offset, SEEK_SET);
+      (*(Uz_Globs *)pG).cur_zipfile_bufstart = zlseek((*(Uz_Globs *)pG).zipfd, ecrec64_start_offset, SEEK_SET);
 #endif /* ?USE_STRM_INPUT */
 
-      if ((G.incnt = read(G.zipfd, (char *)byterec, ECREC64_SIZE+4))
+      if (((*(Uz_Globs *)pG).incnt = read((*(Uz_Globs *)pG).zipfd, (char *)byterec, ECREC64_SIZE+4))
           != (ECREC64_SIZE+4)) {
         if (uO.qflag || uO.zipinfo_mode)
-            Info(slide, 0x401, ((char *)slide, "[%s]\n", G.zipfn));
+            Info(slide, 0x401, ((char *)slide, "[%s]\n", (*(Uz_Globs *)pG).zipfn));
         Info(slide, 0x401, ((char *)slide,
           LoadFarString(Cent64EndSigSearchErr)));
         return PK_ERR;
@@ -1302,14 +1302,14 @@ static int find_ecrec64(__G__ searchlen)         /* return PK-class error */
         /* Zip64 EOCD Record not found */
         /* Probably something not so easy to handle so exit */
         if (uO.qflag || uO.zipinfo_mode)
-            Info(slide, 0x401, ((char *)slide, "[%s]\n", G.zipfn));
+            Info(slide, 0x401, ((char *)slide, "[%s]\n", (*(Uz_Globs *)pG).zipfn));
         Info(slide, 0x401, ((char *)slide,
           LoadFarString(Cent64EndSigSearchErr)));
         return PK_ERR;
       }
 
       if (uO.qflag || uO.zipinfo_mode)
-          Info(slide, 0x401, ((char *)slide, "[%s]\n", G.zipfn));
+          Info(slide, 0x401, ((char *)slide, "[%s]\n", (*(Uz_Globs *)pG).zipfn));
       Info(slide, 0x401, ((char *)slide,
         LoadFarString(Cent64EndSigSearchOff)));
     }
@@ -1324,62 +1324,62 @@ static int find_ecrec64(__G__ searchlen)         /* return PK-class error */
      */
     ecrec64_disk_cdstart =
       (zuvl_t)makelong(&byterec[NUM_DISK_START_CEN_DIR64]);
-    if ( (G.ecrec.num_disk_start_cdir != 0xFFFF) &&
-         (G.ecrec.num_disk_start_cdir != ecrec64_disk_cdstart) )
+    if ( ((*(Uz_Globs *)pG).ecrec.num_disk_start_cdir != 0xFFFF) &&
+         ((*(Uz_Globs *)pG).ecrec.num_disk_start_cdir != ecrec64_disk_cdstart) )
         return PK_COOL;
     ecrec64_this_entries
       = makeint64(&byterec[NUM_ENTRIES_CEN_DIR_THS_DISK64]);
-    if ( (G.ecrec.num_entries_centrl_dir_ths_disk != 0xFFFF) &&
-         (G.ecrec.num_entries_centrl_dir_ths_disk != ecrec64_this_entries) )
+    if ( ((*(Uz_Globs *)pG).ecrec.num_entries_centrl_dir_ths_disk != 0xFFFF) &&
+         ((*(Uz_Globs *)pG).ecrec.num_entries_centrl_dir_ths_disk != ecrec64_this_entries) )
         return PK_COOL;
     ecrec64_tot_entries
       = makeint64(&byterec[TOTAL_ENTRIES_CENTRAL_DIR64]);
-    if ( (G.ecrec.total_entries_central_dir != 0xFFFF) &&
-         (G.ecrec.total_entries_central_dir != ecrec64_tot_entries) )
+    if ( ((*(Uz_Globs *)pG).ecrec.total_entries_central_dir != 0xFFFF) &&
+         ((*(Uz_Globs *)pG).ecrec.total_entries_central_dir != ecrec64_tot_entries) )
         return PK_COOL;
     ecrec64_cdirsize
       = makeint64(&byterec[SIZE_CENTRAL_DIRECTORY64]);
-    if ( (G.ecrec.size_central_directory != 0xFFFFFFFFL) &&
-         (G.ecrec.size_central_directory != ecrec64_cdirsize) )
+    if ( ((*(Uz_Globs *)pG).ecrec.size_central_directory != 0xFFFFFFFFL) &&
+         ((*(Uz_Globs *)pG).ecrec.size_central_directory != ecrec64_cdirsize) )
         return PK_COOL;
     ecrec64_offs_cdstart
       = makeint64(&byterec[OFFSET_START_CENTRAL_DIRECT64]);
-    if ( (G.ecrec.offset_start_central_directory != 0xFFFFFFFFL) &&
-         (G.ecrec.offset_start_central_directory != ecrec64_offs_cdstart) )
+    if ( ((*(Uz_Globs *)pG).ecrec.offset_start_central_directory != 0xFFFFFFFFL) &&
+         ((*(Uz_Globs *)pG).ecrec.offset_start_central_directory != ecrec64_offs_cdstart) )
         return PK_COOL;
 
     /* Now, we are (almost) sure that we have a Zip64 archive. */
-    G.ecrec.have_ecr64 = 1;
+    (*(Uz_Globs *)pG).ecrec.have_ecr64 = 1;
 
     /* Update the "end-of-central-dir offset" for later checks. */
-    G.real_ecrec_offset = ecrec64_start_offset;
+    (*(Uz_Globs *)pG).real_ecrec_offset = ecrec64_start_offset;
 
     /* Update all ecdir_rec data that are flagged to be invalid
        in Zip64 mode.  Set the ecrec64-mandatory flag when such a
        case is found. */
-    if (G.ecrec.number_this_disk == 0xFFFF) {
-      G.ecrec.number_this_disk = ecrec64_start_disk;
-      if (ecrec64_start_disk != 0xFFFF) G.ecrec.is_zip64_archive = TRUE;
+    if ((*(Uz_Globs *)pG).ecrec.number_this_disk == 0xFFFF) {
+      (*(Uz_Globs *)pG).ecrec.number_this_disk = ecrec64_start_disk;
+      if (ecrec64_start_disk != 0xFFFF) (*(Uz_Globs *)pG).ecrec.is_zip64_archive = TRUE;
     }
-    if (G.ecrec.num_disk_start_cdir == 0xFFFF) {
-      G.ecrec.num_disk_start_cdir = ecrec64_disk_cdstart;
-      if (ecrec64_disk_cdstart != 0xFFFF) G.ecrec.is_zip64_archive = TRUE;
+    if ((*(Uz_Globs *)pG).ecrec.num_disk_start_cdir == 0xFFFF) {
+      (*(Uz_Globs *)pG).ecrec.num_disk_start_cdir = ecrec64_disk_cdstart;
+      if (ecrec64_disk_cdstart != 0xFFFF) (*(Uz_Globs *)pG).ecrec.is_zip64_archive = TRUE;
     }
-    if (G.ecrec.num_entries_centrl_dir_ths_disk == 0xFFFF) {
-      G.ecrec.num_entries_centrl_dir_ths_disk = ecrec64_this_entries;
-      if (ecrec64_this_entries != 0xFFFF) G.ecrec.is_zip64_archive = TRUE;
+    if ((*(Uz_Globs *)pG).ecrec.num_entries_centrl_dir_ths_disk == 0xFFFF) {
+      (*(Uz_Globs *)pG).ecrec.num_entries_centrl_dir_ths_disk = ecrec64_this_entries;
+      if (ecrec64_this_entries != 0xFFFF) (*(Uz_Globs *)pG).ecrec.is_zip64_archive = TRUE;
     }
-    if (G.ecrec.total_entries_central_dir == 0xFFFF) {
-      G.ecrec.total_entries_central_dir = ecrec64_tot_entries;
-      if (ecrec64_tot_entries != 0xFFFF) G.ecrec.is_zip64_archive = TRUE;
+    if ((*(Uz_Globs *)pG).ecrec.total_entries_central_dir == 0xFFFF) {
+      (*(Uz_Globs *)pG).ecrec.total_entries_central_dir = ecrec64_tot_entries;
+      if (ecrec64_tot_entries != 0xFFFF) (*(Uz_Globs *)pG).ecrec.is_zip64_archive = TRUE;
     }
-    if (G.ecrec.size_central_directory == 0xFFFFFFFFL) {
-      G.ecrec.size_central_directory = ecrec64_cdirsize;
-      if (ecrec64_cdirsize != 0xFFFFFFFF) G.ecrec.is_zip64_archive = TRUE;
+    if ((*(Uz_Globs *)pG).ecrec.size_central_directory == 0xFFFFFFFFL) {
+      (*(Uz_Globs *)pG).ecrec.size_central_directory = ecrec64_cdirsize;
+      if (ecrec64_cdirsize != 0xFFFFFFFF) (*(Uz_Globs *)pG).ecrec.is_zip64_archive = TRUE;
     }
-    if (G.ecrec.offset_start_central_directory == 0xFFFFFFFFL) {
-      G.ecrec.offset_start_central_directory = ecrec64_offs_cdstart;
-      if (ecrec64_offs_cdstart != 0xFFFFFFFF) G.ecrec.is_zip64_archive = TRUE;
+    if ((*(Uz_Globs *)pG).ecrec.offset_start_central_directory == 0xFFFFFFFFL) {
+      (*(Uz_Globs *)pG).ecrec.offset_start_central_directory = ecrec64_offs_cdstart;
+      if (ecrec64_offs_cdstart != 0xFFFFFFFF) (*(Uz_Globs *)pG).ecrec.is_zip64_archive = TRUE;
     }
 
     return PK_COOL;
@@ -1391,8 +1391,8 @@ static int find_ecrec64(__G__ searchlen)         /* return PK-class error */
 /* Function find_ecrec() */
 /*************************/
 
-static int find_ecrec(__G__ searchlen)          /* return PK-class error */
-    __GDEF
+static int find_ecrec(pG, searchlen)          /* return PK-class error */
+    Uz_Globs *pG;
     zoff_t searchlen;
 {
     int found = FALSE;
@@ -1404,22 +1404,22 @@ static int find_ecrec(__G__ searchlen)          /* return PK-class error */
     Treat case of short zipfile separately.
   ---------------------------------------------------------------------------*/
 
-    if (G.ziplen <= INBUFSIZ) {
+    if ((*(Uz_Globs *)pG).ziplen <= INBUFSIZ) {
 #ifdef USE_STRM_INPUT
-        zfseeko(G.zipfd, 0L, SEEK_SET);
+        zfseeko((*(Uz_Globs *)pG).zipfd, 0L, SEEK_SET);
 #else /* !USE_STRM_INPUT */
-        zlseek(G.zipfd, 0L, SEEK_SET);
+        zlseek((*(Uz_Globs *)pG).zipfd, 0L, SEEK_SET);
 #endif /* ?USE_STRM_INPUT */
-        if ((G.incnt = read(G.zipfd,(char *)G.inbuf,(unsigned int)G.ziplen))
-            == (int)G.ziplen)
+        if (((*(Uz_Globs *)pG).incnt = read((*(Uz_Globs *)pG).zipfd,(char *)(*(Uz_Globs *)pG).inbuf,(unsigned int)(*(Uz_Globs *)pG).ziplen))
+            == (int)(*(Uz_Globs *)pG).ziplen)
 
             /* 'P' must be at least (ECREC_SIZE+4) bytes from end of zipfile */
-            for (G.inptr = G.inbuf+(int)G.ziplen-(ECREC_SIZE+4);
-                 G.inptr >= G.inbuf;
-                 --G.inptr) {
-                if ( (*G.inptr == (uch)0x50) &&         /* ASCII 'P' */
-                     !memcmp((char *)G.inptr, end_central_sig, 4)) {
-                    G.incnt -= (int)(G.inptr - G.inbuf);
+            for ((*(Uz_Globs *)pG).inptr = (*(Uz_Globs *)pG).inbuf+(int)(*(Uz_Globs *)pG).ziplen-(ECREC_SIZE+4);
+                 (*(Uz_Globs *)pG).inptr >= (*(Uz_Globs *)pG).inbuf;
+                 --(*(Uz_Globs *)pG).inptr) {
+                if ( (*(*(Uz_Globs *)pG).inptr == (uch)0x50) &&         /* ASCII 'P' */
+                     !memcmp((char *)(*(Uz_Globs *)pG).inptr, end_central_sig, 4)) {
+                    (*(Uz_Globs *)pG).incnt -= (int)((*(Uz_Globs *)pG).inptr - (*(Uz_Globs *)pG).inbuf);
                     found = TRUE;
                     break;
                 }
@@ -1435,7 +1435,7 @@ static int find_ecrec(__G__ searchlen)          /* return PK-class error */
 
     } else {
         found =
-          (rec_find(__G__ searchlen, end_central_sig, ECREC_SIZE) == 0
+          (rec_find(pG, searchlen, end_central_sig, ECREC_SIZE) == 0
            ? TRUE : FALSE);
     } /* end if (ziplen > INBUFSIZ) */
 
@@ -1446,7 +1446,7 @@ static int find_ecrec(__G__ searchlen)          /* return PK-class error */
 
     if (!found) {
         if (uO.qflag || uO.zipinfo_mode)
-            Info(slide, 0x401, ((char *)slide, "[%s]\n", G.zipfn));
+            Info(slide, 0x401, ((char *)slide, "[%s]\n", (*(Uz_Globs *)pG).zipfn));
         Info(slide, 0x401, ((char *)slide,
           LoadFarString(CentDirEndSigNotFound)));
         return PK_ERR;   /* failed */
@@ -1458,37 +1458,37 @@ static int find_ecrec(__G__ searchlen)          /* return PK-class error */
     compensation) by reading data into character array and copying to struct.
   ---------------------------------------------------------------------------*/
 
-    G.real_ecrec_offset = G.cur_zipfile_bufstart + (G.inptr-G.inbuf);
+    (*(Uz_Globs *)pG).real_ecrec_offset = (*(Uz_Globs *)pG).cur_zipfile_bufstart + ((*(Uz_Globs *)pG).inptr-(*(Uz_Globs *)pG).inbuf);
 #ifdef TEST
     printf("\n  found end-of-central-dir signature at offset %s (%sh)\n",
-      FmZofft(G.real_ecrec_offset, NULL, NULL),
-      FmZofft(G.real_ecrec_offset, FZOFFT_HEX_DOT_WID, "X"));
+      FmZofft((*(Uz_Globs *)pG).real_ecrec_offset, NULL, NULL),
+      FmZofft((*(Uz_Globs *)pG).real_ecrec_offset, FZOFFT_HEX_DOT_WID, "X"));
     printf("    from beginning of file; offset %d (%.4Xh) within block\n",
-      G.inptr-G.inbuf, G.inptr-G.inbuf);
+      (*(Uz_Globs *)pG).inptr-(*(Uz_Globs *)pG).inbuf, (*(Uz_Globs *)pG).inptr-(*(Uz_Globs *)pG).inbuf);
 #endif
 
-    if (readbuf(__G__ (char *)byterec, ECREC_SIZE+4) == 0)
+    if (readbuf(pG, (char *)byterec, ECREC_SIZE+4) == 0)
         return PK_EOF;
 
-    G.ecrec.number_this_disk =
+    (*(Uz_Globs *)pG).ecrec.number_this_disk =
       makeword(&byterec[NUMBER_THIS_DISK]);
-    G.ecrec.num_disk_start_cdir =
+    (*(Uz_Globs *)pG).ecrec.num_disk_start_cdir =
       makeword(&byterec[NUM_DISK_WITH_START_CEN_DIR]);
-    G.ecrec.num_entries_centrl_dir_ths_disk =
+    (*(Uz_Globs *)pG).ecrec.num_entries_centrl_dir_ths_disk =
       makeword(&byterec[NUM_ENTRIES_CEN_DIR_THS_DISK]);
-    G.ecrec.total_entries_central_dir =
+    (*(Uz_Globs *)pG).ecrec.total_entries_central_dir =
       makeword(&byterec[TOTAL_ENTRIES_CENTRAL_DIR]);
-    G.ecrec.size_central_directory =
+    (*(Uz_Globs *)pG).ecrec.size_central_directory =
       makelong(&byterec[SIZE_CENTRAL_DIRECTORY]);
-    G.ecrec.offset_start_central_directory =
+    (*(Uz_Globs *)pG).ecrec.offset_start_central_directory =
       makelong(&byterec[OFFSET_START_CENTRAL_DIRECTORY]);
-    G.ecrec.zipfile_comment_length =
+    (*(Uz_Globs *)pG).ecrec.zipfile_comment_length =
       makeword(&byterec[ZIPFILE_COMMENT_LENGTH]);
 
     /* Now, we have to read the archive comment, BEFORE the file pointer
        is moved away backwards to seek for a Zip64 ECLOC64 structure.
      */
-    if ( (error_in_archive = process_zip_cmmnt(__G)) > PK_WARN )
+    if ( (error_in_archive = process_zip_cmmnt(pG)) > PK_WARN )
         return error_in_archive;
 
     /* Next: Check for existence of Zip64 end-of-cent-dir locator
@@ -1502,7 +1502,7 @@ static int find_ecrec(__G__ searchlen)          /* return PK-class error */
        in the archive, so just check for that to see if this is a
        Zip64 archive.
      */
-    result = find_ecrec64(__G__ searchlen+76);
+    result = find_ecrec64(pG, searchlen+76);
         /* 76 bytes for zip64ec & zip64 locator */
     if (result != PK_COOL) {
         if (error_in_archive < result)
@@ -1510,15 +1510,15 @@ static int find_ecrec(__G__ searchlen)          /* return PK-class error */
         return error_in_archive;
     }
 
-    G.expect_ecrec_offset = G.ecrec.offset_start_central_directory +
-                            G.ecrec.size_central_directory;
+    (*(Uz_Globs *)pG).expect_ecrec_offset = (*(Uz_Globs *)pG).ecrec.offset_start_central_directory +
+                            (*(Uz_Globs *)pG).ecrec.size_central_directory;
 
 #ifndef NO_ZIPINFO
     if (uO.zipinfo_mode) {
         /* In ZipInfo mode, additional info about the data found in the
            end-of-central-directory areas is printed out.
          */
-        zi_end_central(__G);
+        zi_end_central(pG);
     }
 #endif
 
@@ -1534,8 +1534,8 @@ static int find_ecrec(__G__ searchlen)          /* return PK-class error */
 /* Function process_zip_cmmnt() */
 /********************************/
 
-static int process_zip_cmmnt(__G)       /* return PK-type error code */
-    __GDEF
+static int process_zip_cmmnt(pG)       /* return PK-type error code */
+    Uz_Globs *pG;
 {
     int error = PK_COOL;
 
@@ -1546,8 +1546,8 @@ static int process_zip_cmmnt(__G)       /* return PK-type error code */
 
 #ifdef WINDLL
     /* for comment button: */
-    if ((!G.fValidate) && (G.lpUserFunctions != NULL))
-       G.lpUserFunctions->cchComment = G.ecrec.zipfile_comment_length;
+    if ((!(*(Uz_Globs *)pG).fValidate) && ((*(Uz_Globs *)pG).lpUserFunctions != NULL))
+       (*(Uz_Globs *)pG).lpUserFunctions->cchComment = (*(Uz_Globs *)pG).ecrec.zipfile_comment_length;
 #endif /* WINDLL */
 
 #ifndef NO_ZIPINFO
@@ -1560,13 +1560,13 @@ static int process_zip_cmmnt(__G)       /* return PK-type error code */
             of this fact.)
           -------------------------------------------------------------------*/
 
-        if (!G.ecrec.zipfile_comment_length)
+        if (!(*(Uz_Globs *)pG).ecrec.zipfile_comment_length)
             Info(slide, 0, ((char *)slide, LoadFarString(NoZipfileComment)));
         else {
             Info(slide, 0, ((char *)slide, LoadFarString(ZipfileCommentDesc),
-              G.ecrec.zipfile_comment_length));
+              (*(Uz_Globs *)pG).ecrec.zipfile_comment_length));
             Info(slide, 0, ((char *)slide, LoadFarString(ZipfileCommBegin)));
-            if (do_string(__G__ G.ecrec.zipfile_comment_length, DISPLAY))
+            if (do_string(pG, (*(Uz_Globs *)pG).ecrec.zipfile_comment_length, DISPLAY))
                 error = PK_WARN;
             Info(slide, 0, ((char *)slide, LoadFarString(ZipfileCommEnd)));
             if (error)
@@ -1575,16 +1575,16 @@ static int process_zip_cmmnt(__G)       /* return PK-type error code */
         } /* endif (comment exists) */
 
     /* ZipInfo, non-verbose mode:  print zipfile comment only if requested */
-    } else if (G.ecrec.zipfile_comment_length &&
+    } else if ((*(Uz_Globs *)pG).ecrec.zipfile_comment_length &&
                (uO.zflag > 0) && uO.zipinfo_mode) {
-        if (do_string(__G__ G.ecrec.zipfile_comment_length, DISPLAY)) {
+        if (do_string(pG, (*(Uz_Globs *)pG).ecrec.zipfile_comment_length, DISPLAY)) {
             Info(slide, 0x401, ((char *)slide,
               LoadFarString(ZipfileCommTrunc1)));
             error = PK_WARN;
         }
     } else
 #endif /* !NO_ZIPINFO */
-    if ( G.ecrec.zipfile_comment_length &&
+    if ( (*(Uz_Globs *)pG).ecrec.zipfile_comment_length &&
          (uO.zflag > 0
 #ifndef WINDLL
           || (uO.zflag == 0
@@ -1598,7 +1598,7 @@ static int process_zip_cmmnt(__G)       /* return PK-type error code */
 #endif /* !WINDLL */
          ) )
     {
-        if (do_string(__G__ G.ecrec.zipfile_comment_length,
+        if (do_string(pG, (*(Uz_Globs *)pG).ecrec.zipfile_comment_length,
 #if (defined(SFX) && defined(CHEAP_SFX_AUTORUN))
 # ifndef NO_ZIPINFO
                       (oU.zipinfo_mode ? DISPLAY : CHECK_AUTORUN)
@@ -1616,8 +1616,8 @@ static int process_zip_cmmnt(__G)       /* return PK-type error code */
         }
     }
 #if (defined(SFX) && defined(CHEAP_SFX_AUTORUN))
-    else if (G.ecrec.zipfile_comment_length) {
-        if (do_string(__G__ G.ecrec.zipfile_comment_length, CHECK_AUTORUN_Q))
+    else if ((*(Uz_Globs *)pG).ecrec.zipfile_comment_length) {
+        if (do_string(pG, (*(Uz_Globs *)pG).ecrec.zipfile_comment_length, CHECK_AUTORUN_Q))
         {
             Info(slide, 0x401, ((char *)slide,
               LoadFarString(ZipfileCommTrunc1)));
@@ -1637,8 +1637,8 @@ static int process_zip_cmmnt(__G)       /* return PK-type error code */
 /* Function process_cdir_file_hdr() */
 /************************************/
 
-int process_cdir_file_hdr(__G)    /* return PK-type error code */
-    __GDEF
+int process_cdir_file_hdr(pG)    /* return PK-type error code */
+    Uz_Globs *pG;
 {
     int error;
 
@@ -1649,16 +1649,16 @@ int process_cdir_file_hdr(__G)    /* return PK-type error code */
     file is coming.
   ---------------------------------------------------------------------------*/
 
-    if ((error = get_cdir_ent(__G)) != 0)
+    if ((error = get_cdir_ent(pG)) != 0)
         return error;
 
-    G.pInfo->hostver = G.crec.version_made_by[0];
-    G.pInfo->hostnum = MIN(G.crec.version_made_by[1], NUM_HOSTS);
+    (*(Uz_Globs *)pG).pInfo->hostver = (*(Uz_Globs *)pG).crec.version_made_by[0];
+    (*(Uz_Globs *)pG).pInfo->hostnum = MIN((*(Uz_Globs *)pG).crec.version_made_by[1], NUM_HOSTS);
 /*  extnum = MIN(crec.version_needed_to_extract[1], NUM_HOSTS); */
 
-    G.pInfo->lcflag = 0;
+    (*(Uz_Globs *)pG).pInfo->lcflag = 0;
     if (uO.L_flag == 1)       /* name conversion for monocase systems */
-        switch (G.pInfo->hostnum) {
+        switch ((*(Uz_Globs *)pG).pInfo->hostnum) {
             case FS_FAT_:     /* PKZIP and zip -k store in uppercase */
             case CPM_:        /* like MS-DOS, right? */
             case VM_CMS_:     /* all caps? */
@@ -1668,7 +1668,7 @@ int process_cdir_file_hdr(__G)    /* return PK-type error code */
             case VMS_:        /* our Zip uses lowercase, but ASi's doesn't */
         /*  case Z_SYSTEM_:   ? */
         /*  case QDOS_:       ? */
-                G.pInfo->lcflag = 1;   /* convert filename to lowercase */
+                (*(Uz_Globs *)pG).pInfo->lcflag = 1;   /* convert filename to lowercase */
                 break;
 
             default:     /* AMIGA_, FS_HPFS_, FS_NTFS_, MAC_, UNIX_, ATARI_, */
@@ -1676,28 +1676,28 @@ int process_cdir_file_hdr(__G)    /* return PK-type error code */
                          /*  no conversion */
         }
     else if (uO.L_flag > 1)   /* let -LL force lower case for all names */
-        G.pInfo->lcflag = 1;
+        (*(Uz_Globs *)pG).pInfo->lcflag = 1;
 
     /* do Amigas (AMIGA_) also have volume labels? */
-    if (IS_VOLID(G.crec.external_file_attributes) &&
-        (G.pInfo->hostnum == FS_FAT_ || G.pInfo->hostnum == FS_HPFS_ ||
-         G.pInfo->hostnum == FS_NTFS_ || G.pInfo->hostnum == ATARI_))
+    if (IS_VOLID((*(Uz_Globs *)pG).crec.external_file_attributes) &&
+        ((*(Uz_Globs *)pG).pInfo->hostnum == FS_FAT_ || (*(Uz_Globs *)pG).pInfo->hostnum == FS_HPFS_ ||
+         (*(Uz_Globs *)pG).pInfo->hostnum == FS_NTFS_ || (*(Uz_Globs *)pG).pInfo->hostnum == ATARI_))
     {
-        G.pInfo->vollabel = TRUE;
-        G.pInfo->lcflag = 0;        /* preserve case of volume labels */
+        (*(Uz_Globs *)pG).pInfo->vollabel = TRUE;
+        (*(Uz_Globs *)pG).pInfo->lcflag = 0;        /* preserve case of volume labels */
     } else
-        G.pInfo->vollabel = FALSE;
+        (*(Uz_Globs *)pG).pInfo->vollabel = FALSE;
 
     /* this flag is needed to detect archives made by "PKZIP for Unix" when
        deciding which kind of codepage conversion has to be applied to
        strings (see do_string() function in fileio.c) */
-    G.pInfo->HasUxAtt = (G.crec.external_file_attributes & 0xffff0000L) != 0L;
+    (*(Uz_Globs *)pG).pInfo->HasUxAtt = ((*(Uz_Globs *)pG).crec.external_file_attributes & 0xffff0000L) != 0L;
 
 #ifdef UNICODE_SUPPORT
     /* remember the state of GPB11 (General Purpuse Bit 11) which indicates
        that the standard path and comment are UTF-8. */
-    G.pInfo->GPFIsUTF8
-        = (G.crec.general_purpose_bit_flag & (1 << 11)) == (1 << 11);
+    (*(Uz_Globs *)pG).pInfo->GPFIsUTF8
+        = ((*(Uz_Globs *)pG).crec.general_purpose_bit_flag & (1 << 11)) == (1 << 11);
 #endif
 
     return PK_COOL;
@@ -1712,8 +1712,8 @@ int process_cdir_file_hdr(__G)    /* return PK-type error code */
 /* Function get_cdir_ent() */
 /***************************/
 
-static int get_cdir_ent(__G)    /* return PK-type error code */
-    __GDEF
+static int get_cdir_ent(pG)    /* return PK-type error code */
+    Uz_Globs *pG;
 {
     cdir_byte_hdr byterec;
 
@@ -1725,41 +1725,41 @@ static int get_cdir_ent(__G)    /* return PK-type error code */
     usable struct (crec)).
   ---------------------------------------------------------------------------*/
 
-    if (readbuf(__G__ (char *)byterec, CREC_SIZE) == 0)
+    if (readbuf(pG, (char *)byterec, CREC_SIZE) == 0)
         return PK_EOF;
 
-    G.crec.version_made_by[0] = byterec[C_VERSION_MADE_BY_0];
-    G.crec.version_made_by[1] = byterec[C_VERSION_MADE_BY_1];
-    G.crec.version_needed_to_extract[0] =
+    (*(Uz_Globs *)pG).crec.version_made_by[0] = byterec[C_VERSION_MADE_BY_0];
+    (*(Uz_Globs *)pG).crec.version_made_by[1] = byterec[C_VERSION_MADE_BY_1];
+    (*(Uz_Globs *)pG).crec.version_needed_to_extract[0] =
       byterec[C_VERSION_NEEDED_TO_EXTRACT_0];
-    G.crec.version_needed_to_extract[1] =
+    (*(Uz_Globs *)pG).crec.version_needed_to_extract[1] =
       byterec[C_VERSION_NEEDED_TO_EXTRACT_1];
 
-    G.crec.general_purpose_bit_flag =
+    (*(Uz_Globs *)pG).crec.general_purpose_bit_flag =
       makeword(&byterec[C_GENERAL_PURPOSE_BIT_FLAG]);
-    G.crec.compression_method =
+    (*(Uz_Globs *)pG).crec.compression_method =
       makeword(&byterec[C_COMPRESSION_METHOD]);
-    G.crec.last_mod_dos_datetime =
+    (*(Uz_Globs *)pG).crec.last_mod_dos_datetime =
       makelong(&byterec[C_LAST_MOD_DOS_DATETIME]);
-    G.crec.crc32 =
+    (*(Uz_Globs *)pG).crec.crc32 =
       makelong(&byterec[C_CRC32]);
-    G.crec.csize =
+    (*(Uz_Globs *)pG).crec.csize =
       makelong(&byterec[C_COMPRESSED_SIZE]);
-    G.crec.ucsize =
+    (*(Uz_Globs *)pG).crec.ucsize =
       makelong(&byterec[C_UNCOMPRESSED_SIZE]);
-    G.crec.filename_length =
+    (*(Uz_Globs *)pG).crec.filename_length =
       makeword(&byterec[C_FILENAME_LENGTH]);
-    G.crec.extra_field_length =
+    (*(Uz_Globs *)pG).crec.extra_field_length =
       makeword(&byterec[C_EXTRA_FIELD_LENGTH]);
-    G.crec.file_comment_length =
+    (*(Uz_Globs *)pG).crec.file_comment_length =
       makeword(&byterec[C_FILE_COMMENT_LENGTH]);
-    G.crec.disk_number_start =
+    (*(Uz_Globs *)pG).crec.disk_number_start =
       makeword(&byterec[C_DISK_NUMBER_START]);
-    G.crec.internal_file_attributes =
+    (*(Uz_Globs *)pG).crec.internal_file_attributes =
       makeword(&byterec[C_INTERNAL_FILE_ATTRIBUTES]);
-    G.crec.external_file_attributes =
+    (*(Uz_Globs *)pG).crec.external_file_attributes =
       makelong(&byterec[C_EXTERNAL_FILE_ATTRIBUTES]);  /* LONG, not word! */
-    G.crec.relative_offset_local_header =
+    (*(Uz_Globs *)pG).crec.relative_offset_local_header =
       makelong(&byterec[C_RELATIVE_OFFSET_LOCAL_HEADER]);
 
     return PK_COOL;
@@ -1774,8 +1774,8 @@ static int get_cdir_ent(__G)    /* return PK-type error code */
 /* Function process_local_file_hdr() */
 /*************************************/
 
-int process_local_file_hdr(__G)    /* return PK-type error code */
-    __GDEF
+int process_local_file_hdr(pG)    /* return PK-type error code */
+    Uz_Globs *pG;
 {
     local_byte_hdr byterec;
 
@@ -1787,32 +1787,32 @@ int process_local_file_hdr(__G)    /* return PK-type error code */
     usable struct (lrec)).
   ---------------------------------------------------------------------------*/
 
-    if (readbuf(__G__ (char *)byterec, LREC_SIZE) == 0)
+    if (readbuf(pG, (char *)byterec, LREC_SIZE) == 0)
         return PK_EOF;
 
-    G.lrec.version_needed_to_extract[0] =
+    (*(Uz_Globs *)pG).lrec.version_needed_to_extract[0] =
       byterec[L_VERSION_NEEDED_TO_EXTRACT_0];
-    G.lrec.version_needed_to_extract[1] =
+    (*(Uz_Globs *)pG).lrec.version_needed_to_extract[1] =
       byterec[L_VERSION_NEEDED_TO_EXTRACT_1];
 
-    G.lrec.general_purpose_bit_flag =
+    (*(Uz_Globs *)pG).lrec.general_purpose_bit_flag =
       makeword(&byterec[L_GENERAL_PURPOSE_BIT_FLAG]);
-    G.lrec.compression_method = makeword(&byterec[L_COMPRESSION_METHOD]);
-    G.lrec.last_mod_dos_datetime = makelong(&byterec[L_LAST_MOD_DOS_DATETIME]);
-    G.lrec.crc32 = makelong(&byterec[L_CRC32]);
-    G.lrec.csize = makelong(&byterec[L_COMPRESSED_SIZE]);
-    G.lrec.ucsize = makelong(&byterec[L_UNCOMPRESSED_SIZE]);
-    G.lrec.filename_length = makeword(&byterec[L_FILENAME_LENGTH]);
-    G.lrec.extra_field_length = makeword(&byterec[L_EXTRA_FIELD_LENGTH]);
+    (*(Uz_Globs *)pG).lrec.compression_method = makeword(&byterec[L_COMPRESSION_METHOD]);
+    (*(Uz_Globs *)pG).lrec.last_mod_dos_datetime = makelong(&byterec[L_LAST_MOD_DOS_DATETIME]);
+    (*(Uz_Globs *)pG).lrec.crc32 = makelong(&byterec[L_CRC32]);
+    (*(Uz_Globs *)pG).lrec.csize = makelong(&byterec[L_COMPRESSED_SIZE]);
+    (*(Uz_Globs *)pG).lrec.ucsize = makelong(&byterec[L_UNCOMPRESSED_SIZE]);
+    (*(Uz_Globs *)pG).lrec.filename_length = makeword(&byterec[L_FILENAME_LENGTH]);
+    (*(Uz_Globs *)pG).lrec.extra_field_length = makeword(&byterec[L_EXTRA_FIELD_LENGTH]);
 
-    if ((G.lrec.general_purpose_bit_flag & 8) != 0) {
+    if (((*(Uz_Globs *)pG).lrec.general_purpose_bit_flag & 8) != 0) {
         /* can't trust local header, use central directory: */
-        G.lrec.crc32 = G.pInfo->crc;
-        G.lrec.csize = G.pInfo->compr_size;
-        G.lrec.ucsize = G.pInfo->uncompr_size;
+        (*(Uz_Globs *)pG).lrec.crc32 = (*(Uz_Globs *)pG).pInfo->crc;
+        (*(Uz_Globs *)pG).lrec.csize = (*(Uz_Globs *)pG).pInfo->compr_size;
+        (*(Uz_Globs *)pG).lrec.ucsize = (*(Uz_Globs *)pG).pInfo->uncompr_size;
     }
 
-    G.csize = G.lrec.csize;
+    (*(Uz_Globs *)pG).csize = (*(Uz_Globs *)pG).lrec.csize;
 
     return PK_COOL;
 
@@ -1823,8 +1823,8 @@ int process_local_file_hdr(__G)    /* return PK-type error code */
 /* Function getZip64Data() */
 /*******************************/
 
-int getZip64Data(__G__ ef_buf, ef_len)
-    __GDEF
+int getZip64Data(pG, ef_buf, ef_len)
+    Uz_Globs *pG;
     const uch *ef_buf; /* buffer containing extra field */
     unsigned ef_len;    /* total length of extra field */
 {
@@ -1860,21 +1860,21 @@ int getZip64Data(__G__ ef_buf, ef_len)
 
           int offset = EB_HEADSIZE;
 
-          if (G.crec.ucsize == 0xffffffff || G.lrec.ucsize == 0xffffffff){
-            G.lrec.ucsize = G.crec.ucsize = makeint64(offset + ef_buf);
-            offset += sizeof(G.crec.ucsize);
+          if ((*(Uz_Globs *)pG).crec.ucsize == 0xffffffff || (*(Uz_Globs *)pG).lrec.ucsize == 0xffffffff){
+            (*(Uz_Globs *)pG).lrec.ucsize = (*(Uz_Globs *)pG).crec.ucsize = makeint64(offset + ef_buf);
+            offset += sizeof((*(Uz_Globs *)pG).crec.ucsize);
           }
-          if (G.crec.csize == 0xffffffff || G.lrec.csize == 0xffffffff){
-            G.csize = G.lrec.csize = G.crec.csize = makeint64(offset + ef_buf);
-            offset += sizeof(G.crec.csize);
+          if ((*(Uz_Globs *)pG).crec.csize == 0xffffffff || (*(Uz_Globs *)pG).lrec.csize == 0xffffffff){
+            (*(Uz_Globs *)pG).csize = (*(Uz_Globs *)pG).lrec.csize = (*(Uz_Globs *)pG).crec.csize = makeint64(offset + ef_buf);
+            offset += sizeof((*(Uz_Globs *)pG).crec.csize);
           }
-          if (G.crec.relative_offset_local_header == 0xffffffff){
-            G.crec.relative_offset_local_header = makeint64(offset + ef_buf);
-            offset += sizeof(G.crec.relative_offset_local_header);
+          if ((*(Uz_Globs *)pG).crec.relative_offset_local_header == 0xffffffff){
+            (*(Uz_Globs *)pG).crec.relative_offset_local_header = makeint64(offset + ef_buf);
+            offset += sizeof((*(Uz_Globs *)pG).crec.relative_offset_local_header);
           }
-          if (G.crec.disk_number_start == 0xffff){
-            G.crec.disk_number_start = (zuvl_t)makelong(offset + ef_buf);
-            offset += sizeof(G.crec.disk_number_start);
+          if ((*(Uz_Globs *)pG).crec.disk_number_start == 0xffff){
+            (*(Uz_Globs *)pG).crec.disk_number_start = (zuvl_t)makelong(offset + ef_buf);
+            offset += sizeof((*(Uz_Globs *)pG).crec.disk_number_start);
           }
         }
 
@@ -1893,8 +1893,8 @@ int getZip64Data(__G__ ef_buf, ef_len)
 /* Function getUnicodeData() */
 /*******************************/
 
-int getUnicodeData(__G__ ef_buf, ef_len)
-    __GDEF
+int getUnicodeData(pG, ef_buf, ef_len)
+    Uz_Globs *pG;
     const uch *ef_buf; /* buffer containing extra field */
     unsigned ef_len;    /* total length of extra field */
 {
@@ -1905,14 +1905,14 @@ int getUnicodeData(__G__ ef_buf, ef_len)
     This function scans the extra field for Unicode information, ie UTF-8
     path extra fields.
 
-    On return, G.unipath_filename =
+    On return, (*(Uz_Globs *)pG).unipath_filename =
         NULL, if no Unicode path extra field or error
         "", if the standard path is UTF-8 (free when done)
         null-terminated UTF-8 path (free when done)
     Return PK_COOL if no error.
   ---------------------------------------------------------------------------*/
 
-    G.unipath_filename = NULL;
+    (*(Uz_Globs *)pG).unipath_filename = NULL;
 
     if (ef_len == 0 || ef_buf == NULL)
         return PK_COOL;
@@ -1938,9 +1938,9 @@ int getUnicodeData(__G__ ef_buf, ef_len)
           ulg chksum = CRCVAL_INITIAL;
 
           /* version */
-          G.unipath_version = (uch) *(offset + ef_buf);
+          (*(Uz_Globs *)pG).unipath_version = (uch) *(offset + ef_buf);
           offset += 1;
-          if (G.unipath_version > 1) {
+          if ((*(Uz_Globs *)pG).unipath_version > 1) {
             /* can do only version 1 */
             Info(slide, 0x401, ((char *)slide,
               LoadFarString(UnicodeVersionError)));
@@ -1948,43 +1948,43 @@ int getUnicodeData(__G__ ef_buf, ef_len)
           }
 
           /* filename CRC */
-          G.unipath_checksum = makelong(offset + ef_buf);
+          (*(Uz_Globs *)pG).unipath_checksum = makelong(offset + ef_buf);
           offset += 4;
 
           /*
            * Compute 32-bit crc
            */
 
-          chksum = crc32(chksum, (uch *)(G.filename_full),
-                         strlen(G.filename_full));
+          chksum = crc32(chksum, (uch *)((*(Uz_Globs *)pG).filename_full),
+                         strlen((*(Uz_Globs *)pG).filename_full));
 
           /* If the checksums's don't match then likely filename has been
            * modified and the Unicode Path is no longer valid.
            */
-          if (chksum != G.unipath_checksum) {
+          if (chksum != (*(Uz_Globs *)pG).unipath_checksum) {
             Info(slide, 0x401, ((char *)slide,
               LoadFarString(UnicodeMismatchError)));
-            if (G.unicode_mismatch == 1) {
+            if ((*(Uz_Globs *)pG).unicode_mismatch == 1) {
               /* warn and continue */
-            } else if (G.unicode_mismatch == 2) {
+            } else if ((*(Uz_Globs *)pG).unicode_mismatch == 2) {
               /* ignore and continue */
-            } else if (G.unicode_mismatch == 0) {
+            } else if ((*(Uz_Globs *)pG).unicode_mismatch == 0) {
             }
             return PK_ERR;
           }
 
           /* UTF-8 Path */
-          if ((G.unipath_filename = malloc(ULen + 1)) == NULL) {
+          if (((*(Uz_Globs *)pG).unipath_filename = malloc(ULen + 1)) == NULL) {
             return PK_ERR;
           }
           if (ULen == 0) {
             /* standard path is UTF-8 so use that */
-            G.unipath_filename[0] = '\0';
+            (*(Uz_Globs *)pG).unipath_filename[0] = '\0';
           } else {
             /* UTF-8 path */
-            strncpy(G.unipath_filename,
+            strncpy((*(Uz_Globs *)pG).unipath_filename,
                     (const char *)(offset + ef_buf), ULen);
-            G.unipath_filename[ULen] = '\0';
+            (*(Uz_Globs *)pG).unipath_filename[ULen] = '\0';
           }
         }
 

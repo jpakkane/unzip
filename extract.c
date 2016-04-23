@@ -84,23 +84,23 @@
     } \
 }
 
-static int store_info OF((__GPRO));
+static int store_info OF((Uz_Globs *pG));
 #ifdef SET_DIR_ATTRIB
-static int extract_or_test_entrylist OF((__GPRO__ unsigned numchunk,
+static int extract_or_test_entrylist OF((Uz_Globs *pG, unsigned numchunk,
                 ulg *pfilnum, ulg *pnum_bad_pwd, zoff_t *pold_extra_bytes,
                 unsigned *pnum_dirs, direntry **pdirlist,
                 int error_in_archive));
 #else
-static int extract_or_test_entrylist OF((__GPRO__ unsigned numchunk,
+static int extract_or_test_entrylist OF((Uz_Globs *pG, unsigned numchunk,
                 ulg *pfilnum, ulg *pnum_bad_pwd, zoff_t *pold_extra_bytes,
                 int error_in_archive));
 #endif
-static int extract_or_test_member OF((__GPRO));
+static int extract_or_test_member OF((Uz_Globs *pG));
 #ifndef SFX
-   static int TestExtraField OF((__GPRO__ uch *ef, unsigned ef_len));
-   static int test_compr_eb OF((__GPRO__ uch *eb, unsigned eb_size,
+   static int TestExtraField OF((Uz_Globs *pG, uch *ef, unsigned ef_len));
+   static int test_compr_eb OF((Uz_Globs *pG, uch *eb, unsigned eb_size,
         unsigned compr_offset,
-        int (*test_uc_ebdata)(__GPRO__ uch *eb, unsigned eb_size,
+        int (*test_uc_ebdata)(Uz_Globs *pG, uch *eb, unsigned eb_size,
                               uch *eb_ucptr, ulg eb_ucsize)));
 #endif
 #if (defined(VMS) || defined(VMS_TEXT_CONV))
@@ -108,7 +108,7 @@ static int extract_or_test_member OF((__GPRO));
                                    const uch *bitptr));
 #endif
 #ifdef SYMLINKS
-   static void set_deferred_symlink OF((__GPRO__ slinkentry *slnk_entry));
+   static void set_deferred_symlink OF((Uz_Globs *pG, slinkentry *slnk_entry));
 #endif
 #ifdef SET_DIR_ATTRIB
    static int Cdecl dircomp OF((const void *a, const void *b));
@@ -328,8 +328,8 @@ static const char BadExtraFieldCRC[] =
 /*  Function extract_or_test_files()  */
 /**************************************/
 
-int extract_or_test_files(__G)    /* return PK-type error code */
-     __GDEF
+int extract_or_test_files(pG)    /* return PK-type error code */
+     Uz_Globs *pG;
 {
     unsigned i, j;
     zoff_t cd_bufstart;
@@ -365,9 +365,9 @@ int extract_or_test_files(__G)    /* return PK-type error code */
 
 #if (!defined(SFX) || defined(SFX_EXDIR))
     /* b) check out if specified extraction root directory exists */
-    if (uO.exdir != (char *)NULL && G.extract_flag) {
-        G.create_dirs = !uO.fflag;
-        if ((error = checkdir(__G__ uO.exdir, ROOT)) > MPN_INF_SKIP) {
+    if (uO.exdir != (char *)NULL && (*(Uz_Globs *)pG).extract_flag) {
+        (*(Uz_Globs *)pG).create_dirs = !uO.fflag;
+        if ((error = checkdir(pG, uO.exdir, ROOT)) > MPN_INF_SKIP) {
             /* out of memory, or file in way */
             return (error == MPN_NOMEM ? PK_MEM : PK_ERR);
         }
@@ -393,23 +393,23 @@ int extract_or_test_files(__G)    /* return PK-type error code */
     since we know the offset of each from the beginning of the zipfile.
   ---------------------------------------------------------------------------*/
 
-    G.pInfo = G.info;
+    (*(Uz_Globs *)pG).pInfo = (*(Uz_Globs *)pG).info;
 
 #if CRYPT
-    G.newzip = TRUE;
+    (*(Uz_Globs *)pG).newzip = TRUE;
 #endif
 #ifndef SFX
-    G.reported_backslash = FALSE;
+    (*(Uz_Globs *)pG).reported_backslash = FALSE;
 #endif
 
     /* malloc space for check on unmatched filespecs (OK if one or both NULL) */
-    if (G.filespecs > 0  &&
-        (fn_matched=(int *)malloc(G.filespecs*sizeof(int))) != (int *)NULL)
-        for (i = 0;  i < G.filespecs;  ++i)
+    if ((*(Uz_Globs *)pG).filespecs > 0  &&
+        (fn_matched=(int *)malloc((*(Uz_Globs *)pG).filespecs*sizeof(int))) != (int *)NULL)
+        for (i = 0;  i < (*(Uz_Globs *)pG).filespecs;  ++i)
             fn_matched[i] = FALSE;
-    if (G.xfilespecs > 0  &&
-        (xn_matched=(int *)malloc(G.xfilespecs*sizeof(int))) != (int *)NULL)
-        for (i = 0;  i < G.xfilespecs;  ++i)
+    if ((*(Uz_Globs *)pG).xfilespecs > 0  &&
+        (xn_matched=(int *)malloc((*(Uz_Globs *)pG).xfilespecs*sizeof(int))) != (int *)NULL)
+        for (i = 0;  i < (*(Uz_Globs *)pG).xfilespecs;  ++i)
             xn_matched[i] = FALSE;
 
 /*---------------------------------------------------------------------------
@@ -429,7 +429,7 @@ int extract_or_test_files(__G)    /* return PK-type error code */
     while (!reached_end) {
         j = 0;
 #ifdef AMIGA
-        memzero(G.filenotes, DIR_BLKSIZ * sizeof(char *));
+        memzero((*(Uz_Globs *)pG).filenotes, DIR_BLKSIZ * sizeof(char *));
 #endif
 
         /*
@@ -439,31 +439,31 @@ int extract_or_test_files(__G)    /* return PK-type error code */
          */
 
         while ((j < DIR_BLKSIZ)) {
-            G.pInfo = &G.info[j];
+            (*(Uz_Globs *)pG).pInfo = &(*(Uz_Globs *)pG).info[j];
 
-            if (readbuf(__G__ G.sig, 4) == 0) {
+            if (readbuf(pG, (*(Uz_Globs *)pG).sig, 4) == 0) {
                 error_in_archive = PK_EOF;
                 reached_end = TRUE;     /* ...so no more left to do */
                 break;
             }
-            if (memcmp(G.sig, central_hdr_sig, 4)) {  /* is it a new entry? */
+            if (memcmp((*(Uz_Globs *)pG).sig, central_hdr_sig, 4)) {  /* is it a new entry? */
                 /* no new central directory entry
                  * -> is the number of processed entries compatible with the
                  *    number of entries as stored in the end_central record?
                  */
                 if ((members_processed
-                     & (G.ecrec.have_ecr64 ? MASK_ZUCN64 : MASK_ZUCN16))
-                    == G.ecrec.total_entries_central_dir) {
+                     & ((*(Uz_Globs *)pG).ecrec.have_ecr64 ? MASK_ZUCN64 : MASK_ZUCN16))
+                    == (*(Uz_Globs *)pG).ecrec.total_entries_central_dir) {
 #ifndef SFX
                     /* yes, so look if we ARE back at the end_central record
                      */
                     no_endsig_found =
-                      ( (memcmp(G.sig,
-                                (G.ecrec.have_ecr64 ?
+                      ( (memcmp((*(Uz_Globs *)pG).sig,
+                                ((*(Uz_Globs *)pG).ecrec.have_ecr64 ?
                                  end_central64_sig : end_central_sig),
                                 4) != 0)
-                       && (!G.ecrec.is_zip64_archive)
-                       && (memcmp(G.sig, end_central_sig, 4) != 0)
+                       && (!(*(Uz_Globs *)pG).ecrec.is_zip64_archive)
+                       && (memcmp((*(Uz_Globs *)pG).sig, end_central_sig, 4) != 0)
                       );
 #endif /* !SFX */
                 } else {
@@ -480,12 +480,12 @@ int extract_or_test_files(__G)    /* return PK-type error code */
                 break;
             }
             /* process_cdir_file_hdr() sets pInfo->hostnum, pInfo->lcflag */
-            if ((error = process_cdir_file_hdr(__G)) != PK_COOL) {
+            if ((error = process_cdir_file_hdr(pG)) != PK_COOL) {
                 error_in_archive = error;   /* only PK_EOF defined */
                 reached_end = TRUE;     /* ...so no more left to do */
                 break;
             }
-            if ((error = do_string(__G__ G.crec.filename_length, DS_FN)) !=
+            if ((error = do_string(pG, (*(Uz_Globs *)pG).crec.filename_length, DS_FN)) !=
                  PK_COOL)
             {
                 if (error > error_in_archive)
@@ -493,12 +493,12 @@ int extract_or_test_files(__G)    /* return PK-type error code */
                 if (error > PK_WARN) {  /* fatal:  no more left to do */
                     Info(slide, 0x401, ((char *)slide,
                       LoadFarString(FilNamMsg),
-                      FnFilter1(G.filename), "central"));
+                      FnFilter1((*(Uz_Globs *)pG).filename), "central"));
                     reached_end = TRUE;
                     break;
                 }
             }
-            if ((error = do_string(__G__ G.crec.extra_field_length,
+            if ((error = do_string(pG, (*(Uz_Globs *)pG).crec.extra_field_length,
                 EXTRA_FIELD)) != 0)
             {
                 if (error > error_in_archive)
@@ -506,17 +506,17 @@ int extract_or_test_files(__G)    /* return PK-type error code */
                 if (error > PK_WARN) {  /* fatal */
                     Info(slide, 0x401, ((char *)slide,
                       LoadFarString(ExtFieldMsg),
-                      FnFilter1(G.filename), "central"));
+                      FnFilter1((*(Uz_Globs *)pG).filename), "central"));
                     reached_end = TRUE;
                     break;
                 }
             }
 #ifdef AMIGA
-            G.filenote_slot = j;
-            if ((error = do_string(__G__ G.crec.file_comment_length,
+            (*(Uz_Globs *)pG).filenote_slot = j;
+            if ((error = do_string(pG, (*(Uz_Globs *)pG).crec.file_comment_length,
                                    uO.N_flag ? FILENOTE : SKIP)) != PK_COOL)
 #else
-            if ((error = do_string(__G__ G.crec.file_comment_length, SKIP))
+            if ((error = do_string(pG, (*(Uz_Globs *)pG).crec.file_comment_length, SKIP))
                 != PK_COOL)
 #endif
             {
@@ -525,25 +525,25 @@ int extract_or_test_files(__G)    /* return PK-type error code */
                 if (error > PK_WARN) {  /* fatal */
                     Info(slide, 0x421, ((char *)slide,
                       LoadFarString(BadFileCommLength),
-                      FnFilter1(G.filename)));
+                      FnFilter1((*(Uz_Globs *)pG).filename)));
                     reached_end = TRUE;
                     break;
                 }
             }
-            if (G.process_all_files) {
-                if (store_info(__G))
+            if ((*(Uz_Globs *)pG).process_all_files) {
+                if (store_info(pG))
                     ++j;  /* file is OK; info[] stored; continue with next */
                 else
                     ++num_skipped;
             } else {
                 int   do_this_file;
 
-                if (G.filespecs == 0)
+                if ((*(Uz_Globs *)pG).filespecs == 0)
                     do_this_file = TRUE;
                 else {  /* check if this entry matches an `include' argument */
                     do_this_file = FALSE;
-                    for (i = 0; i < G.filespecs; i++)
-                        if (match(G.filename, G.pfnames[i], uO.C_flag WISEP)) {
+                    for (i = 0; i < (*(Uz_Globs *)pG).filespecs; i++)
+                        if (match((*(Uz_Globs *)pG).filename, (*(Uz_Globs *)pG).pfnames[i], uO.C_flag WISEP)) {
                             do_this_file = TRUE;  /* ^-- ignore case or not? */
                             if (fn_matched)
                                 fn_matched[i] = TRUE;
@@ -551,8 +551,8 @@ int extract_or_test_files(__G)    /* return PK-type error code */
                         }
                 }
                 if (do_this_file) {  /* check if this is an excluded file */
-                    for (i = 0; i < G.xfilespecs; i++)
-                        if (match(G.filename, G.pxnames[i], uO.C_flag WISEP)) {
+                    for (i = 0; i < (*(Uz_Globs *)pG).xfilespecs; i++)
+                        if (match((*(Uz_Globs *)pG).filename, (*(Uz_Globs *)pG).pxnames[i], uO.C_flag WISEP)) {
                             do_this_file = FALSE; /* ^-- ignore case or not? */
                             if (xn_matched)
                                 xn_matched[i] = TRUE;
@@ -560,7 +560,7 @@ int extract_or_test_files(__G)    /* return PK-type error code */
                         }
                 }
                 if (do_this_file) {
-                    if (store_info(__G))
+                    if (store_info(pG))
                         ++j;            /* file is OK */
                     else
                         ++num_skipped;  /* unsupp. compression or encryption */
@@ -572,16 +572,16 @@ int extract_or_test_files(__G)    /* return PK-type error code */
         } /* end while-loop (adding files to current block) */
 
         /* save position in central directory so can come back later */
-        cd_bufstart = G.cur_zipfile_bufstart;
-        cd_inptr = G.inptr;
-        cd_incnt = G.incnt;
+        cd_bufstart = (*(Uz_Globs *)pG).cur_zipfile_bufstart;
+        cd_inptr = (*(Uz_Globs *)pG).inptr;
+        cd_incnt = (*(Uz_Globs *)pG).incnt;
 
     /*-----------------------------------------------------------------------
         Second loop:  process files in current block, extracting or testing
         each one.
       -----------------------------------------------------------------------*/
 
-        error = extract_or_test_entrylist(__G__ j,
+        error = extract_or_test_entrylist(pG, j,
                         &filnum, &num_bad_pwd, &old_extra_bytes,
 #ifdef SET_DIR_ATTRIB
                         &num_dirs, &dirlist,
@@ -591,7 +591,7 @@ int extract_or_test_files(__G)    /* return PK-type error code */
             if (error > error_in_archive)
                 error_in_archive = error;
             /* ...and keep going (unless disk full or user break) */
-            if (G.disk_full > 1 || error_in_archive == IZ_CTRLC) {
+            if ((*(Uz_Globs *)pG).disk_full > 1 || error_in_archive == IZ_CTRLC) {
                 /* clear reached_end to signal premature stop ... */
                 reached_end = FALSE;
                 /* ... and cancel scanning the central directory */
@@ -606,23 +606,23 @@ int extract_or_test_files(__G)    /* return PK-type error code */
          */
 
 #ifdef USE_STRM_INPUT
-        zfseeko(G.zipfd, cd_bufstart, SEEK_SET);
-        G.cur_zipfile_bufstart = zftello(G.zipfd);
+        zfseeko((*(Uz_Globs *)pG).zipfd, cd_bufstart, SEEK_SET);
+        (*(Uz_Globs *)pG).cur_zipfile_bufstart = zftello((*(Uz_Globs *)pG).zipfd);
 #else /* !USE_STRM_INPUT */
-        G.cur_zipfile_bufstart =
-          zlseek(G.zipfd, cd_bufstart, SEEK_SET);
+        (*(Uz_Globs *)pG).cur_zipfile_bufstart =
+          zlseek((*(Uz_Globs *)pG).zipfd, cd_bufstart, SEEK_SET);
 #endif /* ?USE_STRM_INPUT */
-        read(G.zipfd, (char *)G.inbuf, INBUFSIZ);  /* been here before... */
-        G.inptr = cd_inptr;
-        G.incnt = cd_incnt;
+        read((*(Uz_Globs *)pG).zipfd, (char *)(*(Uz_Globs *)pG).inbuf, INBUFSIZ);  /* been here before... */
+        (*(Uz_Globs *)pG).inptr = cd_inptr;
+        (*(Uz_Globs *)pG).incnt = cd_incnt;
         ++blknum;
 
 #ifdef TEST
         printf("\ncd_bufstart = %ld (%.8lXh)\n", cd_bufstart, cd_bufstart);
         printf("cur_zipfile_bufstart = %ld (%.8lXh)\n", cur_zipfile_bufstart,
           cur_zipfile_bufstart);
-        printf("inptr-inbuf = %d\n", G.inptr-G.inbuf);
-        printf("incnt = %d\n\n", G.incnt);
+        printf("inptr-inbuf = %d\n", (*(Uz_Globs *)pG).inptr-(*(Uz_Globs *)pG).inbuf);
+        printf("incnt = %d\n\n", (*(Uz_Globs *)pG).incnt);
 #endif
 
     } /* end while-loop (blocks of files in central directory) */
@@ -633,17 +633,17 @@ int extract_or_test_files(__G)    /* return PK-type error code */
   ---------------------------------------------------------------------------*/
 
 #ifdef SYMLINKS
-    if (G.slink_last != NULL) {
+    if ((*(Uz_Globs *)pG).slink_last != NULL) {
         if (QCOND2)
             Info(slide, 0, ((char *)slide, LoadFarString(SymLnkDeferred)));
-        while (G.slink_head != NULL) {
-           set_deferred_symlink(__G__ G.slink_head);
+        while ((*(Uz_Globs *)pG).slink_head != NULL) {
+           set_deferred_symlink(pG, (*(Uz_Globs *)pG).slink_head);
            /* remove the processed entry from the chain and free its memory */
-           G.slink_last = G.slink_head;
-           G.slink_head = G.slink_last->next;
-           free(G.slink_last);
+           (*(Uz_Globs *)pG).slink_last = (*(Uz_Globs *)pG).slink_head;
+           (*(Uz_Globs *)pG).slink_head = (*(Uz_Globs *)pG).slink_last->next;
+           free((*(Uz_Globs *)pG).slink_last);
        }
-       G.slink_last = NULL;
+       (*(Uz_Globs *)pG).slink_last = NULL;
     }
 #endif /* SYMLINKS */
 
@@ -683,7 +683,7 @@ int extract_or_test_files(__G)    /* return PK-type error code */
                 direntry *d = sorted_dirlist[i];
 
                 Trace((stderr, "dir = %s\n", d->fn));
-                if ((error = set_direc_attribs(__G__ d)) != PK_OK) {
+                if ((error = set_direc_attribs(pG, d)) != PK_OK) {
                     ndirs_fail++;
                     Info(slide, 0x201, ((char *)slide,
                       LoadFarString(DirlistSetAttrFailed), d->fn));
@@ -709,17 +709,17 @@ int extract_or_test_files(__G)    /* return PK-type error code */
   ---------------------------------------------------------------------------*/
 
     if (fn_matched) {
-        if (reached_end) for (i = 0;  i < G.filespecs;  ++i)
+        if (reached_end) for (i = 0;  i < (*(Uz_Globs *)pG).filespecs;  ++i)
             if (!fn_matched[i]) {
 #ifdef DLL
-                if (!G.redirect_data && !G.redirect_text)
+                if (!(*(Uz_Globs *)pG).redirect_data && !(*(Uz_Globs *)pG).redirect_text)
                     Info(slide, 0x401, ((char *)slide,
-                      LoadFarString(FilenameNotMatched), G.pfnames[i]));
+                      LoadFarString(FilenameNotMatched), (*(Uz_Globs *)pG).pfnames[i]));
                 else
-                    setFileNotFound(__G);
+                    setFileNotFound(pG);
 #else
                 Info(slide, 1, ((char *)slide,
-                  LoadFarString(FilenameNotMatched), G.pfnames[i]));
+                  LoadFarString(FilenameNotMatched), (*(Uz_Globs *)pG).pfnames[i]));
 #endif
                 if (error_in_archive <= PK_WARN)
                     error_in_archive = PK_FIND;   /* some files not found */
@@ -727,10 +727,10 @@ int extract_or_test_files(__G)    /* return PK-type error code */
         free((void *)fn_matched);
     }
     if (xn_matched) {
-        if (reached_end) for (i = 0;  i < G.xfilespecs;  ++i)
+        if (reached_end) for (i = 0;  i < (*(Uz_Globs *)pG).xfilespecs;  ++i)
             if (!xn_matched[i])
                 Info(slide, 0x401, ((char *)slide,
-                  LoadFarString(ExclFilenameNotMatched), G.pxnames[i]));
+                  LoadFarString(ExclFilenameNotMatched), (*(Uz_Globs *)pG).pxnames[i]));
         free((void *)xn_matched);
     }
 
@@ -764,16 +764,16 @@ int extract_or_test_files(__G)    /* return PK-type error code */
         if (uO.qflag < 2) {        /* GRR 930710:  was (uO.qflag == 1) */
             if (error_in_archive)
                 Info(slide, 0, ((char *)slide, LoadFarString(ErrorInArchive),
-                  (error_in_archive == PK_WARN)? "warning-" : "", G.zipfn));
+                  (error_in_archive == PK_WARN)? "warning-" : "", (*(Uz_Globs *)pG).zipfn));
             else if (num == 0L)
                 Info(slide, 0, ((char *)slide, LoadFarString(ZeroFilesTested),
-                  G.zipfn));
-            else if (G.process_all_files && (num_skipped+num_bad_pwd == 0L))
+                  (*(Uz_Globs *)pG).zipfn));
+            else if ((*(Uz_Globs *)pG).process_all_files && (num_skipped+num_bad_pwd == 0L))
                 Info(slide, 0, ((char *)slide, LoadFarString(NoErrInCompData),
-                  G.zipfn));
+                  (*(Uz_Globs *)pG).zipfn));
             else
                 Info(slide, 0, ((char *)slide, LoadFarString(NoErrInTestedFiles)
-                  , G.zipfn, num, (num==1L)? "":"s"));
+                  , (*(Uz_Globs *)pG).zipfn, num, (num==1L)? "":"s"));
             if (num_skipped > 0L)
                 Info(slide, 0, ((char *)slide, LoadFarString(FilesSkipped),
                   num_skipped, (num_skipped==1L)? "":"s"));
@@ -817,29 +817,29 @@ int extract_or_test_files(__G)    /* return PK-type error code */
 /*  Function store_info()  */
 /***************************/
 
-static int store_info(__G)   /* return 0 if skipping, 1 if OK */
-    __GDEF
+static int store_info(pG)   /* return 0 if skipping, 1 if OK */
+    Uz_Globs *pG;
 {
 #ifdef USE_BZIP2
-#  define UNKN_BZ2 (G.crec.compression_method!=BZIPPED)
+#  define UNKN_BZ2 ((*(Uz_Globs *)pG).crec.compression_method!=BZIPPED)
 #else
 #  define UNKN_BZ2 TRUE       /* bzip2 unknown */
 #endif
 
 #ifdef USE_LZMA
-#  define UNKN_LZMA (G.crec.compression_method!=LZMAED)
+#  define UNKN_LZMA ((*(Uz_Globs *)pG).crec.compression_method!=LZMAED)
 #else
 #  define UNKN_LZMA TRUE      /* LZMA unknown */
 #endif
 
 #ifdef USE_WAVP
-#  define UNKN_WAVP (G.crec.compression_method!=WAVPACKED)
+#  define UNKN_WAVP ((*(Uz_Globs *)pG).crec.compression_method!=WAVPACKED)
 #else
 #  define UNKN_WAVP TRUE      /* WavPack unknown */
 #endif
 
 #ifdef USE_PPMD
-#  define UNKN_PPMD (G.crec.compression_method!=PPMDED)
+#  define UNKN_PPMD ((*(Uz_Globs *)pG).crec.compression_method!=PPMDED)
 #else
 #  define UNKN_PPMD TRUE      /* PPMd unknown */
 #endif
@@ -847,35 +847,35 @@ static int store_info(__G)   /* return 0 if skipping, 1 if OK */
 #ifdef SFX
 #  ifdef USE_DEFLATE64
 #    define UNKN_COMPR \
-     (G.crec.compression_method!=STORED && G.crec.compression_method<DEFLATED \
-      && G.crec.compression_method>ENHDEFLATED \
+     ((*(Uz_Globs *)pG).crec.compression_method!=STORED && (*(Uz_Globs *)pG).crec.compression_method<DEFLATED \
+      && (*(Uz_Globs *)pG).crec.compression_method>ENHDEFLATED \
       && UNKN_BZ2 && UNKN_LZMA && UNKN_WAVP && UNKN_PPMD)
 #  else
 #    define UNKN_COMPR \
-     (G.crec.compression_method!=STORED && G.crec.compression_method!=DEFLATED\
+     ((*(Uz_Globs *)pG).crec.compression_method!=STORED && (*(Uz_Globs *)pG).crec.compression_method!=DEFLATED\
       && UNKN_BZ2 && UNKN_LZMA && UNKN_WAVP && UNKN_PPMD)
 #  endif
 #else
 #  ifdef COPYRIGHT_CLEAN  /* no reduced files */
-#    define UNKN_RED (G.crec.compression_method >= REDUCED1 && \
-                      G.crec.compression_method <= REDUCED4)
+#    define UNKN_RED ((*(Uz_Globs *)pG).crec.compression_method >= REDUCED1 && \
+                      (*(Uz_Globs *)pG).crec.compression_method <= REDUCED4)
 #  else
 #    define UNKN_RED  FALSE  /* reducing not unknown */
 #  endif
 #  ifdef LZW_CLEAN  /* no shrunk files */
-#    define UNKN_SHR (G.crec.compression_method == SHRUNK)
+#    define UNKN_SHR ((*(Uz_Globs *)pG).crec.compression_method == SHRUNK)
 #  else
 #    define UNKN_SHR  FALSE  /* unshrinking not unknown */
 #  endif
 #  ifdef USE_DEFLATE64
 #    define UNKN_COMPR (UNKN_RED || UNKN_SHR || \
-     G.crec.compression_method==TOKENIZED || \
-     (G.crec.compression_method>ENHDEFLATED && UNKN_BZ2 && UNKN_LZMA \
+     (*(Uz_Globs *)pG).crec.compression_method==TOKENIZED || \
+     ((*(Uz_Globs *)pG).crec.compression_method>ENHDEFLATED && UNKN_BZ2 && UNKN_LZMA \
       && UNKN_WAVP && UNKN_PPMD))
 #  else
 #    define UNKN_COMPR (UNKN_RED || UNKN_SHR || \
-     G.crec.compression_method==TOKENIZED || \
-     (G.crec.compression_method>DEFLATED && UNKN_BZ2 && UNKN_LZMA \
+     (*(Uz_Globs *)pG).crec.compression_method==TOKENIZED || \
+     ((*(Uz_Globs *)pG).crec.compression_method>DEFLATED && UNKN_BZ2 && UNKN_LZMA \
       && UNKN_WAVP && UNKN_PPMD))
 #  endif
 #endif
@@ -891,51 +891,51 @@ static int store_info(__G)   /* return 0 if skipping, 1 if OK */
     Check central directory info for version/compatibility requirements.
   ---------------------------------------------------------------------------*/
 
-    G.pInfo->encrypted = G.crec.general_purpose_bit_flag & 1;   /* bit field */
-    G.pInfo->ExtLocHdr = (G.crec.general_purpose_bit_flag & 8) == 8;  /* bit */
-    G.pInfo->textfile = G.crec.internal_file_attributes & 1;    /* bit field */
-    G.pInfo->crc = G.crec.crc32;
-    G.pInfo->compr_size = G.crec.csize;
-    G.pInfo->uncompr_size = G.crec.ucsize;
+    (*(Uz_Globs *)pG).pInfo->encrypted = (*(Uz_Globs *)pG).crec.general_purpose_bit_flag & 1;   /* bit field */
+    (*(Uz_Globs *)pG).pInfo->ExtLocHdr = ((*(Uz_Globs *)pG).crec.general_purpose_bit_flag & 8) == 8;  /* bit */
+    (*(Uz_Globs *)pG).pInfo->textfile = (*(Uz_Globs *)pG).crec.internal_file_attributes & 1;    /* bit field */
+    (*(Uz_Globs *)pG).pInfo->crc = (*(Uz_Globs *)pG).crec.crc32;
+    (*(Uz_Globs *)pG).pInfo->compr_size = (*(Uz_Globs *)pG).crec.csize;
+    (*(Uz_Globs *)pG).pInfo->uncompr_size = (*(Uz_Globs *)pG).crec.ucsize;
 
     switch (uO.aflag) {
         case 0:
-            G.pInfo->textmode = FALSE;   /* bit field */
+            (*(Uz_Globs *)pG).pInfo->textmode = FALSE;   /* bit field */
             break;
         case 1:
-            G.pInfo->textmode = G.pInfo->textfile;   /* auto-convert mode */
+            (*(Uz_Globs *)pG).pInfo->textmode = (*(Uz_Globs *)pG).pInfo->textfile;   /* auto-convert mode */
             break;
         default:  /* case 2: */
-            G.pInfo->textmode = TRUE;
+            (*(Uz_Globs *)pG).pInfo->textmode = TRUE;
             break;
     }
 
-    if (G.crec.version_needed_to_extract[1] == VMS_) {
-        if (G.crec.version_needed_to_extract[0] > VMS_UNZIP_VERSION) {
+    if ((*(Uz_Globs *)pG).crec.version_needed_to_extract[1] == VMS_) {
+        if ((*(Uz_Globs *)pG).crec.version_needed_to_extract[0] > VMS_UNZIP_VERSION) {
             if (!((uO.tflag && uO.qflag) || (!uO.tflag && !QCOND2)))
                 Info(slide, 0x401, ((char *)slide, LoadFarString(VersionMsg),
-                  FnFilter1(G.filename), "VMS",
-                  G.crec.version_needed_to_extract[0] / 10,
-                  G.crec.version_needed_to_extract[0] % 10,
+                  FnFilter1((*(Uz_Globs *)pG).filename), "VMS",
+                  (*(Uz_Globs *)pG).crec.version_needed_to_extract[0] / 10,
+                  (*(Uz_Globs *)pG).crec.version_needed_to_extract[0] % 10,
                   VMS_UNZIP_VERSION / 10, VMS_UNZIP_VERSION % 10));
             return 0;
         }
 #ifndef VMS   /* won't be able to use extra field, but still have data */
         else if (!uO.tflag && !IS_OVERWRT_ALL) { /* if -o, extract anyway */
             Info(slide, 0x481, ((char *)slide, LoadFarString(VMSFormatQuery),
-              FnFilter1(G.filename)));
-            fgets(G.answerbuf, sizeof(G.answerbuf), stdin);
-            if ((*G.answerbuf != 'y') && (*G.answerbuf != 'Y'))
+              FnFilter1((*(Uz_Globs *)pG).filename)));
+            fgets((*(Uz_Globs *)pG).answerbuf, sizeof((*(Uz_Globs *)pG).answerbuf), stdin);
+            if ((*(*(Uz_Globs *)pG).answerbuf != 'y') && (*(*(Uz_Globs *)pG).answerbuf != 'Y'))
                 return 0;
         }
 #endif /* !VMS */
     /* usual file type:  don't need VMS to extract */
-    } else if (G.crec.version_needed_to_extract[0] > UNZVERS_SUPPORT) {
+    } else if ((*(Uz_Globs *)pG).crec.version_needed_to_extract[0] > UNZVERS_SUPPORT) {
         if (!((uO.tflag && uO.qflag) || (!uO.tflag && !QCOND2)))
             Info(slide, 0x401, ((char *)slide, LoadFarString(VersionMsg),
-              FnFilter1(G.filename), "PK",
-              G.crec.version_needed_to_extract[0] / 10,
-              G.crec.version_needed_to_extract[0] % 10,
+              FnFilter1((*(Uz_Globs *)pG).filename), "PK",
+              (*(Uz_Globs *)pG).crec.version_needed_to_extract[0] / 10,
+              (*(Uz_Globs *)pG).crec.version_needed_to_extract[0] % 10,
               UNZVERS_SUPPORT / 10, UNZVERS_SUPPORT % 10));
         return 0;
     }
@@ -945,42 +945,42 @@ static int store_info(__G)   /* return 0 if skipping, 1 if OK */
 #ifndef SFX
             unsigned cmpridx;
 
-            if ((cmpridx = find_compr_idx(G.crec.compression_method))
+            if ((cmpridx = find_compr_idx((*(Uz_Globs *)pG).crec.compression_method))
                 < NUM_METHODS)
                 Info(slide, 0x401, ((char *)slide, LoadFarString(ComprMsgName),
-                  FnFilter1(G.filename),
+                  FnFilter1((*(Uz_Globs *)pG).filename),
                   LoadFarStringSmall(ComprNames[cmpridx])));
             else
 #endif
                 Info(slide, 0x401, ((char *)slide, LoadFarString(ComprMsgNum),
-                  FnFilter1(G.filename),
-                  G.crec.compression_method));
+                  FnFilter1((*(Uz_Globs *)pG).filename),
+                  (*(Uz_Globs *)pG).crec.compression_method));
         }
         return 0;
     }
 #if (!CRYPT)
-    if (G.pInfo->encrypted) {
+    if ((*(Uz_Globs *)pG).pInfo->encrypted) {
         if (!((uO.tflag && uO.qflag) || (!uO.tflag && !QCOND2)))
             Info(slide, 0x401, ((char *)slide, LoadFarString(SkipEncrypted),
-              FnFilter1(G.filename)));
+              FnFilter1((*(Uz_Globs *)pG).filename)));
         return 0;
     }
 #endif /* !CRYPT */
 
 #ifndef SFX
     /* store a copy of the central header filename for later comparison */
-    if ((G.pInfo->cfilname = malloc(strlen(G.filename) + 1)) == NULL) {
+    if (((*(Uz_Globs *)pG).pInfo->cfilname = malloc(strlen((*(Uz_Globs *)pG).filename) + 1)) == NULL) {
         Info(slide, 0x401, ((char *)slide, LoadFarString(WarnNoMemCFName),
-          FnFilter1(G.filename)));
+          FnFilter1((*(Uz_Globs *)pG).filename)));
     } else
-        strcpy(G.pInfo->cfilname, G.filename);
+        strcpy((*(Uz_Globs *)pG).pInfo->cfilname, (*(Uz_Globs *)pG).filename);
 #endif /* !SFX */
 
     /* map whatever file attributes we have into the local format */
-    mapattr(__G);   /* GRR:  worry about return value later */
+    mapattr(pG);   /* GRR:  worry about return value later */
 
-    G.pInfo->diskstart = G.crec.disk_number_start;
-    G.pInfo->offset = (zoff_t)G.crec.relative_offset_local_header;
+    (*(Uz_Globs *)pG).pInfo->diskstart = (*(Uz_Globs *)pG).crec.disk_number_start;
+    (*(Uz_Globs *)pG).pInfo->offset = (zoff_t)(*(Uz_Globs *)pG).crec.relative_offset_local_header;
     return 1;
 
 } /* end function store_info() */
@@ -1014,13 +1014,13 @@ unsigned find_compr_idx(compr_methodnum)
 /*  Function extract_or_test_entrylist()  */
 /******************************************/
 
-static int extract_or_test_entrylist(__G__ numchunk,
+static int extract_or_test_entrylist(pG, numchunk,
                 pfilnum, pnum_bad_pwd, pold_extra_bytes,
 #ifdef SET_DIR_ATTRIB
                 pnum_dirs, pdirlist,
 #endif
                 error_in_archive)    /* return PK-type error code */
-    __GDEF
+    Uz_Globs *pG;
     unsigned numchunk;
     ulg *pfilnum;
     ulg *pnum_bad_pwd;
@@ -1049,14 +1049,14 @@ static int extract_or_test_entrylist(__G__ numchunk,
 
     for (i = 0; i < numchunk; ++i) {
         (*pfilnum)++;   /* *pfilnum = i + blknum*DIR_BLKSIZ + 1; */
-        G.pInfo = &G.info[i];
+        (*(Uz_Globs *)pG).pInfo = &(*(Uz_Globs *)pG).info[i];
 
         /* if the target position is not within the current input buffer
          * (either haven't yet read far enough, or (maybe) skipping back-
          * ward), skip to the target position and reset readbuf(). */
 
-        /* seek_zipf(__G__ pInfo->offset);  */
-        request = G.pInfo->offset + G.extra_bytes;
+        /* seek_zipf(pG, pInfo->offset);  */
+        request = (*(Uz_Globs *)pG).pInfo->offset + (*(Uz_Globs *)pG).extra_bytes;
         inbuf_offset = request % INBUFSIZ;
         bufstart = request - inbuf_offset;
 
@@ -1064,31 +1064,31 @@ static int extract_or_test_entrylist(__G__ numchunk,
           (long)request, (long)inbuf_offset));
         Trace((stderr,
           "debug: bufstart = %ld, cur_zipfile_bufstart = %ld\n",
-          (long)bufstart, (long)G.cur_zipfile_bufstart));
+          (long)bufstart, (long)(*(Uz_Globs *)pG).cur_zipfile_bufstart));
         if (request < 0) {
             Info(slide, 0x401, ((char *)slide, LoadFarStringSmall(SeekMsg),
-              G.zipfn, LoadFarString(ReportMsg)));
+              (*(Uz_Globs *)pG).zipfn, LoadFarString(ReportMsg)));
             error_in_archive = PK_ERR;
-            if (*pfilnum == 1 && G.extra_bytes != 0L) {
+            if (*pfilnum == 1 && (*(Uz_Globs *)pG).extra_bytes != 0L) {
                 Info(slide, 0x401, ((char *)slide,
                   LoadFarString(AttemptRecompensate)));
-                *pold_extra_bytes = G.extra_bytes;
-                G.extra_bytes = 0L;
-                request = G.pInfo->offset;  /* could also check if != 0 */
+                *pold_extra_bytes = (*(Uz_Globs *)pG).extra_bytes;
+                (*(Uz_Globs *)pG).extra_bytes = 0L;
+                request = (*(Uz_Globs *)pG).pInfo->offset;  /* could also check if != 0 */
                 inbuf_offset = request % INBUFSIZ;
                 bufstart = request - inbuf_offset;
                 Trace((stderr, "debug: request = %ld, inbuf_offset = %ld\n",
                   (long)request, (long)inbuf_offset));
                 Trace((stderr,
                   "debug: bufstart = %ld, cur_zipfile_bufstart = %ld\n",
-                  (long)bufstart, (long)G.cur_zipfile_bufstart));
+                  (long)bufstart, (long)(*(Uz_Globs *)pG).cur_zipfile_bufstart));
                 /* try again */
                 if (request < 0) {
                     Trace((stderr,
                       "debug: recompensated request still < 0\n"));
                     Info(slide, 0x401, ((char *)slide,
                       LoadFarStringSmall(SeekMsg),
-                      G.zipfn, LoadFarString(ReportMsg)));
+                      (*(Uz_Globs *)pG).zipfn, LoadFarString(ReportMsg)));
                     error_in_archive = PK_BADERR;
                     continue;
                 }
@@ -1098,55 +1098,55 @@ static int extract_or_test_entrylist(__G__ numchunk,
             }
         }
 
-        if (bufstart != G.cur_zipfile_bufstart) {
+        if (bufstart != (*(Uz_Globs *)pG).cur_zipfile_bufstart) {
             Trace((stderr, "debug: bufstart != cur_zipfile_bufstart\n"));
 #ifdef USE_STRM_INPUT
-            zfseeko(G.zipfd, bufstart, SEEK_SET);
-            G.cur_zipfile_bufstart = zftello(G.zipfd);
+            zfseeko((*(Uz_Globs *)pG).zipfd, bufstart, SEEK_SET);
+            (*(Uz_Globs *)pG).cur_zipfile_bufstart = zftello((*(Uz_Globs *)pG).zipfd);
 #else /* !USE_STRM_INPUT */
-            G.cur_zipfile_bufstart =
-              zlseek(G.zipfd, bufstart, SEEK_SET);
+            (*(Uz_Globs *)pG).cur_zipfile_bufstart =
+              zlseek((*(Uz_Globs *)pG).zipfd, bufstart, SEEK_SET);
 #endif /* ?USE_STRM_INPUT */
-            if ((G.incnt = read(G.zipfd, (char *)G.inbuf, INBUFSIZ)) <= 0)
+            if (((*(Uz_Globs *)pG).incnt = read((*(Uz_Globs *)pG).zipfd, (char *)(*(Uz_Globs *)pG).inbuf, INBUFSIZ)) <= 0)
             {
                 Info(slide, 0x401, ((char *)slide, LoadFarString(OffsetMsg),
                   *pfilnum, "lseek", (long)bufstart));
                 error_in_archive = PK_BADERR;
                 continue;   /* can still do next file */
             }
-            G.inptr = G.inbuf + (int)inbuf_offset;
-            G.incnt -= (int)inbuf_offset;
+            (*(Uz_Globs *)pG).inptr = (*(Uz_Globs *)pG).inbuf + (int)inbuf_offset;
+            (*(Uz_Globs *)pG).incnt -= (int)inbuf_offset;
         } else {
-            G.incnt += (int)(G.inptr-G.inbuf) - (int)inbuf_offset;
-            G.inptr = G.inbuf + (int)inbuf_offset;
+            (*(Uz_Globs *)pG).incnt += (int)((*(Uz_Globs *)pG).inptr-(*(Uz_Globs *)pG).inbuf) - (int)inbuf_offset;
+            (*(Uz_Globs *)pG).inptr = (*(Uz_Globs *)pG).inbuf + (int)inbuf_offset;
         }
 
         /* should be in proper position now, so check for sig */
-        if (readbuf(__G__ G.sig, 4) == 0) {  /* bad offset */
+        if (readbuf(pG, (*(Uz_Globs *)pG).sig, 4) == 0) {  /* bad offset */
             Info(slide, 0x401, ((char *)slide, LoadFarString(OffsetMsg),
               *pfilnum, "EOF", (long)request));
             error_in_archive = PK_BADERR;
             continue;   /* but can still try next one */
         }
-        if (memcmp(G.sig, local_hdr_sig, 4)) {
+        if (memcmp((*(Uz_Globs *)pG).sig, local_hdr_sig, 4)) {
             Info(slide, 0x401, ((char *)slide, LoadFarString(OffsetMsg),
               *pfilnum, LoadFarStringSmall(LocalHdrSig), (long)request));
             /*
-                GRRDUMP(G.sig, 4)
+                GRRDUMP((*(Uz_Globs *)pG).sig, 4)
                 GRRDUMP(local_hdr_sig, 4)
              */
             error_in_archive = PK_ERR;
-            if ((*pfilnum == 1 && G.extra_bytes != 0L) ||
-                (G.extra_bytes == 0L && *pold_extra_bytes != 0L)) {
+            if ((*pfilnum == 1 && (*(Uz_Globs *)pG).extra_bytes != 0L) ||
+                ((*(Uz_Globs *)pG).extra_bytes == 0L && *pold_extra_bytes != 0L)) {
                 Info(slide, 0x401, ((char *)slide,
                   LoadFarString(AttemptRecompensate)));
-                if (G.extra_bytes) {
-                    *pold_extra_bytes = G.extra_bytes;
-                    G.extra_bytes = 0L;
+                if ((*(Uz_Globs *)pG).extra_bytes) {
+                    *pold_extra_bytes = (*(Uz_Globs *)pG).extra_bytes;
+                    (*(Uz_Globs *)pG).extra_bytes = 0L;
                 } else
-                    G.extra_bytes = *pold_extra_bytes; /* third attempt */
-                if (((error = seek_zipf(__G__ G.pInfo->offset)) != PK_OK) ||
-                    (readbuf(__G__ G.sig, 4) == 0)) {  /* bad offset */
+                    (*(Uz_Globs *)pG).extra_bytes = *pold_extra_bytes; /* third attempt */
+                if (((error = seek_zipf(pG, (*(Uz_Globs *)pG).pInfo->offset)) != PK_OK) ||
+                    (readbuf(pG, (*(Uz_Globs *)pG).sig, 4) == 0)) {  /* bad offset */
                     if (error != PK_BADERR)
                       Info(slide, 0x401, ((char *)slide,
                         LoadFarString(OffsetMsg), *pfilnum, "EOF",
@@ -1154,7 +1154,7 @@ static int extract_or_test_entrylist(__G__ numchunk,
                     error_in_archive = PK_BADERR;
                     continue;   /* but can still try next one */
                 }
-                if (memcmp(G.sig, local_hdr_sig, 4)) {
+                if (memcmp((*(Uz_Globs *)pG).sig, local_hdr_sig, 4)) {
                     Info(slide, 0x401, ((char *)slide,
                       LoadFarString(OffsetMsg), *pfilnum,
                       LoadFarStringSmall(LocalHdrSig), (long)request));
@@ -1164,57 +1164,57 @@ static int extract_or_test_entrylist(__G__ numchunk,
             } else
                 continue;  /* this one hosed; try next */
         }
-        if ((error = process_local_file_hdr(__G)) != PK_COOL) {
+        if ((error = process_local_file_hdr(pG)) != PK_COOL) {
             Info(slide, 0x421, ((char *)slide, LoadFarString(BadLocalHdr),
               *pfilnum));
             error_in_archive = error;   /* only PK_EOF defined */
             continue;   /* can still try next one */
         }
 #if (!defined(SFX) && defined(UNICODE_SUPPORT))
-        if (((G.lrec.general_purpose_bit_flag & (1 << 11)) == (1 << 11))
-            != (G.pInfo->GPFIsUTF8 != 0)) {
+        if ((((*(Uz_Globs *)pG).lrec.general_purpose_bit_flag & (1 << 11)) == (1 << 11))
+            != ((*(Uz_Globs *)pG).pInfo->GPFIsUTF8 != 0)) {
             if (QCOND2) {
 #  ifdef SMALL_MEM
                 char *temp_cfilnam = slide + (7 * (WSIZE>>3));
 
-                zfstrcpy((char *)temp_cfilnam, G.pInfo->cfilname);
+                zfstrcpy((char *)temp_cfilnam, (*(Uz_Globs *)pG).pInfo->cfilname);
 #    define  cFile_PrintBuf  temp_cfilnam
 #  else
-#    define  cFile_PrintBuf  G.pInfo->cfilname
+#    define  cFile_PrintBuf  (*(Uz_Globs *)pG).pInfo->cfilname
 #  endif
                 Info(slide, 0x421, ((char *)slide,
                   LoadFarStringSmall2(GP11FlagsDiffer),
-                  *pfilnum, FnFilter1(cFile_PrintBuf), G.pInfo->GPFIsUTF8));
+                  *pfilnum, FnFilter1(cFile_PrintBuf), (*(Uz_Globs *)pG).pInfo->GPFIsUTF8));
 #  undef    cFile_PrintBuf
             }
             if (error_in_archive < PK_WARN)
                 error_in_archive = PK_WARN;
         }
 #endif /* !SFX && UNICODE_SUPPORT */
-        if ((error = do_string(__G__ G.lrec.filename_length, DS_FN_L)) !=
+        if ((error = do_string(pG, (*(Uz_Globs *)pG).lrec.filename_length, DS_FN_L)) !=
              PK_COOL)
         {
             if (error > error_in_archive)
                 error_in_archive = error;
             if (error > PK_WARN) {
                 Info(slide, 0x401, ((char *)slide, LoadFarString(FilNamMsg),
-                  FnFilter1(G.filename), "local"));
+                  FnFilter1((*(Uz_Globs *)pG).filename), "local"));
                 continue;   /* go on to next one */
             }
         }
-        if (G.extra_field != (uch *)NULL) {
-            free(G.extra_field);
-            G.extra_field = (uch *)NULL;
+        if ((*(Uz_Globs *)pG).extra_field != (uch *)NULL) {
+            free((*(Uz_Globs *)pG).extra_field);
+            (*(Uz_Globs *)pG).extra_field = (uch *)NULL;
         }
         if ((error =
-             do_string(__G__ G.lrec.extra_field_length, EXTRA_FIELD)) != 0)
+             do_string(pG, (*(Uz_Globs *)pG).lrec.extra_field_length, EXTRA_FIELD)) != 0)
         {
             if (error > error_in_archive)
                 error_in_archive = error;
             if (error > PK_WARN) {
                 Info(slide, 0x401, ((char *)slide,
                   LoadFarString(ExtFieldMsg),
-                  FnFilter1(G.filename), "local"));
+                  FnFilter1((*(Uz_Globs *)pG).filename), "local"));
                 continue;   /* go on */
             }
         }
@@ -1223,57 +1223,57 @@ static int extract_or_test_entrylist(__G__ numchunk,
          * extra field, so that a UTF-8 entry name e.f. block has already
          * been processed.
          */
-        if (G.pInfo->cfilname != (char *)NULL) {
-            if (strcmp(G.pInfo->cfilname, G.filename) != 0) {
-#    define  cFile_PrintBuf  G.pInfo->cfilname
+        if ((*(Uz_Globs *)pG).pInfo->cfilname != (char *)NULL) {
+            if (strcmp((*(Uz_Globs *)pG).pInfo->cfilname, (*(Uz_Globs *)pG).filename) != 0) {
+#    define  cFile_PrintBuf  (*(Uz_Globs *)pG).pInfo->cfilname
                 Info(slide, 0x401, ((char *)slide,
                   LoadFarStringSmall2(LvsCFNamMsg),
-                  FnFilter2(cFile_PrintBuf), FnFilter1(G.filename)));
+                  FnFilter2(cFile_PrintBuf), FnFilter1((*(Uz_Globs *)pG).filename)));
 #  undef    cFile_PrintBuf
-                strcpy(G.filename, G.pInfo->cfilname);
+                strcpy((*(Uz_Globs *)pG).filename, (*(Uz_Globs *)pG).pInfo->cfilname);
                 if (error_in_archive < PK_WARN)
                     error_in_archive = PK_WARN;
             }
-            free(G.pInfo->cfilname);
-            G.pInfo->cfilname = (char *)NULL;
+            free((*(Uz_Globs *)pG).pInfo->cfilname);
+            (*(Uz_Globs *)pG).pInfo->cfilname = (char *)NULL;
         }
 #endif /* !SFX */
         /* Size consistency checks must come after reading in the local extra
          * field, so that any Zip64 extension local e.f. block has already
          * been processed.
          */
-        if (G.lrec.compression_method == STORED) {
-            zusz_t csiz_decrypted = G.lrec.csize;
+        if ((*(Uz_Globs *)pG).lrec.compression_method == STORED) {
+            zusz_t csiz_decrypted = (*(Uz_Globs *)pG).lrec.csize;
 
-            if (G.pInfo->encrypted)
+            if ((*(Uz_Globs *)pG).pInfo->encrypted)
                 csiz_decrypted -= 12;
-            if (G.lrec.ucsize != csiz_decrypted) {
+            if ((*(Uz_Globs *)pG).lrec.ucsize != csiz_decrypted) {
                 Info(slide, 0x401, ((char *)slide,
                   LoadFarStringSmall2(WrnStorUCSizCSizDiff),
-                  FnFilter1(G.filename),
-                  FmZofft(G.lrec.ucsize, NULL, "u"),
+                  FnFilter1((*(Uz_Globs *)pG).filename),
+                  FmZofft((*(Uz_Globs *)pG).lrec.ucsize, NULL, "u"),
                   FmZofft(csiz_decrypted, NULL, "u")));
-                G.lrec.ucsize = csiz_decrypted;
+                (*(Uz_Globs *)pG).lrec.ucsize = csiz_decrypted;
                 if (error_in_archive < PK_WARN)
                     error_in_archive = PK_WARN;
             }
         }
 
 #if CRYPT
-        if (G.pInfo->encrypted &&
-            (error = decrypt(__G__ uO.pwdarg)) != PK_COOL) {
+        if ((*(Uz_Globs *)pG).pInfo->encrypted &&
+            (error = decrypt(pG, uO.pwdarg)) != PK_COOL) {
             if (error == PK_WARN) {
                 if (!((uO.tflag && uO.qflag) || (!uO.tflag && !QCOND2)))
                     Info(slide, 0x401, ((char *)slide,
                       LoadFarString(SkipIncorrectPasswd),
-                      FnFilter1(G.filename)));
+                      FnFilter1((*(Uz_Globs *)pG).filename)));
                 ++(*pnum_bad_pwd);
             } else {  /* (error > PK_WARN) */
                 if (error > error_in_archive)
                     error_in_archive = error;
                 Info(slide, 0x401, ((char *)slide,
                   LoadFarString(SkipCannotGetPasswd),
-                  FnFilter1(G.filename)));
+                  FnFilter1((*(Uz_Globs *)pG).filename)));
             }
             continue;   /* go on to next file */
         }
@@ -1287,7 +1287,7 @@ static int extract_or_test_entrylist(__G__ numchunk,
          * info[])
          */
 #ifdef DLL
-        if (!uO.tflag && !uO.cflag && !G.redirect_data)
+        if (!uO.tflag && !uO.cflag && !(*(Uz_Globs *)pG).redirect_data)
 #else
         if (!uO.tflag && !uO.cflag)
 #endif
@@ -1302,15 +1302,15 @@ startover:
              *  far, not a problem in HPFS, NTFS or VFAT systems)
              */
 #ifndef SFX
-            if (G.pInfo->hostnum == FS_FAT_ && !MBSCHR(G.filename, '/')) {
-                char *p=G.filename;
+            if ((*(Uz_Globs *)pG).pInfo->hostnum == FS_FAT_ && !MBSCHR((*(Uz_Globs *)pG).filename, '/')) {
+                char *p=(*(Uz_Globs *)pG).filename;
 
                 if (*p) do {
                     if (*p == '\\') {
-                        if (!G.reported_backslash) {
+                        if (!(*(Uz_Globs *)pG).reported_backslash) {
                             Info(slide, 0x21, ((char *)slide,
-                              LoadFarString(BackslashPathSep), G.zipfn));
-                            G.reported_backslash = TRUE;
+                              LoadFarString(BackslashPathSep), (*(Uz_Globs *)pG).zipfn));
+                            (*(Uz_Globs *)pG).reported_backslash = TRUE;
                             if (!error_in_archive)
                                 error_in_archive = PK_WARN;
                         }
@@ -1322,23 +1322,23 @@ startover:
 
             if (!renamed) {
                /* remove absolute path specs */
-               if (G.filename[0] == '/') {
+               if ((*(Uz_Globs *)pG).filename[0] == '/') {
                    Info(slide, 0x401, ((char *)slide,
                         LoadFarString(AbsolutePathWarning),
-                        FnFilter1(G.filename)));
+                        FnFilter1((*(Uz_Globs *)pG).filename)));
                    if (!error_in_archive)
                        error_in_archive = PK_WARN;
                    do {
-                       char *p = G.filename + 1;
+                       char *p = (*(Uz_Globs *)pG).filename + 1;
                        do {
                            *(p-1) = *p;
                        } while (*p++ != '\0');
-                   } while (G.filename[0] == '/');
+                   } while ((*(Uz_Globs *)pG).filename[0] == '/');
                }
             }
 
             /* mapname can create dirs if not freshening or if renamed */
-            error = mapname(__G__ renamed);
+            error = mapname(pG, renamed);
             if ((errcode = error & ~MPN_MASK) != PK_OK &&
                 error_in_archive < errcode)
                 error_in_archive = errcode;
@@ -1347,7 +1347,7 @@ startover:
 #ifdef SET_DIR_ATTRIB
                     direntry *d_entry;
 
-                    error = defer_dir_attribs(__G__ &d_entry);
+                    error = defer_dir_attribs(pG, &d_entry);
                     if (d_entry == (direntry *)NULL) {
                         /* There may be no dir_attribs info available, or
                          * we have encountered a mem allocation error.
@@ -1370,28 +1370,28 @@ startover:
 #ifdef DOS_OS2_W32
                     Info(slide, 0x401, ((char *)slide,
                       LoadFarString(SkipVolumeLabel),
-                      FnFilter1(G.filename),
+                      FnFilter1((*(Uz_Globs *)pG).filename),
                       uO.volflag? "hard disk " : ""));
 #else
                     Info(slide, 1, ((char *)slide,
                       LoadFarString(SkipVolumeLabel),
-                      FnFilter1(G.filename), ""));
+                      FnFilter1((*(Uz_Globs *)pG).filename), ""));
 #endif
                 } else if (errcode > MPN_INF_SKIP &&
                            error_in_archive < PK_ERR)
                     error_in_archive = PK_ERR;
                 Trace((stderr, "mapname(%s) returns error code = %d\n",
-                  FnFilter1(G.filename), error));
+                  FnFilter1((*(Uz_Globs *)pG).filename), error));
                 continue;   /* go on to next file */
             }
 
 #ifdef QDOS
-            QFilename(__G__ G.filename);
+            QFilename(pG, (*(Uz_Globs *)pG).filename);
 #endif
-            switch (check_for_newer(__G__ G.filename)) {
+            switch (check_for_newer(pG, (*(Uz_Globs *)pG).filename)) {
                 case DOES_NOT_EXIST:
 #ifdef NOVELL_BUG_FAILSAFE
-                    G.dne = TRUE;   /* stat() says file DOES NOT EXIST */
+                    (*(Uz_Globs *)pG).dne = TRUE;   /* stat() says file DOES NOT EXIST */
 #endif
                     /* freshen (no new files): skip unless just renamed */
                     if (uO.fflag && !renamed)
@@ -1438,11 +1438,11 @@ startover:
              */
             if (query && uO.V_flag) {
                 /* Not discarding file versions.  Look for one. */
-                int cndx = strlen(G.filename) - 1;
+                int cndx = strlen((*(Uz_Globs *)pG).filename) - 1;
 
-                while ((cndx > 0) && (isdigit(G.filename[cndx])))
+                while ((cndx > 0) && (isdigit((*(Uz_Globs *)pG).filename[cndx])))
                     cndx--;
-                if (G.filename[cndx] == ';')
+                if ((*(Uz_Globs *)pG).filename[cndx] == ';')
                     /* File version found; skip the generic query,
                      * proceeding with its default response "y".
                      */
@@ -1451,20 +1451,20 @@ startover:
 #endif /* VMS */
             if (query) {
 #ifdef WINDLL
-                switch (G.lpUserFunctions->replace != NULL ?
-                        (*G.lpUserFunctions->replace)(G.filename, FILNAMSIZ) :
+                switch ((*(Uz_Globs *)pG).lpUserFunctions->replace != NULL ?
+                        (*(*(Uz_Globs *)pG).lpUserFunctions->replace)((*(Uz_Globs *)pG).filename, FILNAMSIZ) :
                         IDM_REPLACE_NONE) {
                     case IDM_REPLACE_RENAME:
-                        _ISO_INTERN(G.filename);
+                        _ISO_INTERN((*(Uz_Globs *)pG).filename);
                         renamed = TRUE;
                         goto startover;
                     case IDM_REPLACE_ALL:
-                        G.overwrite_mode = OVERWRT_ALWAYS;
+                        (*(Uz_Globs *)pG).overwrite_mode = OVERWRT_ALWAYS;
                         /* FALL THROUGH, extract */
                     case IDM_REPLACE_YES:
                         break;
                     case IDM_REPLACE_NONE:
-                        G.overwrite_mode = OVERWRT_NEVER;
+                        (*(Uz_Globs *)pG).overwrite_mode = OVERWRT_NEVER;
                         /* FALL THROUGH, skip */
                     case IDM_REPLACE_NO:
                         skip_entry = SKIP_Y_EXISTING;
@@ -1475,40 +1475,40 @@ startover:
 reprompt:
                 Info(slide, 0x81, ((char *)slide,
                   LoadFarString(ReplaceQuery),
-                  FnFilter1(G.filename)));
-                if (fgets(G.answerbuf, sizeof(G.answerbuf), stdin)
+                  FnFilter1((*(Uz_Globs *)pG).filename)));
+                if (fgets((*(Uz_Globs *)pG).answerbuf, sizeof((*(Uz_Globs *)pG).answerbuf), stdin)
                     == (char *)NULL) {
                     Info(slide, 1, ((char *)slide,
                       LoadFarString(AssumeNone)));
-                    *G.answerbuf = 'N';
+                    *(*(Uz_Globs *)pG).answerbuf = 'N';
                     if (!error_in_archive)
                         error_in_archive = 1;  /* not extracted:  warning */
                 }
-                switch (*G.answerbuf) {
+                switch (*(*(Uz_Globs *)pG).answerbuf) {
                     case 'r':
                     case 'R':
                         do {
                             Info(slide, 0x81, ((char *)slide,
                               LoadFarString(NewNameQuery)));
-                            fgets(G.filename, FILNAMSIZ, stdin);
+                            fgets((*(Uz_Globs *)pG).filename, FILNAMSIZ, stdin);
                             /* usually get \n here:  better check for it */
-                            fnlen = strlen(G.filename);
-                            if (lastchar(G.filename, fnlen) == '\n')
-                                G.filename[--fnlen] = '\0';
+                            fnlen = strlen((*(Uz_Globs *)pG).filename);
+                            if (lastchar((*(Uz_Globs *)pG).filename, fnlen) == '\n')
+                                (*(Uz_Globs *)pG).filename[--fnlen] = '\0';
                         } while (fnlen == 0);
 #ifdef WIN32  /* WIN32 fgets( ... , stdin) returns OEM coded strings */
-                        _OEM_INTERN(G.filename);
+                        _OEM_INTERN((*(Uz_Globs *)pG).filename);
 #endif
                         renamed = TRUE;
                         goto startover;   /* sorry for a goto */
                     case 'A':   /* dangerous option:  force caps */
-                        G.overwrite_mode = OVERWRT_ALWAYS;
+                        (*(Uz_Globs *)pG).overwrite_mode = OVERWRT_ALWAYS;
                         /* FALL THROUGH, extract */
                     case 'y':
                     case 'Y':
                         break;
                     case 'N':
-                        G.overwrite_mode = OVERWRT_NEVER;
+                        (*(Uz_Globs *)pG).overwrite_mode = OVERWRT_NEVER;
                         /* FALL THROUGH, skip */
                     case 'n':
                         /* skip file */
@@ -1517,19 +1517,19 @@ reprompt:
                     case '\n':
                     case '\r':
                         /* Improve echo of '\n' and/or '\r'
-                           (sizeof(G.answerbuf) == 10 (see globals.h), so
+                           (sizeof((*(Uz_Globs *)pG).answerbuf) == 10 (see globals.h), so
                            there is enough space for the provided text...) */
-                        strcpy(G.answerbuf, "{ENTER}");
+                        strcpy((*(Uz_Globs *)pG).answerbuf, "{ENTER}");
                         /* fall through ... */
                     default:
                         /* usually get \n here:  remove it for nice display
                            (fnlen can be re-used here, we are outside the
                            "enter new filename" loop) */
-                        fnlen = strlen(G.answerbuf);
-                        if (lastchar(G.answerbuf, fnlen) == '\n')
-                            G.answerbuf[--fnlen] = '\0';
+                        fnlen = strlen((*(Uz_Globs *)pG).answerbuf);
+                        if (lastchar((*(Uz_Globs *)pG).answerbuf, fnlen) == '\n')
+                            (*(Uz_Globs *)pG).answerbuf[--fnlen] = '\0';
                         Info(slide, 1, ((char *)slide,
-                          LoadFarString(InvalidResponse), G.answerbuf));
+                          LoadFarString(InvalidResponse), (*(Uz_Globs *)pG).answerbuf));
                         goto reprompt;   /* yet another goto? */
                 } /* end switch (*answerbuf) */
 #endif /* ?WINDLL */
@@ -1542,7 +1542,7 @@ reprompt:
                       ((IS_OVERWRT_NONE || !uO.uflag || renamed) ?
                        "Target file exists.  Skipping %s\n" :
                        "Target file newer.  Skipping %s\n"),
-                      FnFilter1(G.filename)));
+                      FnFilter1((*(Uz_Globs *)pG).filename)));
                 }
 #endif /* WINDLL */
                 continue;
@@ -1550,9 +1550,9 @@ reprompt:
         } /* end if (extracting to disk) */
 
 #ifdef DLL
-        if ((G.statreportcb != NULL) &&
-            (*G.statreportcb)(__G__ UZ_ST_START_EXTRACT, G.zipfn,
-                              G.filename, NULL)) {
+        if (((*(Uz_Globs *)pG).statreportcb != NULL) &&
+            (*(*(Uz_Globs *)pG).statreportcb)(pG, UZ_ST_START_EXTRACT, (*(Uz_Globs *)pG).zipfn,
+                              (*(Uz_Globs *)pG).filename, NULL)) {
             return IZ_CTRLC;        /* cancel operation by user request */
         }
 #endif
@@ -1560,24 +1560,24 @@ reprompt:
         UserStop();
 #endif
 #ifdef AMIGA
-        G.filenote_slot = i;
+        (*(Uz_Globs *)pG).filenote_slot = i;
 #endif
-        G.disk_full = 0;
-        if ((error = extract_or_test_member(__G)) != PK_COOL) {
+        (*(Uz_Globs *)pG).disk_full = 0;
+        if ((error = extract_or_test_member(pG)) != PK_COOL) {
             if (error > error_in_archive)
                 error_in_archive = error;       /* ...and keep going */
 #ifdef DLL
-            if (G.disk_full > 1 || error_in_archive == IZ_CTRLC) {
+            if ((*(Uz_Globs *)pG).disk_full > 1 || error_in_archive == IZ_CTRLC) {
 #else
-            if (G.disk_full > 1) {
+            if ((*(Uz_Globs *)pG).disk_full > 1) {
 #endif
                 return error_in_archive;        /* (unless disk full) */
             }
         }
 #ifdef DLL
-        if ((G.statreportcb != NULL) &&
-            (*G.statreportcb)(__G__ UZ_ST_FINISH_MEMBER, G.zipfn,
-                              G.filename, (void *)&G.lrec.ucsize)) {
+        if (((*(Uz_Globs *)pG).statreportcb != NULL) &&
+            (*(*(Uz_Globs *)pG).statreportcb)(pG, UZ_ST_FINISH_MEMBER, (*(Uz_Globs *)pG).zipfn,
+                              (*(Uz_Globs *)pG).filename, (void *)&(*(Uz_Globs *)pG).lrec.ucsize)) {
             return IZ_CTRLC;        /* cancel operation by user request */
         }
 #endif
@@ -1596,7 +1596,7 @@ reprompt:
 
 /* wsize is used in extract_or_test_member() and UZbunzip2() */
 #if (defined(DLL) && !defined(NO_SLIDE_REDIR))
-#  define wsize G._wsize    /* wsize is a variable */
+#  define wsize (*(Uz_Globs *)pG)._wsize    /* wsize is a variable */
 #else
 #  define wsize WSIZE       /* wsize is a constant */
 #endif
@@ -1605,8 +1605,8 @@ reprompt:
 /*  Function extract_or_test_member()  */
 /***************************************/
 
-static int extract_or_test_member(__G)    /* return PK-type error code */
-     __GDEF
+static int extract_or_test_member(pG)    /* return PK-type error code */
+     Uz_Globs *pG;
 {
     char *nul="[empty] ", *txt="[text]  ", *bin="[binary]";
 #ifdef CMS_MVS
@@ -1620,40 +1620,40 @@ static int extract_or_test_member(__G)    /* return PK-type error code */
     Initialize variables, buffers, etc.
   ---------------------------------------------------------------------------*/
 
-    G.bits_left = 0;
-    G.bitbuf = 0L;       /* unreduce and unshrink only */
-    G.zipeof = 0;
-    G.newfile = TRUE;
-    G.crc32val = CRCVAL_INITIAL;
+    (*(Uz_Globs *)pG).bits_left = 0;
+    (*(Uz_Globs *)pG).bitbuf = 0L;       /* unreduce and unshrink only */
+    (*(Uz_Globs *)pG).zipeof = 0;
+    (*(Uz_Globs *)pG).newfile = TRUE;
+    (*(Uz_Globs *)pG).crc32val = CRCVAL_INITIAL;
 
 #ifdef SYMLINKS
     /* If file is a (POSIX-compatible) symbolic link and we are extracting
      * to disk, prepare to restore the link. */
-    G.symlnk = (G.pInfo->symlink &&
-                !uO.tflag && !uO.cflag && (G.lrec.ucsize > 0));
+    (*(Uz_Globs *)pG).symlnk = ((*(Uz_Globs *)pG).pInfo->symlink &&
+                !uO.tflag && !uO.cflag && ((*(Uz_Globs *)pG).lrec.ucsize > 0));
 #endif /* SYMLINKS */
 
     if (uO.tflag) {
         if (!uO.qflag)
             Info(slide, 0, ((char *)slide, LoadFarString(ExtractMsg), "test",
-              FnFilter1(G.filename), "", ""));
+              FnFilter1((*(Uz_Globs *)pG).filename), "", ""));
     } else {
 #ifdef DLL
-        if (uO.cflag && !G.redirect_data)
+        if (uO.cflag && !(*(Uz_Globs *)pG).redirect_data)
 #else
         if (uO.cflag)
 #endif
         {
 #if (defined(OS2) && defined(__IBMC__) && (__IBMC__ >= 200))
-            G.outfile = freopen("", "wb", stdout);   /* VAC++ ignores setmode */
+            (*(Uz_Globs *)pG).outfile = freopen("", "wb", stdout);   /* VAC++ ignores setmode */
 #else
-            G.outfile = stdout;
+            (*(Uz_Globs *)pG).outfile = stdout;
 #endif
 #ifdef DOS_FLX_NLM_OS2_W32
 #if (defined(__HIGHC__) && !defined(FLEXOS))
-            setmode(G.outfile, _BINARY);
+            setmode((*(Uz_Globs *)pG).outfile, _BINARY);
 #else /* !(defined(__HIGHC__) && !defined(FLEXOS)) */
-            setmode(fileno(G.outfile), O_BINARY);
+            setmode(fileno((*(Uz_Globs *)pG).outfile), O_BINARY);
 #endif /* ?(defined(__HIGHC__) && !defined(FLEXOS)) */
 #           define NEWLINE "\r\n"
 #else /* !DOS_FLX_NLM_OS2_W32 */
@@ -1661,7 +1661,7 @@ static int extract_or_test_member(__G)    /* return PK-type error code */
 #endif /* ?DOS_FLX_NLM_OS2_W32 */
 #ifdef VMS
             /* VMS:  required even for stdout! */
-            if ((r = open_outfile(__G)) != 0)
+            if ((r = open_outfile(pG)) != 0)
                 switch (r) {
                   case OPENOUT_SKIPOK:
                     return PK_OK;
@@ -1670,7 +1670,7 @@ static int extract_or_test_member(__G)    /* return PK-type error code */
                   default:
                     return PK_DISK;
                 }
-        } else if ((r = open_outfile(__G)) != 0)
+        } else if ((r = open_outfile(pG)) != 0)
             switch (r) {
               case OPENOUT_SKIPOK:
                 return PK_OK;
@@ -1680,7 +1680,7 @@ static int extract_or_test_member(__G)    /* return PK-type error code */
                 return PK_DISK;
             }
 #else /* !VMS */
-        } else if (open_outfile(__G))
+        } else if (open_outfile(pG))
             return PK_DISK;
 #endif /* ?VMS */
     }
@@ -1689,42 +1689,42 @@ static int extract_or_test_member(__G)    /* return PK-type error code */
     Unpack the file.
   ---------------------------------------------------------------------------*/
 
-    defer_leftover_input(__G);    /* so NEXTBYTE bounds check will work */
-    switch (G.lrec.compression_method) {
+    defer_leftover_input(pG);    /* so NEXTBYTE bounds check will work */
+    switch ((*(Uz_Globs *)pG).lrec.compression_method) {
         case STORED:
             if (!uO.tflag && QCOND2) {
 #ifdef SYMLINKS
-                if (G.symlnk)   /* can also be deflated, but rarer... */
+                if ((*(Uz_Globs *)pG).symlnk)   /* can also be deflated, but rarer... */
                     Info(slide, 0, ((char *)slide, LoadFarString(ExtractMsg),
-                      "link", FnFilter1(G.filename), "", ""));
+                      "link", FnFilter1((*(Uz_Globs *)pG).filename), "", ""));
                 else
 #endif /* SYMLINKS */
                 Info(slide, 0, ((char *)slide, LoadFarString(ExtractMsg),
-                  "extract", FnFilter1(G.filename),
-                  (uO.aflag != 1 /* && G.pInfo->textfile==G.pInfo->textmode */)?
-                  "" : (G.lrec.ucsize == 0L? nul : (G.pInfo->textfile? txt :
+                  "extract", FnFilter1((*(Uz_Globs *)pG).filename),
+                  (uO.aflag != 1 /* && (*(Uz_Globs *)pG).pInfo->textfile==(*(Uz_Globs *)pG).pInfo->textmode */)?
+                  "" : ((*(Uz_Globs *)pG).lrec.ucsize == 0L? nul : ((*(Uz_Globs *)pG).pInfo->textfile? txt :
                   bin)), uO.cflag? NEWLINE : ""));
             }
 #if (defined(DLL) && !defined(NO_SLIDE_REDIR))
-            if (G.redirect_slide) {
-                wsize = G.redirect_size; redirSlide = G.redirect_buffer;
+            if ((*(Uz_Globs *)pG).redirect_slide) {
+                wsize = (*(Uz_Globs *)pG).redirect_size; redirSlide = (*(Uz_Globs *)pG).redirect_buffer;
             } else {
                 wsize = WSIZE; redirSlide = slide;
             }
 #endif
-            G.outptr = redirSlide;
-            G.outcnt = 0L;
+            (*(Uz_Globs *)pG).outptr = redirSlide;
+            (*(Uz_Globs *)pG).outcnt = 0L;
             while ((b = NEXTBYTE) != EOF) {
-                *G.outptr++ = (uch)b;
-                if (++G.outcnt == wsize) {
-                    error = flush(__G__ redirSlide, G.outcnt, 0);
-                    G.outptr = redirSlide;
-                    G.outcnt = 0L;
-                    if (error != PK_COOL || G.disk_full) break;
+                *(*(Uz_Globs *)pG).outptr++ = (uch)b;
+                if (++(*(Uz_Globs *)pG).outcnt == wsize) {
+                    error = flush(pG, redirSlide, (*(Uz_Globs *)pG).outcnt, 0);
+                    (*(Uz_Globs *)pG).outptr = redirSlide;
+                    (*(Uz_Globs *)pG).outcnt = 0L;
+                    if (error != PK_COOL || (*(Uz_Globs *)pG).disk_full) break;
                 }
             }
-            if (G.outcnt) {        /* flush final (partial) buffer */
-                r = flush(__G__ redirSlide, G.outcnt, 0);
+            if ((*(Uz_Globs *)pG).outcnt) {        /* flush final (partial) buffer */
+                r = flush(pG, redirSlide, (*(Uz_Globs *)pG).outcnt, 0);
                 if (error < r) error = r;
             }
             break;
@@ -1734,11 +1734,11 @@ static int extract_or_test_member(__G)    /* return PK-type error code */
         case SHRUNK:
             if (!uO.tflag && QCOND2) {
                 Info(slide, 0, ((char *)slide, LoadFarString(ExtractMsg),
-                  LoadFarStringSmall(Unshrink), FnFilter1(G.filename),
-                  (uO.aflag != 1 /* && G.pInfo->textfile==G.pInfo->textmode */)?
-                  "" : (G.pInfo->textfile? txt : bin), uO.cflag? NEWLINE : ""));
+                  LoadFarStringSmall(Unshrink), FnFilter1((*(Uz_Globs *)pG).filename),
+                  (uO.aflag != 1 /* && (*(Uz_Globs *)pG).pInfo->textfile==(*(Uz_Globs *)pG).pInfo->textmode */)?
+                  "" : ((*(Uz_Globs *)pG).pInfo->textfile? txt : bin), uO.cflag? NEWLINE : ""));
             }
-            if ((r = unshrink(__G)) != PK_COOL) {
+            if ((r = unshrink(pG)) != PK_COOL) {
                 if (r < PK_DISK) {
                     if ((uO.tflag && uO.qflag) || (!uO.tflag && !QCOND2))
                         Info(slide, 0x401, ((char *)slide,
@@ -1746,7 +1746,7 @@ static int extract_or_test_member(__G)    /* return PK-type error code */
                           LoadFarString(NotEnoughMem) :
                           LoadFarString(InvalidComprData),
                           LoadFarStringSmall2(Unshrink),
-                          FnFilter1(G.filename)));
+                          FnFilter1((*(Uz_Globs *)pG).filename)));
                     else
                         Info(slide, 0x401, ((char *)slide,
                           LoadFarStringSmall(ErrUnzipNoFile), r == PK_MEM3 ?
@@ -1766,11 +1766,11 @@ static int extract_or_test_member(__G)    /* return PK-type error code */
         case REDUCED4:
             if (!uO.tflag && QCOND2) {
                 Info(slide, 0, ((char *)slide, LoadFarString(ExtractMsg),
-                  "unreduc", FnFilter1(G.filename),
-                  (uO.aflag != 1 /* && G.pInfo->textfile==G.pInfo->textmode */)?
-                  "" : (G.pInfo->textfile? txt : bin), uO.cflag? NEWLINE : ""));
+                  "unreduc", FnFilter1((*(Uz_Globs *)pG).filename),
+                  (uO.aflag != 1 /* && (*(Uz_Globs *)pG).pInfo->textfile==(*(Uz_Globs *)pG).pInfo->textmode */)?
+                  "" : ((*(Uz_Globs *)pG).pInfo->textfile? txt : bin), uO.cflag? NEWLINE : ""));
             }
-            if ((r = unreduce(__G)) != PK_COOL) {
+            if ((r = unreduce(pG)) != PK_COOL) {
                 /* unreduce() returns only PK_COOL, PK_DISK, or IZ_CTRLC */
                 error = r;
             }
@@ -1780,31 +1780,31 @@ static int extract_or_test_member(__G)    /* return PK-type error code */
         case IMPLODED:
             if (!uO.tflag && QCOND2) {
                 Info(slide, 0, ((char *)slide, LoadFarString(ExtractMsg),
-                  "explod", FnFilter1(G.filename),
-                  (uO.aflag != 1 /* && G.pInfo->textfile==G.pInfo->textmode */)?
-                  "" : (G.pInfo->textfile? txt : bin), uO.cflag? NEWLINE : ""));
+                  "explod", FnFilter1((*(Uz_Globs *)pG).filename),
+                  (uO.aflag != 1 /* && (*(Uz_Globs *)pG).pInfo->textfile==(*(Uz_Globs *)pG).pInfo->textmode */)?
+                  "" : ((*(Uz_Globs *)pG).pInfo->textfile? txt : bin), uO.cflag? NEWLINE : ""));
             }
-            if ((r = explode(__G)) != 0) {
+            if ((r = explode(pG)) != 0) {
                 if (r == 5) { /* treat 5 specially */
-                    int warning = ((zusz_t)G.used_csize <= G.lrec.csize);
+                    int warning = ((zusz_t)(*(Uz_Globs *)pG).used_csize <= (*(Uz_Globs *)pG).lrec.csize);
 
                     if ((uO.tflag && uO.qflag) || (!uO.tflag && !QCOND2))
                         Info(slide, 0x401, ((char *)slide,
                           LoadFarString(LengthMsg),
                           "", warning ? "warning" : "error",
-                          FmZofft(G.used_csize, NULL, NULL),
-                          FmZofft(G.lrec.ucsize, NULL, "u"),
+                          FmZofft((*(Uz_Globs *)pG).used_csize, NULL, NULL),
+                          FmZofft((*(Uz_Globs *)pG).lrec.ucsize, NULL, "u"),
                           warning ? "  " : "",
-                          FmZofft(G.lrec.csize, NULL, "u"),
-                          " [", FnFilter1(G.filename), "]"));
+                          FmZofft((*(Uz_Globs *)pG).lrec.csize, NULL, "u"),
+                          " [", FnFilter1((*(Uz_Globs *)pG).filename), "]"));
                     else
                         Info(slide, 0x401, ((char *)slide,
                           LoadFarString(LengthMsg),
                           "\n", warning ? "warning" : "error",
-                          FmZofft(G.used_csize, NULL, NULL),
-                          FmZofft(G.lrec.ucsize, NULL, "u"),
+                          FmZofft((*(Uz_Globs *)pG).used_csize, NULL, NULL),
+                          FmZofft((*(Uz_Globs *)pG).lrec.ucsize, NULL, "u"),
                           warning ? "  " : "",
-                          FmZofft(G.lrec.csize, NULL, "u"),
+                          FmZofft((*(Uz_Globs *)pG).lrec.csize, NULL, "u"),
                           "", "", "."));
                     error = warning ? PK_WARN : PK_ERR;
                 } else if (r < PK_DISK) {
@@ -1814,7 +1814,7 @@ static int extract_or_test_member(__G)    /* return PK-type error code */
                           LoadFarString(NotEnoughMem) :
                           LoadFarString(InvalidComprData),
                           LoadFarStringSmall2(Explode),
-                          FnFilter1(G.filename)));
+                          FnFilter1((*(Uz_Globs *)pG).filename)));
                     else
                         Info(slide, 0x401, ((char *)slide,
                           LoadFarStringSmall(ErrUnzipNoFile), r == 3?
@@ -1835,15 +1835,15 @@ static int extract_or_test_member(__G)    /* return PK-type error code */
 #endif
             if (!uO.tflag && QCOND2) {
                 Info(slide, 0, ((char *)slide, LoadFarString(ExtractMsg),
-                  "inflat", FnFilter1(G.filename),
-                  (uO.aflag != 1 /* && G.pInfo->textfile==G.pInfo->textmode */)?
-                  "" : (G.pInfo->textfile? txt : bin), uO.cflag? NEWLINE : ""));
+                  "inflat", FnFilter1((*(Uz_Globs *)pG).filename),
+                  (uO.aflag != 1 /* && (*(Uz_Globs *)pG).pInfo->textfile==(*(Uz_Globs *)pG).pInfo->textmode */)?
+                  "" : ((*(Uz_Globs *)pG).pInfo->textfile? txt : bin), uO.cflag? NEWLINE : ""));
             }
 #ifndef USE_ZLIB  /* zlib's function is called inflate(), too */
 #  define UZinflate inflate
 #endif
-            if ((r = UZinflate(__G__
-                               (G.lrec.compression_method == ENHDEFLATED)))
+            if ((r = UZinflate(pG,
+                               ((*(Uz_Globs *)pG).lrec.compression_method == ENHDEFLATED)))
                 != 0) {
                 if (r < PK_DISK) {
                     if ((uO.tflag && uO.qflag) || (!uO.tflag && !QCOND2))
@@ -1852,7 +1852,7 @@ static int extract_or_test_member(__G)    /* return PK-type error code */
                           LoadFarString(NotEnoughMem) :
                           LoadFarString(InvalidComprData),
                           LoadFarStringSmall2(Inflate),
-                          FnFilter1(G.filename)));
+                          FnFilter1((*(Uz_Globs *)pG).filename)));
                     else
                         Info(slide, 0x401, ((char *)slide,
                           LoadFarStringSmall(ErrUnzipNoFile), r == 3?
@@ -1870,11 +1870,11 @@ static int extract_or_test_member(__G)    /* return PK-type error code */
         case BZIPPED:
             if (!uO.tflag && QCOND2) {
                 Info(slide, 0, ((char *)slide, LoadFarString(ExtractMsg),
-                  "bunzipp", FnFilter1(G.filename),
-                  (uO.aflag != 1 /* && G.pInfo->textfile==G.pInfo->textmode */)?
-                  "" : (G.pInfo->textfile? txt : bin), uO.cflag? NEWLINE : ""));
+                  "bunzipp", FnFilter1((*(Uz_Globs *)pG).filename),
+                  (uO.aflag != 1 /* && (*(Uz_Globs *)pG).pInfo->textfile==(*(Uz_Globs *)pG).pInfo->textmode */)?
+                  "" : ((*(Uz_Globs *)pG).pInfo->textfile? txt : bin), uO.cflag? NEWLINE : ""));
             }
-            if ((r = UZbunzip2(__G)) != 0) {
+            if ((r = UZbunzip2(pG)) != 0) {
                 if (r < PK_DISK) {
                     if ((uO.tflag && uO.qflag) || (!uO.tflag && !QCOND2))
                         Info(slide, 0x401, ((char *)slide,
@@ -1882,7 +1882,7 @@ static int extract_or_test_member(__G)    /* return PK-type error code */
                           LoadFarString(NotEnoughMem) :
                           LoadFarString(InvalidComprData),
                           LoadFarStringSmall2(BUnzip),
-                          FnFilter1(G.filename)));
+                          FnFilter1((*(Uz_Globs *)pG).filename)));
                     else
                         Info(slide, 0x401, ((char *)slide,
                           LoadFarStringSmall(ErrUnzipNoFile), r == 3?
@@ -1899,9 +1899,9 @@ static int extract_or_test_member(__G)    /* return PK-type error code */
 
         default:   /* should never get to this point */
             Info(slide, 0x401, ((char *)slide,
-              LoadFarString(FileUnknownCompMethod), FnFilter1(G.filename)));
+              LoadFarString(FileUnknownCompMethod), FnFilter1((*(Uz_Globs *)pG).filename)));
             /* close and delete file before return? */
-            undefer_input(__G);
+            undefer_input(pG);
             return PK_WARN;
 
     } /* end switch (compression method) */
@@ -1914,35 +1914,35 @@ static int extract_or_test_member(__G)    /* return PK-type error code */
 
 #ifdef VMS                  /* VMS:  required even for stdout! (final flush) */
     if (!uO.tflag)           /* don't close NULL file */
-        close_outfile(__G);
+        close_outfile(pG);
 #else
 #ifdef DLL
-    if (!uO.tflag && (!uO.cflag || G.redirect_data)) {
-        if (G.redirect_data)
+    if (!uO.tflag && (!uO.cflag || (*(Uz_Globs *)pG).redirect_data)) {
+        if ((*(Uz_Globs *)pG).redirect_data)
             FINISH_REDIRECT();
         else
-            close_outfile(__G);
+            close_outfile(pG);
     }
 #else
     if (!uO.tflag && !uO.cflag)   /* don't close NULL file or stdout */
-        close_outfile(__G);
+        close_outfile(pG);
 #endif
 #endif /* VMS */
 
             /* GRR: CONVERT close_outfile() TO NON-VOID:  CHECK FOR ERRORS! */
 
 
-    if (G.disk_full) {            /* set by flush() */
-        if (G.disk_full > 1) {
+    if ((*(Uz_Globs *)pG).disk_full) {            /* set by flush() */
+        if ((*(Uz_Globs *)pG).disk_full > 1) {
 #if (defined(DELETE_IF_FULL) && defined(HAVE_UNLINK))
             /* delete the incomplete file if we can */
-            if (unlink(G.filename) != 0)
+            if (unlink((*(Uz_Globs *)pG).filename) != 0)
                 Trace((stderr, "extract.c:  could not delete %s\n",
-                  FnFilter1(G.filename)));
+                  FnFilter1((*(Uz_Globs *)pG).filename)));
 #else
             /* warn user about the incomplete file */
             Info(slide, 0x421, ((char *)slide, LoadFarString(FileTruncated),
-              FnFilter1(G.filename)));
+              FnFilter1((*(Uz_Globs *)pG).filename)));
 #endif
             error = PK_DISK;
         } else {
@@ -1951,26 +1951,26 @@ static int extract_or_test_member(__G)    /* return PK-type error code */
     }
 
     if (error > PK_WARN) {/* don't print redundant CRC error if error already */
-        undefer_input(__G);
+        undefer_input(pG);
         return error;
     }
-    if (G.crc32val != G.lrec.crc32) {
+    if ((*(Uz_Globs *)pG).crc32val != (*(Uz_Globs *)pG).lrec.crc32) {
         /* if quiet enough, we haven't output the filename yet:  do it */
         if ((uO.tflag && uO.qflag) || (!uO.tflag && !QCOND2))
             Info(slide, 0x401, ((char *)slide, "%-22s ",
-              FnFilter1(G.filename)));
-        Info(slide, 0x401, ((char *)slide, LoadFarString(BadCRC), G.crc32val,
-          G.lrec.crc32));
+              FnFilter1((*(Uz_Globs *)pG).filename)));
+        Info(slide, 0x401, ((char *)slide, LoadFarString(BadCRC), (*(Uz_Globs *)pG).crc32val,
+          (*(Uz_Globs *)pG).lrec.crc32));
 #if CRYPT
-        if (G.pInfo->encrypted)
+        if ((*(Uz_Globs *)pG).pInfo->encrypted)
             Info(slide, 0x401, ((char *)slide, LoadFarString(MaybeBadPasswd)));
 #endif
         error = PK_ERR;
     } else if (uO.tflag) {
 #ifndef SFX
-        if (G.extra_field) {
-            if ((r = TestExtraField(__G__ G.extra_field,
-                                    G.lrec.extra_field_length)) > error)
+        if ((*(Uz_Globs *)pG).extra_field) {
+            if ((r = TestExtraField(pG, (*(Uz_Globs *)pG).extra_field,
+                                    (*(Uz_Globs *)pG).lrec.extra_field_length)) > error)
                 error = r;
         } else
 #endif /* !SFX */
@@ -1981,7 +1981,7 @@ static int extract_or_test_member(__G)    /* return PK-type error code */
             Info(slide, 0, ((char *)slide, "\n"));
     }
 
-    undefer_input(__G);
+    undefer_input(pG);
     return error;
 
 } /* end function extract_or_test_member() */
@@ -1996,8 +1996,8 @@ static int extract_or_test_member(__G)    /* return PK-type error code */
 /*  Function TestExtraField()  */
 /*******************************/
 
-static int TestExtraField(__G__ ef, ef_len)
-    __GDEF
+static int TestExtraField(pG, ef, ef_len)
+    Uz_Globs *pG;
     uch *ef;
     unsigned ef_len;
 {
@@ -2017,7 +2017,7 @@ static int TestExtraField(__G__ ef, ef_len)
            /* Discovered some extra field inconsistency! */
             if (uO.qflag)
                 Info(slide, 1, ((char *)slide, "%-22s ",
-                  FnFilter1(G.filename)));
+                  FnFilter1((*(Uz_Globs *)pG).filename)));
             Info(slide, 1, ((char *)slide, LoadFarString(InconsistEFlength),
               ebLen, (ef_len - EB_HEADSIZE)));
             return PK_ERR;
@@ -2053,11 +2053,11 @@ static int TestExtraField(__G__ ef, ef_len)
                         eb_cmpr_offs = EB_BEOS_HLEN;
                     break;
                 }
-                if ((r = test_compr_eb(__G__ ef, ebLen, eb_cmpr_offs, NULL))
+                if ((r = test_compr_eb(pG, ef, ebLen, eb_cmpr_offs, NULL))
                     != PK_OK) {
                     if (uO.qflag)
                         Info(slide, 1, ((char *)slide, "%-22s ",
-                          FnFilter1(G.filename)));
+                          FnFilter1((*(Uz_Globs *)pG).filename)));
                     switch (r) {
                         case IZ_EF_TRUNC:
                             Info(slide, 1, ((char *)slide,
@@ -2097,11 +2097,11 @@ static int TestExtraField(__G__ ef, ef_len)
                 r = ebLen < EB_NTSD_L_LEN ? IZ_EF_TRUNC :
                     ((ef[EB_HEADSIZE+EB_NTSD_VERSION] > EB_NTSD_MAX_VER) ?
                      (PK_WARN | 0x4000) :
-                     test_compr_eb(__G__ ef, ebLen, EB_NTSD_L_LEN, TEST_NTSD));
+                     test_compr_eb(pG, ef, ebLen, EB_NTSD_L_LEN, TEST_NTSD));
                 if (r != PK_OK) {
                     if (uO.qflag)
                         Info(slide, 1, ((char *)slide, "%-22s ",
-                          FnFilter1(G.filename)));
+                          FnFilter1((*(Uz_Globs *)pG).filename)));
                     switch (r) {
                         case IZ_EF_TRUNC:
                             Info(slide, 1, ((char *)slide,
@@ -2189,15 +2189,15 @@ static int TestExtraField(__G__ ef, ef_len)
 
 #ifdef PROTO
 static int test_compr_eb(
-    __GPRO__
+    Uz_Globs *pG,
     uch *eb,
     unsigned eb_size,
     unsigned compr_offset,
-    int (*test_uc_ebdata)(__GPRO__ uch *eb, unsigned eb_size,
+    int (*test_uc_ebdata)(Uz_Globs *pG, uch *eb, unsigned eb_size,
                           uch *eb_ucptr, ulg eb_ucsize))
 #else /* !PROTO */
-static int test_compr_eb(__G__ eb, eb_size, compr_offset, test_uc_ebdata)
-    __GDEF
+static int test_compr_eb(pG, eb, eb_size, compr_offset, test_uc_ebdata)
+    Uz_Globs *pG;
     uch *eb;
     unsigned eb_size;
     unsigned compr_offset;
@@ -2223,12 +2223,12 @@ static int test_compr_eb(__G__ eb, eb_size, compr_offset, test_uc_ebdata)
         (eb_ucptr = (uch *)malloc((extent)eb_ucsize)) == (uch *)NULL)
         return PK_MEM4;
 
-    r = memextract(__G__ eb_ucptr, eb_ucsize,
+    r = memextract(pG, eb_ucptr, eb_ucsize,
                    eb + (EB_HEADSIZE + compr_offset),
                    (ulg)(eb_size - compr_offset));
 
     if (r == PK_OK && test_uc_ebdata != NULL)
-        r = (*test_uc_ebdata)(__G__ eb, eb_size, eb_ucptr, eb_ucsize);
+        r = (*test_uc_ebdata)(pG, eb, eb_size, eb_ucptr, eb_ucsize);
 
     free(eb_ucptr);
     return r;
@@ -2245,16 +2245,16 @@ static int test_compr_eb(__G__ eb, eb_size, compr_offset, test_uc_ebdata)
 /*  Function memextract()  */
 /***************************/
 
-int memextract(__G__ tgt, tgtsize, src, srcsize)  /* extract compressed */
-    __GDEF                                        /*  extra field block; */
+int memextract(pG, tgt, tgtsize, src, srcsize)  /* extract compressed */
+    Uz_Globs *pG;                                        /*  extra field block; */
     uch *tgt;                                     /*  return PK-type error */
     ulg tgtsize;                                  /*  level */
     const uch *src;
     ulg srcsize;
 {
-    zoff_t old_csize=G.csize;
-    uch   *old_inptr=G.inptr;
-    int    old_incnt=G.incnt;
+    zoff_t old_csize=(*(Uz_Globs *)pG).csize;
+    uch   *old_inptr=(*(Uz_Globs *)pG).inptr;
+    int    old_incnt=(*(Uz_Globs *)pG).incnt;
     int    r, error=PK_OK;
     ush    method;
     ulg    extra_field_crc;
@@ -2264,23 +2264,23 @@ int memextract(__G__ tgt, tgtsize, src, srcsize)  /* extract compressed */
     extra_field_crc = makelong(src+2);
 
     /* compressed extra field exists completely in memory at this location: */
-    G.inptr = (uch *)src + (2 + 4);     /* method and extra_field_crc */
-    G.incnt = (int)(G.csize = (long)(srcsize - (2 + 4)));
-    G.mem_mode = TRUE;
-    G.outbufptr = tgt;
-    G.outsize = tgtsize;
+    (*(Uz_Globs *)pG).inptr = (uch *)src + (2 + 4);     /* method and extra_field_crc */
+    (*(Uz_Globs *)pG).incnt = (int)((*(Uz_Globs *)pG).csize = (long)(srcsize - (2 + 4)));
+    (*(Uz_Globs *)pG).mem_mode = TRUE;
+    (*(Uz_Globs *)pG).outbufptr = tgt;
+    (*(Uz_Globs *)pG).outsize = tgtsize;
 
     switch (method) {
         case STORED:
-            memcpy((char *)tgt, (char *)G.inptr, (extent)G.incnt);
-            G.outcnt = (ulg)G.csize;    /* for CRC calculation */
+            memcpy((char *)tgt, (char *)(*(Uz_Globs *)pG).inptr, (extent)(*(Uz_Globs *)pG).incnt);
+            (*(Uz_Globs *)pG).outcnt = (ulg)(*(Uz_Globs *)pG).csize;    /* for CRC calculation */
             break;
         case DEFLATED:
 #ifdef USE_DEFLATE64
         case ENHDEFLATED:
 #endif
-            G.outcnt = 0L;
-            if ((r = UZinflate(__G__ (method == ENHDEFLATED))) != 0) {
+            (*(Uz_Globs *)pG).outcnt = 0L;
+            if ((r = UZinflate(pG, (method == ENHDEFLATED))) != 0) {
                 if (!uO.tflag)
                     Info(slide, 0x401, ((char *)slide,
                       LoadFarStringSmall(ErrUnzipNoFile), r == 3?
@@ -2289,7 +2289,7 @@ int memextract(__G__ tgt, tgtsize, src, srcsize)  /* extract compressed */
                       LoadFarStringSmall2(Inflate)));
                 error = (r == 3)? PK_MEM3 : PK_ERR;
             }
-            if (G.outcnt == 0L)   /* inflate's final FLUSH sets outcnt */
+            if ((*(Uz_Globs *)pG).outcnt == 0L)   /* inflate's final FLUSH sets outcnt */
                 break;
             break;
         default:
@@ -2303,20 +2303,20 @@ int memextract(__G__ tgt, tgtsize, src, srcsize)  /* extract compressed */
             break;
     }
 
-    G.inptr = old_inptr;
-    G.incnt = old_incnt;
-    G.csize = old_csize;
-    G.mem_mode = FALSE;
+    (*(Uz_Globs *)pG).inptr = old_inptr;
+    (*(Uz_Globs *)pG).incnt = old_incnt;
+    (*(Uz_Globs *)pG).csize = old_csize;
+    (*(Uz_Globs *)pG).mem_mode = FALSE;
 
     if (!error) {
-        register ulg crcval = crc32(CRCVAL_INITIAL, tgt, (extent)G.outcnt);
+        register ulg crcval = crc32(CRCVAL_INITIAL, tgt, (extent)(*(Uz_Globs *)pG).outcnt);
 
         if (crcval != extra_field_crc) {
             if (uO.tflag)
                 error = PK_ERR | (DEFLATED << 8);  /* kludge for now */
             else {
                 Info(slide, 0x401, ((char *)slide,
-                  LoadFarString(BadExtraFieldCRC), G.zipfn, crcval,
+                  LoadFarString(BadExtraFieldCRC), (*(Uz_Globs *)pG).zipfn, crcval,
                   extra_field_crc));
                 error = PK_ERR;
             }
@@ -2334,22 +2334,22 @@ int memextract(__G__ tgt, tgtsize, src, srcsize)  /* extract compressed */
 /*  Function memflush()  */
 /*************************/
 
-int memflush(__G__ rawbuf, size)
-    __GDEF
+int memflush(pG, rawbuf, size)
+    Uz_Globs *pG;
     const uch *rawbuf;
     ulg size;
 {
-    if (size > G.outsize)
+    if (size > (*(Uz_Globs *)pG).outsize)
         /* Here, PK_DISK is a bit off-topic, but in the sense of marking
            "overflow of output space", its use may be tolerated. */
         return PK_DISK;   /* more data than output buffer can hold */
 
 
 
-    memcpy((char *)G.outbufptr, (char *)rawbuf, (extent)size);
-    G.outbufptr += (unsigned int)size;
-    G.outsize -= size;
-    G.outcnt += size;
+    memcpy((char *)(*(Uz_Globs *)pG).outbufptr, (char *)rawbuf, (extent)size);
+    (*(Uz_Globs *)pG).outbufptr += (unsigned int)size;
+    (*(Uz_Globs *)pG).outsize -= size;
+    (*(Uz_Globs *)pG).outcnt += size;
 
     return 0;
 
@@ -2374,8 +2374,8 @@ int memflush(__G__ rawbuf, size)
  * - Deflation (see memextract())
  * The IZVMS block data is returned in malloc'd space.
  */
-uch *extract_izvms_block(__G__ ebdata, size, retlen, init, needlen)
-    __GDEF
+uch *extract_izvms_block(pG, ebdata, size, retlen, init, needlen)
+    Uz_Globs *pG;
     const uch *ebdata;
     unsigned size;
     unsigned *retlen;
@@ -2409,7 +2409,7 @@ uch *extract_izvms_block(__G__ ebdata, size, retlen, init, needlen)
             decompress_bits(ucdata, usiz, ebdata+EB_IZVMS_HLEN);
             break;
         case EB_IZVMS_BCDEFL:
-            memextract(__G__ ucdata, (ulg)usiz,
+            memextract(pG, ucdata, (ulg)usiz,
                        ebdata+EB_IZVMS_HLEN, (ulg)csiz);
             break;
         default:
@@ -2482,8 +2482,8 @@ static void decompress_bits(outptr, needlen, bitptr)
 /* Function set_deferred_symlink() */
 /***********************************/
 
-static void set_deferred_symlink(__G__ slnk_entry)
-    __GDEF
+static void set_deferred_symlink(pG, slnk_entry)
+    Uz_Globs *pG;
     slinkentry *slnk_entry;
 {
     extent ucsize = slnk_entry->targetlen;
@@ -2496,7 +2496,7 @@ static void set_deferred_symlink(__G__ slnk_entry)
         return;
     }
     linktarget[ucsize] = '\0';
-    G.outfile = zfopen(linkfname, FOPR); /* open link placeholder for reading */
+    (*(Uz_Globs *)pG).outfile = zfopen(linkfname, FOPR); /* open link placeholder for reading */
     /* Check that the following conditions are all fulfilled:
      * a) the placeholder file exists,
      * b) the placeholder file contains exactly "ucsize" bytes
@@ -2505,18 +2505,18 @@ static void set_deferred_symlink(__G__ slnk_entry)
      * c) the placeholder content matches the link target specification as
      *    stored in the symlink control structure.
      */
-    if (!G.outfile ||
-        fread(linktarget, 1, ucsize+1, G.outfile) != ucsize ||
+    if (!(*(Uz_Globs *)pG).outfile ||
+        fread(linktarget, 1, ucsize+1, (*(Uz_Globs *)pG).outfile) != ucsize ||
         strcmp(slnk_entry->target, linktarget))
     {
         Info(slide, 0x201, ((char *)slide,
           LoadFarString(SymLnkWarnInvalid), FnFilter1(linkfname)));
         free(linktarget);
-        if (G.outfile)
-            fclose(G.outfile);
+        if ((*(Uz_Globs *)pG).outfile)
+            fclose((*(Uz_Globs *)pG).outfile);
         return;
     }
-    fclose(G.outfile);                  /* close "data" file for good... */
+    fclose((*(Uz_Globs *)pG).outfile);                  /* close "data" file for good... */
     unlink(linkfname);                  /* ...and delete it */
     if (QCOND2)
         Info(slide, 0, ((char *)slide, LoadFarString(SymLnkFinish),
@@ -2525,7 +2525,7 @@ static void set_deferred_symlink(__G__ slnk_entry)
         perror("symlink error");
     free(linktarget);
 #ifdef SET_SYMLINK_ATTRIBS
-    set_symlnk_attribs(__G__ slnk_entry);
+    set_symlnk_attribs(pG, slnk_entry);
 #endif
     return;                             /* can't set time on symlinks */
 
@@ -2682,8 +2682,8 @@ static int Cdecl dircomp(a, b)  /* used by qsort(); swiped from Zip */
 /*  Function UZbunzip2()  */
 /**************************/
 
-int UZbunzip2(__G)
-__GDEF
+int UZbunzip2(pG)
+Uz_Globs *pG;
 /* decompress a bzipped entry using the libbz2 routines */
 {
     int retval = 0;     /* return code: 0 = "no error" */
@@ -2692,8 +2692,8 @@ __GDEF
     bz_stream bstrm;
 
 #if (defined(DLL) && !defined(NO_SLIDE_REDIR))
-    if (G.redirect_slide)
-        wsize = G.redirect_size, redirSlide = G.redirect_buffer;
+    if ((*(Uz_Globs *)pG).redirect_slide)
+        wsize = (*(Uz_Globs *)pG).redirect_size, redirSlide = (*(Uz_Globs *)pG).redirect_buffer;
     else
         wsize = WSIZE, redirSlide = slide;
 #endif
@@ -2701,8 +2701,8 @@ __GDEF
     bstrm.next_out = (char *)redirSlide;
     bstrm.avail_out = wsize;
 
-    bstrm.next_in = (char *)G.inptr;
-    bstrm.avail_in = G.incnt;
+    bstrm.next_in = (char *)(*(Uz_Globs *)pG).inptr;
+    bstrm.avail_in = (*(Uz_Globs *)pG).incnt;
 
     {
         /* local buffer for efficiency */
@@ -2724,8 +2724,8 @@ __GDEF
 #ifdef FUNZIP
     while (err != BZ_STREAM_END) {
 #else /* !FUNZIP */
-    while (G.csize > 0) {
-        Trace((stderr, "first loop:  G.csize = %ld\n", G.csize));
+    while ((*(Uz_Globs *)pG).csize > 0) {
+        Trace((stderr, "first loop:  (*(Uz_Globs *)pG).csize = %ld\n", (*(Uz_Globs *)pG).csize));
 #endif /* ?FUNZIP */
         while (bstrm.avail_out > 0) {
             err = BZ2_bzDecompress(&bstrm);
@@ -2740,18 +2740,18 @@ __GDEF
 #ifdef FUNZIP
             if (err == BZ_STREAM_END)    /* "END-of-entry-condition" ? */
 #else /* !FUNZIP */
-            if (G.csize <= 0L)          /* "END-of-entry-condition" ? */
+            if ((*(Uz_Globs *)pG).csize <= 0L)          /* "END-of-entry-condition" ? */
 #endif /* ?FUNZIP */
                 break;
 
             if (bstrm.avail_in == 0) {
-                if (fillinbuf(__G) == 0) {
+                if (fillinbuf(pG) == 0) {
                     /* no "END-condition" yet, but no more data */
                     retval = 2; goto uzbunzip_cleanup_exit;
                 }
 
-                bstrm.next_in = (char *)G.inptr;
-                bstrm.avail_in = G.incnt;
+                bstrm.next_in = (char *)(*(Uz_Globs *)pG).inptr;
+                bstrm.avail_in = (*(Uz_Globs *)pG).incnt;
             }
             Trace((stderr, "     avail_in = %u\n", bstrm.avail_in));
         }
@@ -2797,8 +2797,8 @@ __GDEF
       bstrm.total_out_lo32));
 #endif
 
-    G.inptr = (uch *)bstrm.next_in;
-    G.incnt = (G.inbuf + INBUFSIZ) - G.inptr;  /* reset for other routines */
+    (*(Uz_Globs *)pG).inptr = (uch *)bstrm.next_in;
+    (*(Uz_Globs *)pG).incnt = ((*(Uz_Globs *)pG).inbuf + INBUFSIZ) - (*(Uz_Globs *)pG).inptr;  /* reset for other routines */
 
 uzbunzip_cleanup_exit:
     err = BZ2_bzDecompressEnd(&bstrm);

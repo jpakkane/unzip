@@ -26,9 +26,9 @@
    ----  ---------  --------------  ------------------------------------
     c14  12 Mar 93  M. Adler        made inflate.c standalone with the
                                     introduction of inflate.h.
-    c14d 28 Aug 93  G. Roelofs      replaced flush/FlushOutput with new version
-    c14e 29 Sep 93  G. Roelofs      moved everything into unzip.h; added crypt.h
-    c14f 23 Nov 95  G. Roelofs      added UNZIP_INTERNAL to accommodate newly
+    c14d 28 Aug 93  (*(Uz_Globs *)pG). Roelofs      replaced flush/FlushOutput with new version
+    c14e 29 Sep 93  (*(Uz_Globs *)pG). Roelofs      moved everything into unzip.h; added crypt.h
+    c14f 23 Nov 95  (*(Uz_Globs *)pG). Roelofs      added UNZIP_INTERNAL to accommodate newly
                                     split unzip.h
  */
 

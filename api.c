@@ -189,18 +189,18 @@ int UZ_EXP UzpAltMain(int argc, char *argv[], UzpInit *init)
     CONSTRUCTGLOBALS();
 
     if (init->structlen >= (sizeof(ulg) + sizeof(dummyfn)) && init->msgfn)
-        G.message = init->msgfn;
+        (*(Uz_Globs *)pG).message = init->msgfn;
 
     if (init->structlen >= (sizeof(ulg) + 2*sizeof(dummyfn)) && init->inputfn)
-        G.input = init->inputfn;
+        (*(Uz_Globs *)pG).input = init->inputfn;
 
     if (init->structlen >= (sizeof(ulg) + 3*sizeof(dummyfn)) && init->pausefn)
-        G.mpause = init->pausefn;
+        (*(Uz_Globs *)pG).mpause = init->pausefn;
 
     if (init->structlen >= (sizeof(ulg) + 4*sizeof(dummyfn)) && init->userfn)
         (*init->userfn)();    /* allow void* arg? */
 
-    r = unzip(__G__ argc, argv);
+    r = unzip(pG, argc, argv);
     DESTROYGLOBALS();
     RETURN(r);
 }
@@ -287,20 +287,20 @@ int UZ_EXP UzpUnzipToMemory(char *zip, char *file, UzpOpts *optflgs,
 #   define file intern_file
 #endif
     /* Copy those options that are meaningful for UzpUnzipToMemory, instead of
-     * a simple "memcpy(G.UzO, optflgs, sizeof(UzpOpts));"
+     * a simple "memcpy((*(Uz_Globs *)pG).UzO, optflgs, sizeof(UzpOpts));"
      */
     uO.pwdarg = optflgs->pwdarg;
     uO.aflag = optflgs->aflag;
     uO.C_flag = optflgs->C_flag;
     uO.qflag = optflgs->qflag;  /* currently,  overridden in unzipToMemory */
 
-    if (!UzpDLL_Init((void *)&G, UsrFuncts)) {
+    if (!UzpDLL_Init((void *)&(*(Uz_Globs *)pG), UsrFuncts)) {
        DESTROYGLOBALS();
        return PK_BADERR;
     }
-    G.redirect_data = 1;
+    (*(Uz_Globs *)pG).redirect_data = 1;
 
-    r = (unzipToMemory(__G__ zip, file, retstr) <= PK_WARN);
+    r = (unzipToMemory(pG, zip, file, retstr) <= PK_WARN);
 
     DESTROYGLOBALS();
 #if (defined(WINDLL) && !defined(CRTL_CP_IS_ISO))
@@ -333,25 +333,25 @@ int UZ_EXP UzpFileTree(char *name, cbList(callBack), char *cpInclude[],
     uO.qflag = 2;
     uO.vflag = 1;
     uO.C_flag = 1;
-    G.wildzipfn = name;
-    G.process_all_files = TRUE;
+    (*(Uz_Globs *)pG).wildzipfn = name;
+    (*(Uz_Globs *)pG).process_all_files = TRUE;
     if (cpInclude) {
         char **ptr = cpInclude;
 
         while (*ptr != NULL) ptr++;
-        G.filespecs = ptr - cpInclude;
-        G.pfnames = cpInclude, G.process_all_files = FALSE;
+        (*(Uz_Globs *)pG).filespecs = ptr - cpInclude;
+        (*(Uz_Globs *)pG).pfnames = cpInclude, (*(Uz_Globs *)pG).process_all_files = FALSE;
     }
     if (cpExclude) {
         char **ptr = cpExclude;
 
         while (*ptr != NULL) ptr++;
-        G.xfilespecs = ptr - cpExclude;
-        G.pxnames = cpExclude, G.process_all_files = FALSE;
+        (*(Uz_Globs *)pG).xfilespecs = ptr - cpExclude;
+        (*(Uz_Globs *)pG).pxnames = cpExclude, (*(Uz_Globs *)pG).process_all_files = FALSE;
     }
 
-    G.processExternally = callBack;
-    r = process_zipfiles(__G)==0;
+    (*(Uz_Globs *)pG).processExternally = callBack;
+    r = process_zipfiles(pG)==0;
     DESTROYGLOBALS();
     return r;
 }
@@ -367,16 +367,16 @@ int UZ_EXP UzpFileTree(char *name, cbList(callBack), char *cpInclude[],
   ---------------------------------------------------------------------------*/
 
 
-void setFileNotFound(__G)
-    __GDEF
+void setFileNotFound(pG)
+    Uz_Globs *pG;
 {
-    G.filenotfound++;
+    (*(Uz_Globs *)pG).filenotfound++;
 }
 
 
 #ifndef SFX
 
-int unzipToMemory(__GPRO__ char *zip, char *file, UzpBuffer *retstr)
+int unzipToMemory(Uz_Globs *pG, char *zip, char *file, UzpBuffer *retstr)
 {
     int r;
     char *incname[2];
@@ -386,20 +386,20 @@ int unzipToMemory(__GPRO__ char *zip, char *file, UzpBuffer *retstr)
     if ((file == NULL) || (strlen(file) > ((WSIZE>>2) - 160)))
         return PK_PARAM;
 
-    G.process_all_files = FALSE;
-    G.extract_flag = TRUE;
+    (*(Uz_Globs *)pG).process_all_files = FALSE;
+    (*(Uz_Globs *)pG).extract_flag = TRUE;
     uO.qflag = 2;
-    G.wildzipfn = zip;
+    (*(Uz_Globs *)pG).wildzipfn = zip;
 
-    G.pfnames = incname;
+    (*(Uz_Globs *)pG).pfnames = incname;
     incname[0] = file;
     incname[1] = NULL;
-    G.filespecs = 1;
+    (*(Uz_Globs *)pG).filespecs = 1;
 
-    r = process_zipfiles(__G);
+    r = process_zipfiles(pG);
     if (retstr) {
-        retstr->strptr = (char *)G.redirect_buffer;
-        retstr->strlength = G.redirect_size;
+        retstr->strptr = (char *)(*(Uz_Globs *)pG).redirect_buffer;
+        retstr->strlength = (*(Uz_Globs *)pG).redirect_size;
     }
     return r;                   /* returns `PK_???' error values */
 }
@@ -412,69 +412,69 @@ int unzipToMemory(__GPRO__ char *zip, char *file, UzpBuffer *retstr)
     will simply not be enough memory to handle it, and am returning
     FALSE.
 */
-int redirect_outfile(__G)
-     __GDEF
+int redirect_outfile(pG)
+     Uz_Globs *pG;
 {
 #ifdef ZIP64_SUPPORT
     __int64 check_conversion;
 #endif
 
-    if (G.redirect_size != 0 || G.redirect_buffer != NULL)
+    if ((*(Uz_Globs *)pG).redirect_size != 0 || (*(Uz_Globs *)pG).redirect_buffer != NULL)
         return FALSE;
 
 #ifndef NO_SLIDE_REDIR
-    G.redirect_slide = !G.pInfo->textmode;
+    (*(Uz_Globs *)pG).redirect_slide = !(*(Uz_Globs *)pG).pInfo->textmode;
 #endif
 #if (lenEOL != 1)
-    if (G.pInfo->textmode) {
-        G.redirect_size = (ulg)(G.lrec.ucsize * lenEOL);
-        if (G.redirect_size < G.lrec.ucsize)
-            G.redirect_size = (ulg)((G.lrec.ucsize > (ulg)-2L) ?
-                                    G.lrec.ucsize : -2L);
+    if ((*(Uz_Globs *)pG).pInfo->textmode) {
+        (*(Uz_Globs *)pG).redirect_size = (ulg)((*(Uz_Globs *)pG).lrec.ucsize * lenEOL);
+        if ((*(Uz_Globs *)pG).redirect_size < (*(Uz_Globs *)pG).lrec.ucsize)
+            (*(Uz_Globs *)pG).redirect_size = (ulg)(((*(Uz_Globs *)pG).lrec.ucsize > (ulg)-2L) ?
+                                    (*(Uz_Globs *)pG).lrec.ucsize : -2L);
 #ifdef ZIP64_SUPPORT
-        check_conversion = G.lrec.ucsize * lenEOL;
+        check_conversion = (*(Uz_Globs *)pG).lrec.ucsize * lenEOL;
 #endif
     } else
 #endif
     {
-        G.redirect_size = (ulg)G.lrec.ucsize;
+        (*(Uz_Globs *)pG).redirect_size = (ulg)(*(Uz_Globs *)pG).lrec.ucsize;
 #ifdef ZIP64_SUPPORT
-        check_conversion = (__int64)G.lrec.ucsize;
+        check_conversion = (__int64)(*(Uz_Globs *)pG).lrec.ucsize;
 #endif
     }
 
 #ifdef ZIP64_SUPPORT
-    if ((__int64)G.redirect_size != check_conversion)
+    if ((__int64)(*(Uz_Globs *)pG).redirect_size != check_conversion)
         return FALSE;
 #endif
 
 #ifdef __16BIT__
-    if ((ulg)((extent)G.redirect_size) != G.redirect_size)
+    if ((ulg)((extent)(*(Uz_Globs *)pG).redirect_size) != (*(Uz_Globs *)pG).redirect_size)
         return FALSE;
 #endif
 #ifdef OS2
-    DosAllocMem((void **)&G.redirect_buffer, G.redirect_size+1,
+    DosAllocMem((void **)&(*(Uz_Globs *)pG).redirect_buffer, (*(Uz_Globs *)pG).redirect_size+1,
       PAG_READ|PAG_WRITE|PAG_COMMIT);
-    G.redirect_pointer = G.redirect_buffer;
+    (*(Uz_Globs *)pG).redirect_pointer = (*(Uz_Globs *)pG).redirect_buffer;
 #else
-    G.redirect_pointer =
-      G.redirect_buffer = malloc((extent)(G.redirect_size+1));
+    (*(Uz_Globs *)pG).redirect_pointer =
+      (*(Uz_Globs *)pG).redirect_buffer = malloc((extent)((*(Uz_Globs *)pG).redirect_size+1));
 #endif
-    if (!G.redirect_buffer)
+    if (!(*(Uz_Globs *)pG).redirect_buffer)
         return FALSE;
-    G.redirect_pointer[G.redirect_size] = '\0';
+    (*(Uz_Globs *)pG).redirect_pointer[(*(Uz_Globs *)pG).redirect_size] = '\0';
     return TRUE;
 }
 
 
 
-int writeToMemory(__GPRO__ const uch *rawbuf, extent size)
+int writeToMemory(Uz_Globs *pG, const uch *rawbuf, extent size)
 {
     int errflg = FALSE;
 
-    if ((uch *)rawbuf != G.redirect_pointer) {
-        extent redir_avail = (G.redirect_buffer + G.redirect_size) -
-                             G.redirect_pointer;
+    if ((uch *)rawbuf != (*(Uz_Globs *)pG).redirect_pointer) {
+        extent redir_avail = ((*(Uz_Globs *)pG).redirect_buffer + (*(Uz_Globs *)pG).redirect_size) -
+                             (*(Uz_Globs *)pG).redirect_pointer;
 
         /* Check for output buffer overflow */
         if (size > redir_avail) {
@@ -482,24 +482,24 @@ int writeToMemory(__GPRO__ const uch *rawbuf, extent size)
            size = redir_avail;
            errflg = TRUE;
         }
-        memcpy(G.redirect_pointer, rawbuf, size);
+        memcpy((*(Uz_Globs *)pG).redirect_pointer, rawbuf, size);
     }
-    G.redirect_pointer += size;
+    (*(Uz_Globs *)pG).redirect_pointer += size;
     return errflg;
 }
 
 
 
 
-int close_redirect(__G)
-     __GDEF
+int close_redirect(pG)
+     Uz_Globs *pG;
 {
-    if (G.pInfo->textmode) {
-        *G.redirect_pointer = '\0';
-        G.redirect_size = (ulg)(G.redirect_pointer - G.redirect_buffer);
-        if ((G.redirect_buffer =
-             realloc(G.redirect_buffer, G.redirect_size + 1)) == NULL) {
-            G.redirect_size = 0;
+    if ((*(Uz_Globs *)pG).pInfo->textmode) {
+        *(*(Uz_Globs *)pG).redirect_pointer = '\0';
+        (*(Uz_Globs *)pG).redirect_size = (ulg)((*(Uz_Globs *)pG).redirect_pointer - (*(Uz_Globs *)pG).redirect_buffer);
+        if (((*(Uz_Globs *)pG).redirect_buffer =
+             realloc((*(Uz_Globs *)pG).redirect_buffer, (*(Uz_Globs *)pG).redirect_size + 1)) == NULL) {
+            (*(Uz_Globs *)pG).redirect_size = 0;
             return EOF;
         }
     }
@@ -629,7 +629,7 @@ int UZ_EXP UzpValidate(char *archive, int AllCodes)
     uO.jflag = 1;
     uO.tflag = 1;
     uO.overwrite_none = 0;
-    G.extract_flag = (!uO.zipinfo_mode &&
+    (*(Uz_Globs *)pG).extract_flag = (!uO.zipinfo_mode &&
                       !uO.cflag && !uO.tflag && !uO.vflag && !uO.zflag
 #ifdef TIMESTAMP
                       && !uO.T_flag
@@ -637,8 +637,8 @@ int UZ_EXP UzpValidate(char *archive, int AllCodes)
                      );
 
     uO.qflag = 2;                        /* turn off all messages */
-    G.fValidate = TRUE;
-    G.pfnames = (char **)&fnames[0];    /* assign default filename vector */
+    (*(Uz_Globs *)pG).fValidate = TRUE;
+    (*(Uz_Globs *)pG).pfnames = (char **)&fnames[0];    /* assign default filename vector */
 
     if (archive == NULL) {      /* something is screwed up:  no filename */
         DESTROYGLOBALS();
@@ -653,31 +653,31 @@ int UZ_EXP UzpValidate(char *archive, int AllCodes)
        goto exit_retcode;
     }
 
-    G.wildzipfn = (char *)malloc(FILNAMSIZ);
-    strcpy(G.wildzipfn, archive);
+    (*(Uz_Globs *)pG).wildzipfn = (char *)malloc(FILNAMSIZ);
+    strcpy((*(Uz_Globs *)pG).wildzipfn, archive);
 #if (defined(WINDLL) && !defined(CRTL_CP_IS_ISO))
-    _ISO_INTERN(G.wildzipfn);
+    _ISO_INTERN((*(Uz_Globs *)pG).wildzipfn);
 #endif
 
 #ifdef WINDLL
     Wiz_NoPrinting(TRUE);
 #endif
 
-    G.process_all_files = TRUE;         /* for speed */
+    (*(Uz_Globs *)pG).process_all_files = TRUE;         /* for speed */
 
     if (setjmp(dll_error_return) != 0) {
 #ifdef WINDLL
         Wiz_NoPrinting(FALSE);
 #endif
-        free(G.wildzipfn);
+        free((*(Uz_Globs *)pG).wildzipfn);
         DESTROYGLOBALS();
         retcode = PK_BADERR;
         goto exit_retcode;
     }
 
-    retcode = process_zipfiles(__G);
+    retcode = process_zipfiles(pG);
 
-    free(G.wildzipfn);
+    free((*(Uz_Globs *)pG).wildzipfn);
 #ifdef WINDLL
     Wiz_NoPrinting(FALSE);
 #endif

@@ -54,10 +54,10 @@
                                     the 32K window size for specialized
                                     applications.
     c6   31 May 92  M. Adler        added some typecasts to eliminate warnings
-    c7   27 Jun 92  G. Roelofs      added some more typecasts (444:  MSC bug).
+    c7   27 Jun 92  (*(Uz_Globs *)pG). Roelofs      added some more typecasts (444:  MSC bug).
     c8    5 Oct 92  J-l. Gailly     added ifdef'd code to deal with PKZIP bug.
     c9    9 Oct 92  M. Adler        removed a memory error message (~line 416).
-    c10  17 Oct 92  G. Roelofs      changed ULONG/UWORD/byte to ulg/ush/uch,
+    c10  17 Oct 92  (*(Uz_Globs *)pG). Roelofs      changed ULONG/UWORD/byte to ulg/ush/uch,
                                     removed old inflate, renamed inflate_entry
                                     to inflate, added Mark's fix to a comment.
    c10.5 14 Dec 92  M. Adler        fix up error messages for incomplete trees.
@@ -70,41 +70,41 @@
                                     distance tree).
     c14  12 Mar 93  M. Adler        made inflate.c standalone with the
                                     introduction of inflate.h.
-   c14b  16 Jul 93  G. Roelofs      added (unsigned) typecast to w at 470.
+   c14b  16 Jul 93  (*(Uz_Globs *)pG). Roelofs      added (unsigned) typecast to w at 470.
    c14c  19 Jul 93  J. Bush         changed v[N_MAX], l[288], ll[28x+3x] arrays
                                     to static for Amiga.
    c14d  13 Aug 93  J-l. Gailly     de-complicatified Mark's c[*p++]++ thing.
-   c14e   8 Oct 93  G. Roelofs      changed memset() to memzero().
-   c14f  22 Oct 93  G. Roelofs      renamed quietflg to qflag; made Trace()
+   c14e   8 Oct 93  (*(Uz_Globs *)pG). Roelofs      changed memset() to memzero().
+   c14f  22 Oct 93  (*(Uz_Globs *)pG). Roelofs      renamed quietflg to qflag; made Trace()
                                     conditional; added inflate_free().
-   c14g  28 Oct 93  G. Roelofs      changed l/(lx+1) macro to pointer (Cray bug)
+   c14g  28 Oct 93  (*(Uz_Globs *)pG). Roelofs      changed l/(lx+1) macro to pointer (Cray bug)
    c14h   7 Dec 93  C. Ghisler      huft_build() optimizations.
    c14i   9 Jan 94  A. Verheijen    set fixed_t{d,l} to NULL after freeing;
-                    G. Roelofs      check NEXTBYTE macro for EOF.
-   c14j  23 Jan 94  G. Roelofs      removed Ghisler "optimizations"; ifdef'd
+                    (*(Uz_Globs *)pG). Roelofs      check NEXTBYTE macro for EOF.
+   c14j  23 Jan 94  (*(Uz_Globs *)pG). Roelofs      removed Ghisler "optimizations"; ifdef'd
                                     EOF check.
-   c14k  27 Feb 94  G. Roelofs      added some typecasts to avoid warnings.
-   c14l   9 Apr 94  G. Roelofs      fixed split comments on preprocessor lines
+   c14k  27 Feb 94  (*(Uz_Globs *)pG). Roelofs      added some typecasts to avoid warnings.
+   c14l   9 Apr 94  (*(Uz_Globs *)pG). Roelofs      fixed split comments on preprocessor lines
                                     to avoid bug in Encore compiler.
    c14m   7 Jul 94  P. Kienitz      modified to allow assembler version of
                                     inflate_codes() (define ASM_INFLATECODES)
-   c14n  22 Jul 94  G. Roelofs      changed fprintf to macro for DLL versions
+   c14n  22 Jul 94  (*(Uz_Globs *)pG). Roelofs      changed fprintf to macro for DLL versions
    c14o  23 Aug 94  C. Spieler      added a newline to a debug statement;
-                    G. Roelofs      added another typecast to avoid MSC warning
-   c14p   4 Oct 94  G. Roelofs      added (voidp *) cast to free() argument
-   c14q  30 Oct 94  G. Roelofs      changed fprintf macro to MESSAGE()
-   c14r   1 Nov 94  G. Roelofs      fixed possible redefinition of CHECK_EOF
+                    (*(Uz_Globs *)pG). Roelofs      added another typecast to avoid MSC warning
+   c14p   4 Oct 94  (*(Uz_Globs *)pG). Roelofs      added (voidp *) cast to free() argument
+   c14q  30 Oct 94  (*(Uz_Globs *)pG). Roelofs      changed fprintf macro to MESSAGE()
+   c14r   1 Nov 94  (*(Uz_Globs *)pG). Roelofs      fixed possible redefinition of CHECK_EOF
    c14s   7 May 95  S. Maxwell      OS/2 DLL globals stuff incorporated;
                     P. Kienitz      "fixed" ASM_INFLATECODES macro/prototype
-   c14t  18 Aug 95  G. Roelofs      added UZinflate() to use zlib functions;
+   c14t  18 Aug 95  (*(Uz_Globs *)pG). Roelofs      added UZinflate() to use zlib functions;
                                     changed voidp to void; moved huft_build()
                                     and huft_free() to end of file
-   c14u   1 Oct 95  G. Roelofs      moved G into definition of MESSAGE macro
+   c14u   1 Oct 95  (*(Uz_Globs *)pG). Roelofs      moved (*(Uz_Globs *)pG) into definition of MESSAGE macro
    c14v   8 Nov 95  P. Kienitz      changed ASM_INFLATECODES to use a regular
-                                    call with __G__ instead of a macro
+                                    call with pG, instead of a macro
     c15   3 Aug 96  M. Adler        fixed bomb-bug on random input data (Adobe)
    c15b  24 Aug 96  M. Adler        more fixes for random input data
-   c15c  28 Mar 97  G. Roelofs      changed USE_ZLIB fatal exit code from
+   c15c  28 Mar 97  (*(Uz_Globs *)pG). Roelofs      changed USE_ZLIB fatal exit code from
                                     PK_MEM2 to PK_MEM3
     c16  20 Apr 97  J. Altman       added memzero(v[]) in huft_build()
    c16b  29 Mar 98  C. Spieler      modified DLL code for slide redirection
@@ -294,7 +294,7 @@
 #endif
 
 #if (defined(DLL) && !defined(NO_SLIDE_REDIR))
-#  define wsize G._wsize    /* wsize is a variable */
+#  define wsize (*(Uz_Globs *)pG)._wsize    /* wsize is a variable */
 #else
 #  define wsize WSIZE       /* wsize is a constant */
 #endif
@@ -373,8 +373,8 @@ static unsigned zlib_inCB(pG, pInbuf)
     void FAR *pG;
     unsigned char FAR * FAR * pInbuf;
 {
-    *pInbuf = G.inbuf;
-    return fillinbuf(__G);
+    *pInbuf = (*(Uz_Globs *)pG).inbuf;
+    return fillinbuf(pG);
 }
 
 static int zlib_outCB(pG, outbuf, outcnt)
@@ -383,10 +383,10 @@ static int zlib_outCB(pG, outbuf, outcnt)
     unsigned outcnt;
 {
 #ifdef FUNZIP
-    return flush(__G__ (ulg)(outcnt));
+    return flush(pG, (ulg)(outcnt));
 #else
-    return ((G.mem_mode) ? memflush(__G__ outbuf, (ulg)(outcnt))
-                         : flush(__G__ outbuf, (ulg)(outcnt), 0));
+    return (((*(Uz_Globs *)pG).mem_mode) ? memflush(pG, outbuf, (ulg)(outcnt))
+                         : flush(pG, outbuf, (ulg)(outcnt), 0));
 #endif
 }
 #endif /* USE_ZLIB_INFLATCB */
@@ -404,8 +404,8 @@ static int zlib_outCB(pG, outbuf, outcnt)
 /*  Function UZinflate()  */
 /**************************/
 
-int UZinflate(__G__ is_defl64)
-    __GDEF
+int UZinflate(pG, is_defl64)
+    Uz_Globs *pG;
     int is_defl64;
 /* decompress an inflated entry using the zlib routines */
 {
@@ -414,13 +414,13 @@ int UZinflate(__G__ is_defl64)
 #if USE_ZLIB_INFLATCB
 
 #if (defined(DLL) && !defined(NO_SLIDE_REDIR))
-    if (G.redirect_slide)
-        wsize = G.redirect_size, redirSlide = G.redirect_buffer;
+    if ((*(Uz_Globs *)pG).redirect_slide)
+        wsize = (*(Uz_Globs *)pG).redirect_size, redirSlide = (*(Uz_Globs *)pG).redirect_buffer;
     else
         wsize = WSIZE, redirSlide = slide;
 #endif
 
-    if (!G.inflInit) {
+    if (!(*(Uz_Globs *)pG).inflInit) {
         /* local buffer for efficiency */
         const char *zlib_RtVersion = zlibVersion();
 
@@ -436,17 +436,17 @@ int UZinflate(__G__ is_defl64)
               "warning:  different zlib version (expected %s, using %s)\n",
               ZLIB_VERSION, zlib_RtVersion));
 
-        G.dstrm.zalloc = (alloc_func)Z_NULL;
-        G.dstrm.zfree = (free_func)Z_NULL;
+        (*(Uz_Globs *)pG).dstrm.zalloc = (alloc_func)Z_NULL;
+        (*(Uz_Globs *)pG).dstrm.zfree = (free_func)Z_NULL;
 
-        G.inflInit = 1;
+        (*(Uz_Globs *)pG).inflInit = 1;
     }
 
 #ifdef USE_DEFLATE64
     if (is_defl64)
     {
         Trace((stderr, "initializing inflate9()\n"));
-        err = inflateBack9Init(&G.dstrm, redirSlide);
+        err = inflateBack9Init(&(*(Uz_Globs *)pG).dstrm, redirSlide);
 
         if (err == Z_MEM_ERROR)
             return 3;
@@ -455,10 +455,10 @@ int UZinflate(__G__ is_defl64)
             return 2;
         }
 
-        G.dstrm.next_in = G.inptr;
-        G.dstrm.avail_in = G.incnt;
+        (*(Uz_Globs *)pG).dstrm.next_in = (*(Uz_Globs *)pG).inptr;
+        (*(Uz_Globs *)pG).dstrm.avail_in = (*(Uz_Globs *)pG).incnt;
 
-        err = inflateBack9(&G.dstrm, zlib_inCB, &G, zlib_outCB, &G);
+        err = inflateBack9(&(*(Uz_Globs *)pG).dstrm, zlib_inCB, &(*(Uz_Globs *)pG), zlib_outCB, &(*(Uz_Globs *)pG));
         if (err != Z_STREAM_END) {
             if (err == Z_DATA_ERROR || err == Z_STREAM_ERROR) {
                 Trace((stderr, "oops!  (inflateBack9() err = %d)\n", err));
@@ -467,25 +467,25 @@ int UZinflate(__G__ is_defl64)
                 retval = 3;
             } else if (err == Z_BUF_ERROR) {
                 Trace((stderr, "oops!  (inflateBack9() err = %d)\n", err));
-                if (G.dstrm.next_in == Z_NULL) {
+                if ((*(Uz_Globs *)pG).dstrm.next_in == Z_NULL) {
                     /* input failure */
                     Trace((stderr, "  inflateBack9() input failure\n"));
                     retval = 2;
                 } else {
                     /* output write failure */
-                    retval = (G.disk_full != 0 ? PK_DISK : IZ_CTRLC);
+                    retval = ((*(Uz_Globs *)pG).disk_full != 0 ? PK_DISK : IZ_CTRLC);
                 }
             } else {
                 Trace((stderr, "oops!  (inflateBack9() err = %d)\n", err));
                 retval = 2;
             }
         }
-        if (G.dstrm.next_in != NULL) {
-            G.inptr = (uch *)G.dstrm.next_in;
-            G.incnt = G.dstrm.avail_in;
+        if ((*(Uz_Globs *)pG).dstrm.next_in != NULL) {
+            (*(Uz_Globs *)pG).inptr = (uch *)(*(Uz_Globs *)pG).dstrm.next_in;
+            (*(Uz_Globs *)pG).incnt = (*(Uz_Globs *)pG).dstrm.avail_in;
         }
 
-        err = inflateBack9End(&G.dstrm);
+        err = inflateBack9End(&(*(Uz_Globs *)pG).dstrm);
         if (err != Z_OK) {
             Trace((stderr, "oops!  (inflateBack9End() err = %d)\n", err));
             if (retval == 0)
@@ -510,7 +510,7 @@ int UZinflate(__G__ is_defl64)
                 windowBits = 8;
 
             Trace((stderr, "initializing inflate()\n"));
-            err = inflateBackInit(&G.dstrm, windowBits, redirSlide);
+            err = inflateBackInit(&(*(Uz_Globs *)pG).dstrm, windowBits, redirSlide);
 
             if (err == Z_MEM_ERROR)
                 return 3;
@@ -520,10 +520,10 @@ int UZinflate(__G__ is_defl64)
             }
         }
 
-        G.dstrm.next_in = G.inptr;
-        G.dstrm.avail_in = G.incnt;
+        (*(Uz_Globs *)pG).dstrm.next_in = (*(Uz_Globs *)pG).inptr;
+        (*(Uz_Globs *)pG).dstrm.avail_in = (*(Uz_Globs *)pG).incnt;
 
-        err = inflateBack(&G.dstrm, zlib_inCB, &G, zlib_outCB, &G);
+        err = inflateBack(&(*(Uz_Globs *)pG).dstrm, zlib_inCB, &(*(Uz_Globs *)pG), zlib_outCB, &(*(Uz_Globs *)pG));
         if (err != Z_STREAM_END) {
             if (err == Z_DATA_ERROR || err == Z_STREAM_ERROR) {
                 Trace((stderr, "oops!  (inflateBack() err = %d)\n", err));
@@ -532,25 +532,25 @@ int UZinflate(__G__ is_defl64)
                 retval = 3;
             } else if (err == Z_BUF_ERROR) {
                 Trace((stderr, "oops!  (inflateBack() err = %d)\n", err));
-                if (G.dstrm.next_in == Z_NULL) {
+                if ((*(Uz_Globs *)pG).dstrm.next_in == Z_NULL) {
                     /* input failure */
                     Trace((stderr, "  inflateBack() input failure\n"));
                     retval = 2;
                 } else {
                     /* output write failure */
-                    retval = (G.disk_full != 0 ? PK_DISK : IZ_CTRLC);
+                    retval = ((*(Uz_Globs *)pG).disk_full != 0 ? PK_DISK : IZ_CTRLC);
                 }
             } else {
                 Trace((stderr, "oops!  (inflateBack() err = %d)\n", err));
                 retval = 2;
             }
         }
-        if (G.dstrm.next_in != NULL) {
-            G.inptr = (uch *)G.dstrm.next_in;
-            G.incnt = G.dstrm.avail_in;
+        if ((*(Uz_Globs *)pG).dstrm.next_in != NULL) {
+            (*(Uz_Globs *)pG).inptr = (uch *)(*(Uz_Globs *)pG).dstrm.next_in;
+            (*(Uz_Globs *)pG).incnt = (*(Uz_Globs *)pG).dstrm.avail_in;
         }
 
-        err = inflateBackEnd(&G.dstrm);
+        err = inflateBackEnd(&(*(Uz_Globs *)pG).dstrm);
         if (err != Z_OK) {
             Trace((stderr, "oops!  (inflateBackEnd() err = %d)\n", err));
             if (retval == 0)
@@ -562,19 +562,19 @@ int UZinflate(__G__ is_defl64)
     int repeated_buf_err;
 
 #if (defined(DLL) && !defined(NO_SLIDE_REDIR))
-    if (G.redirect_slide)
-        wsize = G.redirect_size, redirSlide = G.redirect_buffer;
+    if ((*(Uz_Globs *)pG).redirect_slide)
+        wsize = (*(Uz_Globs *)pG).redirect_size, redirSlide = (*(Uz_Globs *)pG).redirect_buffer;
     else
         wsize = WSIZE, redirSlide = slide;
 #endif
 
-    G.dstrm.next_out = redirSlide;
-    G.dstrm.avail_out = wsize;
+    (*(Uz_Globs *)pG).dstrm.next_out = redirSlide;
+    (*(Uz_Globs *)pG).dstrm.avail_out = wsize;
 
-    G.dstrm.next_in = G.inptr;
-    G.dstrm.avail_in = G.incnt;
+    (*(Uz_Globs *)pG).dstrm.next_in = (*(Uz_Globs *)pG).inptr;
+    (*(Uz_Globs *)pG).dstrm.avail_in = (*(Uz_Globs *)pG).incnt;
 
-    if (!G.inflInit) {
+    if (!(*(Uz_Globs *)pG).inflInit) {
         unsigned i;
         int windowBits;
         /* local buffer for efficiency */
@@ -599,27 +599,27 @@ int UZinflate(__G__ is_defl64)
         else if (windowBits < 8)
             windowBits = 8;
 
-        G.dstrm.zalloc = (alloc_func)Z_NULL;
-        G.dstrm.zfree = (free_func)Z_NULL;
+        (*(Uz_Globs *)pG).dstrm.zalloc = (alloc_func)Z_NULL;
+        (*(Uz_Globs *)pG).dstrm.zfree = (free_func)Z_NULL;
 
         Trace((stderr, "initializing inflate()\n"));
-        err = inflateInit2(&G.dstrm, -windowBits);
+        err = inflateInit2(&(*(Uz_Globs *)pG).dstrm, -windowBits);
 
         if (err == Z_MEM_ERROR)
             return 3;
         else if (err != Z_OK)
             Trace((stderr, "oops!  (inflateInit2() err = %d)\n", err));
-        G.inflInit = 1;
+        (*(Uz_Globs *)pG).inflInit = 1;
     }
 
 #ifdef FUNZIP
     while (err != Z_STREAM_END) {
 #else /* !FUNZIP */
-    while (G.csize > 0) {
-        Trace((stderr, "first loop:  G.csize = %ld\n", G.csize));
+    while ((*(Uz_Globs *)pG).csize > 0) {
+        Trace((stderr, "first loop:  (*(Uz_Globs *)pG).csize = %ld\n", (*(Uz_Globs *)pG).csize));
 #endif /* ?FUNZIP */
-        while (G.dstrm.avail_out > 0) {
-            err = inflate(&G.dstrm, Z_PARTIAL_FLUSH);
+        while ((*(Uz_Globs *)pG).dstrm.avail_out > 0) {
+            err = inflate(&(*(Uz_Globs *)pG).dstrm, Z_PARTIAL_FLUSH);
 
             if (err == Z_DATA_ERROR) {
                 retval = 2; goto uzinflate_cleanup_exit;
@@ -631,36 +631,36 @@ int UZinflate(__G__ is_defl64)
 #ifdef FUNZIP
             if (err == Z_STREAM_END)    /* "END-of-entry-condition" ? */
 #else /* !FUNZIP */
-            if (G.csize <= 0L)          /* "END-of-entry-condition" ? */
+            if ((*(Uz_Globs *)pG).csize <= 0L)          /* "END-of-entry-condition" ? */
 #endif /* ?FUNZIP */
                 break;
 
-            if (G.dstrm.avail_in == 0) {
-                if (fillinbuf(__G) == 0) {
+            if ((*(Uz_Globs *)pG).dstrm.avail_in == 0) {
+                if (fillinbuf(pG) == 0) {
                     /* no "END-condition" yet, but no more data */
                     retval = 2; goto uzinflate_cleanup_exit;
                 }
 
-                G.dstrm.next_in = G.inptr;
-                G.dstrm.avail_in = G.incnt;
+                (*(Uz_Globs *)pG).dstrm.next_in = (*(Uz_Globs *)pG).inptr;
+                (*(Uz_Globs *)pG).dstrm.avail_in = (*(Uz_Globs *)pG).incnt;
             }
-            Trace((stderr, "     avail_in = %u\n", G.dstrm.avail_in));
+            Trace((stderr, "     avail_in = %u\n", (*(Uz_Globs *)pG).dstrm.avail_in));
         }
         /* flush slide[] */
-        if ((retval = FLUSH(wsize - G.dstrm.avail_out)) != 0)
+        if ((retval = FLUSH(wsize - (*(Uz_Globs *)pG).dstrm.avail_out)) != 0)
             goto uzinflate_cleanup_exit;
         Trace((stderr, "inside loop:  flushing %ld bytes (ptr diff = %ld)\n",
-          (long)(wsize - G.dstrm.avail_out),
-          (long)(G.dstrm.next_out-(Bytef *)redirSlide)));
-        G.dstrm.next_out = redirSlide;
-        G.dstrm.avail_out = wsize;
+          (long)(wsize - (*(Uz_Globs *)pG).dstrm.avail_out),
+          (long)((*(Uz_Globs *)pG).dstrm.next_out-(Bytef *)redirSlide)));
+        (*(Uz_Globs *)pG).dstrm.next_out = redirSlide;
+        (*(Uz_Globs *)pG).dstrm.avail_out = wsize;
     }
 
     /* no more input, so loop until we have all output */
     Trace((stderr, "beginning final loop:  err = %d\n", err));
     repeated_buf_err = FALSE;
     while (err != Z_STREAM_END) {
-        err = inflate(&G.dstrm, Z_PARTIAL_FLUSH);
+        err = inflate(&(*(Uz_Globs *)pG).dstrm, Z_PARTIAL_FLUSH);
         if (err == Z_DATA_ERROR) {
             retval = 2; goto uzinflate_cleanup_exit;
         } else if (err == Z_MEM_ERROR) {
@@ -672,13 +672,13 @@ int UZinflate(__G__ is_defl64)
 #else
             Trace((stderr,
                    "zlib inflate() did not detect stream end (%s, %s)\n",
-                   G.zipfn, G.filename));
+                   (*(Uz_Globs *)pG).zipfn, (*(Uz_Globs *)pG).filename));
 #endif
-            if ((!repeated_buf_err) && (G.dstrm.avail_in == 0)) {
+            if ((!repeated_buf_err) && ((*(Uz_Globs *)pG).dstrm.avail_in == 0)) {
                 /* when detecting this problem for the first time,
                    try to provide one fake byte beyond "EOF"... */
-                G.dstrm.next_in = "";
-                G.dstrm.avail_in = 1;
+                (*(Uz_Globs *)pG).dstrm.next_in = "";
+                (*(Uz_Globs *)pG).dstrm.avail_in = 1;
                 repeated_buf_err = TRUE;
             } else
                 break;
@@ -688,22 +688,22 @@ int UZinflate(__G__ is_defl64)
             EXIT(PK_MEM3);
         }
         /* final flush of slide[] */
-        if ((retval = FLUSH(wsize - G.dstrm.avail_out)) != 0)
+        if ((retval = FLUSH(wsize - (*(Uz_Globs *)pG).dstrm.avail_out)) != 0)
             goto uzinflate_cleanup_exit;
         Trace((stderr, "final loop:  flushing %ld bytes (ptr diff = %ld)\n",
-          (long)(wsize - G.dstrm.avail_out),
-          (long)(G.dstrm.next_out-(Bytef *)redirSlide)));
-        G.dstrm.next_out = redirSlide;
-        G.dstrm.avail_out = wsize;
+          (long)(wsize - (*(Uz_Globs *)pG).dstrm.avail_out),
+          (long)((*(Uz_Globs *)pG).dstrm.next_out-(Bytef *)redirSlide)));
+        (*(Uz_Globs *)pG).dstrm.next_out = redirSlide;
+        (*(Uz_Globs *)pG).dstrm.avail_out = wsize;
     }
-    Trace((stderr, "total in = %lu, total out = %lu\n", G.dstrm.total_in,
-      G.dstrm.total_out));
+    Trace((stderr, "total in = %lu, total out = %lu\n", (*(Uz_Globs *)pG).dstrm.total_in,
+      (*(Uz_Globs *)pG).dstrm.total_out));
 
-    G.inptr = (uch *)G.dstrm.next_in;
-    G.incnt = (G.inbuf + INBUFSIZ) - G.inptr;  /* reset for other routines */
+    (*(Uz_Globs *)pG).inptr = (uch *)(*(Uz_Globs *)pG).dstrm.next_in;
+    (*(Uz_Globs *)pG).incnt = ((*(Uz_Globs *)pG).inbuf + INBUFSIZ) - (*(Uz_Globs *)pG).inptr;  /* reset for other routines */
 
 uzinflate_cleanup_exit:
-    err = inflateReset(&G.dstrm);
+    err = inflateReset(&(*(Uz_Globs *)pG).dstrm);
     if (err != Z_OK)
         Trace((stderr, "oops!  (inflateReset() err = %d)\n", err));
 
@@ -724,12 +724,12 @@ uzinflate_cleanup_exit:
 #    define OF(a) ()
 #  endif
 #endif /* !OF */
-int inflate_codes OF((__GPRO__ struct huft *tl, struct huft *td,
+int inflate_codes OF((Uz_Globs *pG, struct huft *tl, struct huft *td,
                       unsigned bl, unsigned bd));
-static int inflate_stored OF((__GPRO));
-static int inflate_fixed OF((__GPRO));
-static int inflate_dynamic OF((__GPRO));
-static int inflate_block OF((__GPRO__ int *e));
+static int inflate_stored OF((Uz_Globs *pG));
+static int inflate_fixed OF((Uz_Globs *pG));
+static int inflate_dynamic OF((Uz_Globs *pG));
+static int inflate_block OF((Uz_Globs *pG, int *e));
 
 
 /* The inflate algorithm uses a sliding 32K byte window on the uncompressed
@@ -929,8 +929,8 @@ static const unsigned dbits = 6;
 
 #ifndef ASM_INFLATECODES
 
-int inflate_codes(__G__ tl, td, bl, bd)
-     __GDEF
+int inflate_codes(pG, tl, td, bl, bd)
+     Uz_Globs *pG;
 struct huft *tl, *td;   /* literal/length and distance decoder tables */
 unsigned bl, bd;        /* number of bits decoded by tl[] and td[] */
 /* inflate (decompress) the codes in a deflated (compressed) block.
@@ -948,9 +948,9 @@ unsigned bl, bd;        /* number of bits decoded by tl[] and td[] */
 
 
   /* make local copies of globals */
-  b = G.bb;                       /* initialize bit buffer */
-  k = G.bk;
-  w = G.wp;                       /* initialize window position */
+  b = (*(Uz_Globs *)pG).bb;                       /* initialize bit buffer */
+  k = (*(Uz_Globs *)pG).bk;
+  w = (*(Uz_Globs *)pG).wp;                       /* initialize window position */
 
 
   /* inflate the coded data */
@@ -1001,7 +1001,7 @@ unsigned bl, bd;        /* number of bits decoded by tl[] and td[] */
         /* do the copy */
         do {
 #if (defined(DLL) && !defined(NO_SLIDE_REDIR))
-          if (G.redirect_slide) {
+          if ((*(Uz_Globs *)pG).redirect_slide) {
             /* &= w/ wsize unnecessary & wrong if redirect */
             if ((UINT_D64)d >= wsize)
               return 1;         /* invalid compressed data */
@@ -1053,9 +1053,9 @@ unsigned bl, bd;        /* number of bits decoded by tl[] and td[] */
 cleanup_decode:
 
   /* restore the globals from the locals */
-  G.wp = (unsigned)w;             /* restore global window pointer */
-  G.bb = b;                       /* restore global bit buffer */
-  G.bk = k;
+  (*(Uz_Globs *)pG).wp = (unsigned)w;             /* restore global window pointer */
+  (*(Uz_Globs *)pG).bb = b;                       /* restore global bit buffer */
+  (*(Uz_Globs *)pG).bk = k;
 
 
 cleanup_and_exit:
@@ -1067,8 +1067,8 @@ cleanup_and_exit:
 
 
 
-static int inflate_stored(__G)
-     __GDEF
+static int inflate_stored(pG)
+     Uz_Globs *pG;
 /* "decompress" an inflated type 0 (stored) block. */
 {
   UINT_D64 w;           /* current window position (deflate64: up to 64k!) */
@@ -1080,9 +1080,9 @@ static int inflate_stored(__G)
 
   /* make local copies of globals */
   Trace((stderr, "\nstored block"));
-  b = G.bb;                       /* initialize bit buffer */
-  k = G.bk;
-  w = G.wp;                       /* initialize window position */
+  b = (*(Uz_Globs *)pG).bb;                       /* initialize bit buffer */
+  k = (*(Uz_Globs *)pG).bk;
+  w = (*(Uz_Globs *)pG).wp;                       /* initialize window position */
 
 
   /* go to byte boundary */
@@ -1115,9 +1115,9 @@ static int inflate_stored(__G)
 
 
   /* restore the globals from the locals */
-  G.wp = (unsigned)w;             /* restore global window pointer */
-  G.bb = b;                       /* restore global bit buffer */
-  G.bk = k;
+  (*(Uz_Globs *)pG).wp = (unsigned)w;             /* restore global window pointer */
+  (*(Uz_Globs *)pG).bb = b;                       /* restore global bit buffer */
+  (*(Uz_Globs *)pG).bk = k;
 
 cleanup_and_exit:
   return retval;
@@ -1132,15 +1132,15 @@ struct huft *fixed_td;
 int fixed_bl, fixed_bd;
 #endif
 
-static int inflate_fixed(__G)
-     __GDEF
+static int inflate_fixed(pG)
+     Uz_Globs *pG;
 /* decompress an inflated type 1 (fixed Huffman codes) block.  We should
    either replace this with a custom decoder, or at least precompute the
    Huffman tables. */
 {
   /* if first time, set up tables for fixed blocks */
   Trace((stderr, "\nliteral block"));
-  if (G.fixed_tl == (struct huft *)NULL)
+  if ((*(Uz_Globs *)pG).fixed_tl == (struct huft *)NULL)
   {
     int i;                /* temporary variable */
     unsigned l[288];      /* length list for huft_build */
@@ -1154,46 +1154,46 @@ static int inflate_fixed(__G)
       l[i] = 7;
     for (; i < 288; i++)          /* make a complete, but wrong code set */
       l[i] = 8;
-    G.fixed_bl = 7;
+    (*(Uz_Globs *)pG).fixed_bl = 7;
 #ifdef USE_DEFLATE64
-    if ((i = huft_build(__G__ l, 288, 257, G.cplens, G.cplext,
-                        &G.fixed_tl, &G.fixed_bl)) != 0)
+    if ((i = huft_build(pG, l, 288, 257, (*(Uz_Globs *)pG).cplens, (*(Uz_Globs *)pG).cplext,
+                        &(*(Uz_Globs *)pG).fixed_tl, &(*(Uz_Globs *)pG).fixed_bl)) != 0)
 #else
-    if ((i = huft_build(__G__ l, 288, 257, cplens, cplext,
-                        &G.fixed_tl, &G.fixed_bl)) != 0)
+    if ((i = huft_build(pG, l, 288, 257, cplens, cplext,
+                        &(*(Uz_Globs *)pG).fixed_tl, &(*(Uz_Globs *)pG).fixed_bl)) != 0)
 #endif
     {
-      G.fixed_tl = (struct huft *)NULL;
+      (*(Uz_Globs *)pG).fixed_tl = (struct huft *)NULL;
       return i;
     }
 
     /* distance table */
     for (i = 0; i < MAXDISTS; i++)      /* make an incomplete code set */
       l[i] = 5;
-    G.fixed_bd = 5;
+    (*(Uz_Globs *)pG).fixed_bd = 5;
 #ifdef USE_DEFLATE64
-    if ((i = huft_build(__G__ l, MAXDISTS, 0, cpdist, G.cpdext,
-                        &G.fixed_td, &G.fixed_bd)) > 1)
+    if ((i = huft_build(pG, l, MAXDISTS, 0, cpdist, (*(Uz_Globs *)pG).cpdext,
+                        &(*(Uz_Globs *)pG).fixed_td, &(*(Uz_Globs *)pG).fixed_bd)) > 1)
 #else
-    if ((i = huft_build(__G__ l, MAXDISTS, 0, cpdist, cpdext,
-                        &G.fixed_td, &G.fixed_bd)) > 1)
+    if ((i = huft_build(pG, l, MAXDISTS, 0, cpdist, cpdext,
+                        &(*(Uz_Globs *)pG).fixed_td, &(*(Uz_Globs *)pG).fixed_bd)) > 1)
 #endif
     {
-      huft_free(G.fixed_tl);
-      G.fixed_td = G.fixed_tl = (struct huft *)NULL;
+      huft_free((*(Uz_Globs *)pG).fixed_tl);
+      (*(Uz_Globs *)pG).fixed_td = (*(Uz_Globs *)pG).fixed_tl = (struct huft *)NULL;
       return i;
     }
   }
 
   /* decompress until an end-of-block code */
-  return inflate_codes(__G__ G.fixed_tl, G.fixed_td,
-                             G.fixed_bl, G.fixed_bd);
+  return inflate_codes(pG, (*(Uz_Globs *)pG).fixed_tl, (*(Uz_Globs *)pG).fixed_td,
+                             (*(Uz_Globs *)pG).fixed_bl, (*(Uz_Globs *)pG).fixed_bd);
 }
 
 
 
-static int inflate_dynamic(__G)
-  __GDEF
+static int inflate_dynamic(pG)
+  Uz_Globs *pG;
 /* decompress an inflated type 2 (dynamic Huffman codes) block. */
 {
   unsigned i;           /* temporary variables */
@@ -1217,8 +1217,8 @@ static int inflate_dynamic(__G)
 
   /* make local bit buffer */
   Trace((stderr, "\ndynamic block"));
-  b = G.bb;
-  k = G.bk;
+  b = (*(Uz_Globs *)pG).bb;
+  k = (*(Uz_Globs *)pG).bk;
 
 
   /* read in table lengths */
@@ -1248,7 +1248,7 @@ static int inflate_dynamic(__G)
 
   /* build decoding table for trees--single level, 7 bit lookup */
   bl = 7;
-  retval = huft_build(__G__ ll, 19, 19, NULL, NULL, &tl, &bl);
+  retval = huft_build(pG, ll, 19, 19, NULL, NULL, &tl, &bl);
   if (bl == 0)                  /* no bit lengths */
     retval = 1;
   if (retval)
@@ -1317,16 +1317,16 @@ static int inflate_dynamic(__G)
 
 
   /* restore the global bit buffer */
-  G.bb = b;
-  G.bk = k;
+  (*(Uz_Globs *)pG).bb = b;
+  (*(Uz_Globs *)pG).bk = k;
 
 
   /* build the decoding tables for literal/length and distance codes */
   bl = lbits;
 #ifdef USE_DEFLATE64
-  retval = huft_build(__G__ ll, nl, 257, G.cplens, G.cplext, &tl, &bl);
+  retval = huft_build(pG, ll, nl, 257, (*(Uz_Globs *)pG).cplens, (*(Uz_Globs *)pG).cplext, &tl, &bl);
 #else
-  retval = huft_build(__G__ ll, nl, 257, cplens, cplext, &tl, &bl);
+  retval = huft_build(pG, ll, nl, 257, cplens, cplext, &tl, &bl);
 #endif
   if (bl == 0)                  /* no literals or lengths */
     retval = 1;
@@ -1348,9 +1348,9 @@ static int inflate_dynamic(__G)
   bd = dbits;
 #endif
 #ifdef USE_DEFLATE64
-  retval = huft_build(__G__ ll + nl, nd, 0, cpdist, G.cpdext, &td, &bd);
+  retval = huft_build(pG, ll + nl, nd, 0, cpdist, (*(Uz_Globs *)pG).cpdext, &td, &bd);
 #else
-  retval = huft_build(__G__ ll + nl, nd, 0, cpdist, cpdext, &td, &bd);
+  retval = huft_build(pG, ll + nl, nd, 0, cpdist, cpdext, &td, &bd);
 #endif
 #ifdef PKZIP_BUG_WORKAROUND
   if (retval == 1)
@@ -1370,7 +1370,7 @@ static int inflate_dynamic(__G)
   }
 
   /* decompress until an end-of-block code */
-  retval = inflate_codes(__G__ tl, td, bl, bd);
+  retval = inflate_codes(pG, tl, td, bl, bd);
 
 cleanup_and_exit:
   /* free the decoding tables, return */
@@ -1383,8 +1383,8 @@ cleanup_and_exit:
 
 
 
-static int inflate_block(__G__ e)
-  __GDEF
+static int inflate_block(pG, e)
+  Uz_Globs *pG;
   int *e;               /* last block flag */
 /* decompress an inflated block */
 {
@@ -1395,8 +1395,8 @@ static int inflate_block(__G__ e)
 
 
   /* make local bit buffer */
-  b = G.bb;
-  k = G.bk;
+  b = (*(Uz_Globs *)pG).bb;
+  k = (*(Uz_Globs *)pG).bk;
 
 
   /* read in last block bit */
@@ -1412,17 +1412,17 @@ static int inflate_block(__G__ e)
 
 
   /* restore the global bit buffer */
-  G.bb = b;
-  G.bk = k;
+  (*(Uz_Globs *)pG).bb = b;
+  (*(Uz_Globs *)pG).bk = k;
 
 
   /* inflate that block type */
   if (t == 2)
-    return inflate_dynamic(__G);
+    return inflate_dynamic(pG);
   if (t == 0)
-    return inflate_stored(__G);
+    return inflate_stored(pG);
   if (t == 1)
-    return inflate_fixed(__G);
+    return inflate_fixed(pG);
 
 
   /* bad block type */
@@ -1434,8 +1434,8 @@ cleanup_and_exit:
 
 
 
-int inflate(__G__ is_defl64)
-    __GDEF
+int inflate(pG, is_defl64)
+    Uz_Globs *pG;
     int is_defl64;
 /* decompress an inflated entry */
 {
@@ -1446,34 +1446,34 @@ int inflate(__G__ is_defl64)
 #endif
 
 #if (defined(DLL) && !defined(NO_SLIDE_REDIR))
-  if (G.redirect_slide)
-    wsize = G.redirect_size, redirSlide = G.redirect_buffer;
+  if ((*(Uz_Globs *)pG).redirect_slide)
+    wsize = (*(Uz_Globs *)pG).redirect_size, redirSlide = (*(Uz_Globs *)pG).redirect_buffer;
   else
     wsize = WSIZE, redirSlide = slide;   /* how they're #defined if !DLL */
 #endif
 
   /* initialize window, bit buffer */
-  G.wp = 0;
-  G.bk = 0;
-  G.bb = 0;
+  (*(Uz_Globs *)pG).wp = 0;
+  (*(Uz_Globs *)pG).bk = 0;
+  (*(Uz_Globs *)pG).bb = 0;
 
 #ifdef USE_DEFLATE64
   if (is_defl64) {
-    G.cplens = cplens64;
-    G.cplext = cplext64;
-    G.cpdext = cpdext64;
-    G.fixed_tl = G.fixed_tl64;
-    G.fixed_bl = G.fixed_bl64;
-    G.fixed_td = G.fixed_td64;
-    G.fixed_bd = G.fixed_bd64;
+    (*(Uz_Globs *)pG).cplens = cplens64;
+    (*(Uz_Globs *)pG).cplext = cplext64;
+    (*(Uz_Globs *)pG).cpdext = cpdext64;
+    (*(Uz_Globs *)pG).fixed_tl = (*(Uz_Globs *)pG).fixed_tl64;
+    (*(Uz_Globs *)pG).fixed_bl = (*(Uz_Globs *)pG).fixed_bl64;
+    (*(Uz_Globs *)pG).fixed_td = (*(Uz_Globs *)pG).fixed_td64;
+    (*(Uz_Globs *)pG).fixed_bd = (*(Uz_Globs *)pG).fixed_bd64;
   } else {
-    G.cplens = cplens32;
-    G.cplext = cplext32;
-    G.cpdext = cpdext32;
-    G.fixed_tl = G.fixed_tl32;
-    G.fixed_bl = G.fixed_bl32;
-    G.fixed_td = G.fixed_td32;
-    G.fixed_bd = G.fixed_bd32;
+    (*(Uz_Globs *)pG).cplens = cplens32;
+    (*(Uz_Globs *)pG).cplext = cplext32;
+    (*(Uz_Globs *)pG).cpdext = cpdext32;
+    (*(Uz_Globs *)pG).fixed_tl = (*(Uz_Globs *)pG).fixed_tl32;
+    (*(Uz_Globs *)pG).fixed_bl = (*(Uz_Globs *)pG).fixed_bl32;
+    (*(Uz_Globs *)pG).fixed_td = (*(Uz_Globs *)pG).fixed_td32;
+    (*(Uz_Globs *)pG).fixed_bd = (*(Uz_Globs *)pG).fixed_bd32;
   }
 #else /* !USE_DEFLATE64 */
   if (is_defl64) {
@@ -1489,13 +1489,13 @@ int inflate(__G__ is_defl64)
   /* decompress until the last block */
   do {
 #ifdef DEBUG
-    G.hufts = 0;
+    (*(Uz_Globs *)pG).hufts = 0;
 #endif
-    if ((r = inflate_block(__G__ &e)) != 0)
+    if ((r = inflate_block(pG, &e)) != 0)
       return r;
 #ifdef DEBUG
-    if (G.hufts > h)
-      h = G.hufts;
+    if ((*(Uz_Globs *)pG).hufts > h)
+      h = (*(Uz_Globs *)pG).hufts;
 #endif
   } while (!e);
 
@@ -1504,32 +1504,32 @@ int inflate(__G__ is_defl64)
 
 #ifdef USE_DEFLATE64
   if (is_defl64) {
-    G.fixed_tl64 = G.fixed_tl;
-    G.fixed_bl64 = G.fixed_bl;
-    G.fixed_td64 = G.fixed_td;
-    G.fixed_bd64 = G.fixed_bd;
+    (*(Uz_Globs *)pG).fixed_tl64 = (*(Uz_Globs *)pG).fixed_tl;
+    (*(Uz_Globs *)pG).fixed_bl64 = (*(Uz_Globs *)pG).fixed_bl;
+    (*(Uz_Globs *)pG).fixed_td64 = (*(Uz_Globs *)pG).fixed_td;
+    (*(Uz_Globs *)pG).fixed_bd64 = (*(Uz_Globs *)pG).fixed_bd;
   } else {
-    G.fixed_tl32 = G.fixed_tl;
-    G.fixed_bl32 = G.fixed_bl;
-    G.fixed_td32 = G.fixed_td;
-    G.fixed_bd32 = G.fixed_bd;
+    (*(Uz_Globs *)pG).fixed_tl32 = (*(Uz_Globs *)pG).fixed_tl;
+    (*(Uz_Globs *)pG).fixed_bl32 = (*(Uz_Globs *)pG).fixed_bl;
+    (*(Uz_Globs *)pG).fixed_td32 = (*(Uz_Globs *)pG).fixed_td;
+    (*(Uz_Globs *)pG).fixed_bd32 = (*(Uz_Globs *)pG).fixed_bd;
   }
 #endif
 
   /* flush out redirSlide and return (success, unless final FLUSH failed) */
-  return (FLUSH(G.wp));
+  return (FLUSH((*(Uz_Globs *)pG).wp));
 }
 
 
 
-int inflate_free(__G)
-    __GDEF
+int inflate_free(pG)
+    Uz_Globs *pG;
 {
-  if (G.fixed_tl != (struct huft *)NULL)
+  if ((*(Uz_Globs *)pG).fixed_tl != (struct huft *)NULL)
   {
-    huft_free(G.fixed_td);
-    huft_free(G.fixed_tl);
-    G.fixed_td = G.fixed_tl = (struct huft *)NULL;
+    huft_free((*(Uz_Globs *)pG).fixed_td);
+    huft_free((*(Uz_Globs *)pG).fixed_tl);
+    (*(Uz_Globs *)pG).fixed_td = (*(Uz_Globs *)pG).fixed_tl = (struct huft *)NULL;
   }
   return 0;
 }
@@ -1548,8 +1548,8 @@ int inflate_free(__G)
 #define N_MAX 288       /* maximum number of codes in any set */
 
 
-int huft_build(__G__ b, n, s, d, e, t, m)
-  __GDEF
+int huft_build(pG, b, n, s, d, e, t, m)
+  Uz_Globs *pG;
   const unsigned *b;   /* code lengths in bits (all assumed <= BMAX) */
   unsigned n;           /* number of codes (assumed <= N_MAX) */
   unsigned s;           /* number of simple-valued codes (0..s-1) */
@@ -1694,7 +1694,7 @@ int huft_build(__G__ b, n, s, d, e, t, m)
           return 3;             /* not enough memory */
         }
 #ifdef DEBUG
-        G.hufts += z + 1;         /* track memory usage */
+        (*(Uz_Globs *)pG).hufts += z + 1;         /* track memory usage */
 #endif
         *t = q + 1;             /* link to list for huft_free() */
         *(t = &(q->v.t)) = (struct huft *)NULL;

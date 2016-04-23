@@ -39,7 +39,7 @@ const char *fnames[2] = {"*", NULL};   /* default filenames vector */
 
 
 #ifndef REENTRANT
-   Uz_Globs G;
+   Uz_Globs (*(Uz_Globs *)pG);
 #else /* REENTRANT */
 
 #  ifndef USETHREADID
@@ -66,12 +66,12 @@ const char *fnames[2] = {"*", NULL};   /* default filenames vector */
        "error:  global pointer in table does not match pointer passed as\
  parameter\n";
 
-static void registerGlobalPointer OF((__GPRO));
+static void registerGlobalPointer OF((Uz_Globs *pG));
 
 
 
-static void registerGlobalPointer(__G)
-    __GDEF
+static void registerGlobalPointer(pG)
+    Uz_Globs *pG;
 {
     int scan=0;
     ulg tid = GetThreadId();
@@ -93,8 +93,8 @@ static void registerGlobalPointer(__G)
 
 
 
-void deregisterGlobalPointer(__G)
-    __GDEF
+void deregisterGlobalPointer(pG)
+    Uz_Globs *pG;
 {
     int scan=0;
     ulg tid = GetThreadId();
@@ -165,46 +165,46 @@ Uz_Globs *globalsCtor()
         return (Uz_Globs *)NULL;
 #endif /* REENTRANT */
 
-    /* for REENTRANT version, G is defined as (*pG) */
+    /* for REENTRANT version, (*(Uz_Globs *)pG) is defined as (*pG) */
 
-    memzero(&G, sizeof(Uz_Globs));
+    memzero(&(*(Uz_Globs *)pG), sizeof(Uz_Globs));
 
 #ifndef FUNZIP
 
     uO.lflag=(-1);
-    G.wildzipfn = "";
-    G.pfnames = (char **)fnames;
-    G.pxnames = (char **)&fnames[1];
-    G.pInfo = G.info;
-    G.sol = TRUE;          /* at start of line */
+    (*(Uz_Globs *)pG).wildzipfn = "";
+    (*(Uz_Globs *)pG).pfnames = (char **)fnames;
+    (*(Uz_Globs *)pG).pxnames = (char **)&fnames[1];
+    (*(Uz_Globs *)pG).pInfo = (*(Uz_Globs *)pG).info;
+    (*(Uz_Globs *)pG).sol = TRUE;          /* at start of line */
 
-    G.message = UzpMessagePrnt;
-    G.input = UzpInput;           /* not used by anyone at the moment... */
+    (*(Uz_Globs *)pG).message = UzpMessagePrnt;
+    (*(Uz_Globs *)pG).input = UzpInput;           /* not used by anyone at the moment... */
 #if defined(WINDLL) || defined(MACOS)
-    G.mpause = NULL;              /* has scrollbars:  no need for pausing */
+    (*(Uz_Globs *)pG).mpause = NULL;              /* has scrollbars:  no need for pausing */
 #else
-    G.mpause = UzpMorePause;
+    (*(Uz_Globs *)pG).mpause = UzpMorePause;
 #endif
-    G.decr_passwd = UzpPassword;
+    (*(Uz_Globs *)pG).decr_passwd = UzpPassword;
 #endif /* !FUNZIP */
 
 #if (!defined(DOS_FLX_H68_NLM_OS2_W32) && !defined(AMIGA) && !defined(RISCOS))
 #if (!defined(MACOS) && !defined(ATARI) && !defined(VMS))
-    G.echofd = -1;
+    (*(Uz_Globs *)pG).echofd = -1;
 #endif /* !(MACOS || ATARI || VMS) */
 #endif /* !(DOS_FLX_H68_NLM_OS2_W32 || AMIGA || RISCOS) */
 
 #ifdef SYSTEM_SPECIFIC_CTOR
-    SYSTEM_SPECIFIC_CTOR(__G);
+    SYSTEM_SPECIFIC_CTOR(pG);
 #endif
 
 #ifdef REENTRANT
 #ifdef USETHREADID
-    registerGlobalPointer(__G);
+    registerGlobalPointer(pG);
 #else
-    GG = &G;
+    GG = &(*(Uz_Globs *)pG);
 #endif /* ?USETHREADID */
 #endif /* REENTRANT */
 
-    return &G;
+    return &(*(Uz_Globs *)pG);
 }

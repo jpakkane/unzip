@@ -89,12 +89,12 @@ APIDocStruct APIDoc[] = {
 };
 
 
-static int function_help OF((__GPRO__ APIDocStruct *doc, char *fname));
+static int function_help OF((Uz_Globs *pG, APIDocStruct *doc, char *fname));
 
 
 
-static int function_help(__G__ doc, fname)
-    __GDEF
+static int function_help(pG, doc, fname)
+    Uz_Globs *pG;
     APIDocStruct *doc;
     char *fname;
 {
@@ -114,18 +114,18 @@ static int function_help(__G__ doc, fname)
 
 
 
-void APIhelp(__G__ argc, argv)
-    __GDEF
+void APIhelp(pG, argc, argv)
+    Uz_Globs *pG;
     int argc;
     char **argv;
 {
     if (argc > 1) {
         struct APIDocStruct *doc;
 
-        if (function_help(__G__ APIDoc, argv[1]))
+        if (function_help(pG, APIDoc, argv[1]))
             return;
 #ifdef SYSTEM_API_DETAILS
-        if (function_help(__G__ SYSTEM_API_DETAILS, argv[1]))
+        if (function_help(pG, SYSTEM_API_DETAILS, argv[1]))
             return;
 #endif
         Info(slide, 0, ((char *)slide,

@@ -226,13 +226,13 @@
 #  define MAIN   UZ_EXP UzpMain   /* was UzpUnzip */
 #  ifdef OS2DLL
 #    undef Info
-#    define REDIRECTC(c)             varputchar(__G__ c)
-#    define REDIRECTPRINT(buf,size)  varmessage(__G__ buf, size)
-#    define FINISH_REDIRECT()        finish_REXX_redirect(__G)
+#    define REDIRECTC(c)             varputchar(pG, c)
+#    define REDIRECTPRINT(buf,size)  varmessage(pG, buf, size)
+#    define FINISH_REDIRECT()        finish_REXX_redirect(pG)
 #  else
 #    define REDIRECTC(c)
 #    define REDIRECTPRINT(buf,size)  0
-#    define FINISH_REDIRECT()        close_redirect(__G)
+#    define FINISH_REDIRECT()        close_redirect(pG)
 #  endif
 #endif
 
@@ -417,7 +417,7 @@
 #  define DATE_SEPCHAR  '-'
 #endif
 #ifndef CLOSE_INFILE
-#  define CLOSE_INFILE()  close(G.zipfd)
+#  define CLOSE_INFILE()  close((*(Uz_Globs *)pG).zipfd)
 #endif
 #ifndef RETURN
 #  define RETURN        return  /* only used in main() */
@@ -426,7 +426,7 @@
 #  define EXIT          exit
 #endif
 #ifndef USAGE
-#  define USAGE(ret)    usage(__G__ (ret))    /* used in unzip.c, zipinfo.c */
+#  define USAGE(ret)    usage(pG, (ret))    /* used in unzip.c, zipinfo.c */
 #endif
 #ifndef TIMET_TO_NATIVE         /* everybody but MSC 7.0 and Macintosh */
 #  define TIMET_TO_NATIVE(x)
@@ -1062,12 +1062,12 @@
 #define EXISTS_AND_OLDER  0
 #define EXISTS_AND_NEWER  1
 
-#define OVERWRT_QUERY     0    /* status values for G.overwrite_mode */
+#define OVERWRT_QUERY     0    /* status values for (*(Uz_Globs *)pG).overwrite_mode */
 #define OVERWRT_ALWAYS    1
 #define OVERWRT_NEVER     2
 
-#define IS_OVERWRT_ALL    (G.overwrite_mode == OVERWRT_ALWAYS)
-#define IS_OVERWRT_NONE   (G.overwrite_mode == OVERWRT_NEVER)
+#define IS_OVERWRT_ALL    ((*(Uz_Globs *)pG).overwrite_mode == OVERWRT_ALWAYS)
+#define IS_OVERWRT_NONE   ((*(Uz_Globs *)pG).overwrite_mode == OVERWRT_NEVER)
 
 #define ROOT              0    /* checkdir() extract-to path:  called once */
 #define INIT              1    /* allocate buildpath:  called once per member */
@@ -1464,12 +1464,12 @@ typedef struct VMStimbuf {
    };
 #endif /* ?MALLOC_WORK */
 
-#define slide  G.area.Slide
+#define slide  (*(Uz_Globs *)pG).area.Slide
 
 #if (defined(DLL) && !defined(NO_SLIDE_REDIR))
-#  define redirSlide G.redirect_sldptr
+#  define redirSlide (*(Uz_Globs *)pG).redirect_sldptr
 #else
-#  define redirSlide G.area.Slide
+#  define redirSlide (*(Uz_Globs *)pG).area.Slide
 #endif
 
 /*---------------------------------------------------------------------------
@@ -1633,9 +1633,9 @@ typedef struct _APIDocStruct {
 
 #ifndef WINDLL
    int    MAIN                   (int argc, char **argv);
-   int    unzip                  (__GPRO__ int argc, char **argv);
-   int    uz_opts                (__GPRO__ int *pargc, char ***pargv);
-   int    usage                  (__GPRO__ int error);
+   int    unzip                  (Uz_Globs *pG, int argc, char **argv);
+   int    uz_opts                (Uz_Globs *pG, int *pargc, char ***pargv);
+   int    usage                  (Uz_Globs *pG, int error);
 #endif /* !WINDLL */
 
 /*---------------------------------------------------------------------------
@@ -1644,15 +1644,15 @@ typedef struct _APIDocStruct {
 
 int      process_zipfiles        ();
 void     free_G_buffers          ();
-/* static int    do_seekable     OF((__GPRO__ int lastchance)); */
-/* static int    find_ecrec      OF((__GPRO__ long searchlen)); */
+/* static int    do_seekable     OF((Uz_Globs *pG, int lastchance)); */
+/* static int    find_ecrec      OF((Uz_Globs *pG, long searchlen)); */
 /* static int    process_central_comment (); */
 int      process_cdir_file_hdr   ();
 int      process_local_file_hdr  ();
-int      getZip64Data            (__GPRO__ const uch *ef_buf,
+int      getZip64Data            (Uz_Globs *pG, const uch *ef_buf,
                                      unsigned ef_len);
 #ifdef UNICODE_SUPPORT
-  int    getUnicodeData          (__GPRO__ const uch *ef_buf,
+  int    getUnicodeData          (Uz_Globs *pG, const uch *ef_buf,
                                      unsigned ef_len);
 #endif
 unsigned ef_scan_for_izux        (const uch *ef_buf, unsigned ef_len,
@@ -1667,13 +1667,13 @@ unsigned ef_scan_for_izux        (const uch *ef_buf, unsigned ef_len,
 
 #ifndef NO_ZIPINFO
 #ifndef WINDLL
-   int   zi_opts                 (__GPRO__ int *pargc, char ***pargv);
+   int   zi_opts                 (Uz_Globs *pG, int *pargc, char ***pargv);
 #endif
 void     zi_end_central          ();
 int      zipinfo                 ();
-/* static int      zi_long       OF((__GPRO__ zusz_t *pEndprev)); */
+/* static int      zi_long       OF((Uz_Globs *pG, zusz_t *pEndprev)); */
 /* static int      zi_short      (); */
-/* static char    *zi_time       OF((__GPRO__ const ulg *datetimez,
+/* static char    *zi_time       OF((Uz_Globs *pG, const ulg *datetimez,
                                      const time_t *modtimez, char *d_t_str));*/
 #endif /* !NO_ZIPINFO */
 
@@ -1683,7 +1683,7 @@ int      zipinfo                 ();
 
 int      list_files              ();
 #ifdef TIMESTAMP
-   int   get_time_stamp          (__GPRO__  time_t *last_modtime,
+   int   get_time_stamp          (Uz_Globs *pG,  time_t *last_modtime,
                                      ulg *nmember);
 #endif
 int      ratio                   (zusz_t uc, zusz_t c);
@@ -1699,24 +1699,24 @@ int      open_input_file      ();
 int      open_outfile         ();
 void     undefer_input        ();
 void     defer_leftover_input ();
-unsigned readbuf              (__GPRO__ char *buf, register unsigned len);
+unsigned readbuf              (Uz_Globs *pG, char *buf, register unsigned len);
 int      readbyte             ();
 int      fillinbuf            ();
-int      seek_zipf            (__GPRO__ zoff_t abs_offset);
+int      seek_zipf            (Uz_Globs *pG, zoff_t abs_offset);
 #ifdef FUNZIP
-   int   flush                (__GPRO__ ulg size);  /* actually funzip.c */
+   int   flush                (Uz_Globs *pG, ulg size);  /* actually funzip.c */
 #else
-   int   flush                (__GPRO__ uch *buf, ulg size, int unshrink);
+   int   flush                (Uz_Globs *pG, uch *buf, ulg size, int unshrink);
 #endif
 /* static int  disk_error     (); */
 void     handler              (int signal);
 time_t   dos_to_unix_time     (ulg dos_datetime);
-int      check_for_newer      (__GPRO__ char *filename);
-int      do_string            (__GPRO__ unsigned int length, int option);
+int      check_for_newer      (Uz_Globs *pG, char *filename);
+int      do_string            (Uz_Globs *pG, unsigned int length, int option);
 ush      makeword             (const uch *b);
 ulg      makelong             (const uch *sig);
 zusz_t   makeint64            (const uch *sig);
-char    *fzofft               (__GPRO__ zoff_t val,
+char    *fzofft               (Uz_Globs *pG, zoff_t val,
                                   const char *pre, const char *post);
 #if (!defined(STR_TO_ISO) || defined(NEED_STR2ISO))
    char *str2iso              (char *dst, const char *src);
@@ -1757,17 +1757,17 @@ char    *fzofft               (__GPRO__ zoff_t val,
 int    extract_or_test_files     ();
 /* static int   store_info          OF((void)); */
 /* static int   extract_or_test_member   (); */
-/* static int   TestExtraField   OF((__GPRO__ uch *ef, unsigned ef_len)); */
-/* static int   test_OS2         OF((__GPRO__ uch *eb, unsigned eb_size)); */
-/* static int   test_NT          OF((__GPRO__ uch *eb, unsigned eb_size)); */
+/* static int   TestExtraField   OF((Uz_Globs *pG, uch *ef, unsigned ef_len)); */
+/* static int   test_OS2         OF((Uz_Globs *pG, uch *eb, unsigned eb_size)); */
+/* static int   test_NT          OF((Uz_Globs *pG, uch *eb, unsigned eb_size)); */
 #ifndef SFX
   unsigned find_compr_idx        (unsigned compr_methodnum);
 #endif
-int    memextract                (__GPRO__ uch *tgt, ulg tgtsize,
+int    memextract                (Uz_Globs *pG, uch *tgt, ulg tgtsize,
                                      const uch *src, ulg srcsize);
-int    memflush                  (__GPRO__ const uch *rawbuf, ulg size);
+int    memflush                  (Uz_Globs *pG, const uch *rawbuf, ulg size);
 #if (defined(VMS) || defined(VMS_TEXT_CONV))
-   uch   *extract_izvms_block    (__GPRO__ const uch *ebdata,
+   uch   *extract_izvms_block    (Uz_Globs *pG, const uch *ebdata,
                                      unsigned size, unsigned *retlen,
                                      const uch *init, unsigned needlen);
 #endif
@@ -1782,20 +1782,20 @@ char  *fnfilter                  (const char *raw, uch *space,
 int    explode                   ();                  /* explode.c */
 #endif
 int    huft_free                 (struct huft *t);          /* inflate.c */
-int    huft_build                (__GPRO__ const unsigned *b, unsigned n,
+int    huft_build                (Uz_Globs *pG, const unsigned *b, unsigned n,
                                      unsigned s, const ush *d, const uch *e,
                                      struct huft **t, unsigned *m);
 #ifdef USE_ZLIB
-   int    UZinflate              (__GPRO__ int is_defl64);  /* inflate.c */
-#  define inflate_free(x)        inflateEnd(&((Uz_Globs *)(&G))->dstrm)
+   int    UZinflate              (Uz_Globs *pG, int is_defl64);  /* inflate.c */
+#  define inflate_free(x)        inflateEnd(&((Uz_Globs *)(&(*(Uz_Globs *)pG)))->dstrm)
 #else
-   int    inflate                (__GPRO__ int is_defl64);  /* inflate.c */
+   int    inflate                (Uz_Globs *pG, int is_defl64);  /* inflate.c */
    int    inflate_free           ();                  /* inflate.c */
 #endif /* ?USE_ZLIB */
 #if (!defined(SFX) && !defined(FUNZIP))
 #ifndef COPYRIGHT_CLEAN
    int    unreduce               ();                 /* unreduce.c */
-/* static void  LoadFollowers    OF((__GPRO__ f_array *follower, uch *Slen));
+/* static void  LoadFollowers    OF((Uz_Globs *pG, f_array *follower, uch *Slen));
                                                                 * unreduce.c */
 #endif /* !COPYRIGHT_CLEAN */
 #ifndef LZW_CLEAN
@@ -1814,21 +1814,21 @@ int    huft_build                (__GPRO__ const unsigned *b, unsigned n,
 
 #ifdef DLL
    void     setFileNotFound       ();                     /* api.c */
-   int      unzipToMemory         OF((__GPRO__ char *zip, char *file,
+   int      unzipToMemory         OF((Uz_Globs *pG, char *zip, char *file,
                                       UzpBuffer *retstr));          /* api.c */
    int      redirect_outfile      ();                     /* api.c */
-   int      writeToMemory         OF((__GPRO__ const uch *rawbuf,
+   int      writeToMemory         OF((Uz_Globs *pG, const uch *rawbuf,
                                       extent size));                /* api.c */
    int      close_redirect        ();                     /* api.c */
    /* this obsolescent entry point kept for compatibility: */
    int      UzpUnzip              OF((int argc, char **argv));/* use UzpMain */
 #ifdef OS2DLL
-   int      varmessage            OF((__GPRO__ const uch *buf, ulg size));
-   int      varputchar            OF((__GPRO__ int c));         /* rexxapi.c */
+   int      varmessage            OF((Uz_Globs *pG, const uch *buf, ulg size));
+   int      varputchar            OF((Uz_Globs *pG, int c));         /* rexxapi.c */
    int      finish_REXX_redirect  ();                 /* rexxapi.c */
 #endif
 #ifdef API_DOC
-   void     APIhelp               OF((__GPRO__ int argc, char **argv));
+   void     APIhelp               OF((Uz_Globs *pG, int argc, char **argv));
 #endif                                                          /* apihelp.c */
 #endif /* DLL */
 
@@ -1841,7 +1841,7 @@ int    huft_build                (__GPRO__ const unsigned *b, unsigned n,
    int   IsWinNT        OF((void));                               /* win32.c */
 #ifdef NTSD_EAS
    void  process_defer_NT     ();                       /* win32.c */
-   int   test_NTSD      OF((__GPRO__ uch *eb, unsigned eb_size,
+   int   test_NTSD      OF((Uz_Globs *pG, uch *eb, unsigned eb_size,
                             uch *eb_ucptr, ulg eb_ucsize));       /* win32.c */
 #  define TEST_NTSD     test_NTSD
 #endif
@@ -1875,9 +1875,9 @@ char     dateseparator   ();                                /* local */
    void  version         ();                              /* local */
 #endif
 int      mapattr         ();                              /* local */
-int      mapname         (__GPRO__ int renamed);                /* local */
-int      checkdir        (__GPRO__ char *pathcomp, int flag);   /* local */
-char    *do_wild         (__GPRO__ const char *wildzipfn);     /* local */
+int      mapname         (Uz_Globs *pG, int renamed);                /* local */
+int      checkdir        (Uz_Globs *pG, char *pathcomp, int flag);   /* local */
+char    *do_wild         (Uz_Globs *pG, const char *wildzipfn);     /* local */
 char    *GetLoadPath     ();                              /* local */
 #if (defined(MORE) && (defined(ATH_BEO_UNX) || defined(QDOS) || defined(VMS)))
    int screensize        OF((int *tt_rows, int *tt_cols));          /* local */
@@ -1889,15 +1889,15 @@ char    *GetLoadPath     ();                              /* local */
    void  close_outfile   ();                              /* local */
 #endif
 #ifdef SET_SYMLINK_ATTRIBS
-   int  set_symlnk_attribs  (__GPRO__ slinkentry *slnk_entry);  /* local */
+   int  set_symlnk_attribs  (Uz_Globs *pG, slinkentry *slnk_entry);  /* local */
 #endif
 #ifdef SET_DIR_ATTRIB
-   int   defer_dir_attribs  (__GPRO__ direntry **pd);           /* local */
-   int   set_direc_attribs  (__GPRO__ direntry *d);             /* local */
+   int   defer_dir_attribs  (Uz_Globs *pG, direntry **pd);           /* local */
+   int   set_direc_attribs  (Uz_Globs *pG, direntry *d);             /* local */
 #endif
 #ifdef TIMESTAMP
 # ifdef WIN32
-   int   stamp_file      (__GPRO__
+   int   stamp_file      (Uz_Globs *pG,
                              const char *fname, time_t modtime);  /* local */
 # else
    int   stamp_file      (const char *fname, time_t modtime);  /* local */
@@ -1969,7 +1969,7 @@ char    *GetLoadPath     ();                              /* local */
 #endif /* USE_STRM_INPUT */
 
 /* The return value of the Info() "macro function" is never checked in
- * UnZip. Otherwise, to get the same behaviour as for (*G.message)(), the
+ * UnZip. Otherwise, to get the same behaviour as for (*(*(Uz_Globs *)pG).message)(), the
  * Info() definition for "FUNZIP" would have to be corrected:
  * #define Info(buf,flag,sprf_arg) \
  *      (fputs((char *)(sprintf sprf_arg, (buf)), \
@@ -1982,10 +1982,10 @@ char    *GetLoadPath     ();                              /* local */
 #  else
 #    ifdef INT_SPRINTF  /* optimized version for "int sprintf()" flavour */
 #      define Info(buf,flag,sprf_arg) \
-       (*G.message)((void *)&G, (uch *)(buf), (ulg)sprintf sprf_arg, (flag))
+       (*(*(Uz_Globs *)pG).message)((void *)&(*(Uz_Globs *)pG), (uch *)(buf), (ulg)sprintf sprf_arg, (flag))
 #    else          /* generic version, does not use sprintf() return value */
 #      define Info(buf,flag,sprf_arg) \
-       (*G.message)((void *)&G, (uch *)(buf), \
+       (*(*(Uz_Globs *)pG).message)((void *)&(*(Uz_Globs *)pG), (uch *)(buf), \
                      (ulg)(sprintf sprf_arg, strlen((char *)(buf))), (flag))
 #    endif
 #  endif
@@ -1994,7 +1994,7 @@ char    *GetLoadPath     ();                              /* local */
 /*  This wrapper macro around fzofft() is just defined to "hide" the
  *  argument needed to reference the global storage buffers.
  */
-#define FmZofft(val, pre, post) fzofft(__G__ val, pre, post)
+#define FmZofft(val, pre, post) fzofft(pG, val, pre, post)
 
 /*  The following macro wrappers around the fnfilter function are used many
  *  times to prepare archive entry names or name components for displaying
@@ -2009,7 +2009,7 @@ char    *GetLoadPath     ();                              /* local */
                  (extent)(WSIZE>>2))
 
 #ifndef FUNZIP   /* used only in inflate.c */
-#  define MESSAGE(str,len,flag)  (*G.message)((void *)&G,(str),(len),(flag))
+#  define MESSAGE(str,len,flag)  (*(*(Uz_Globs *)pG).message)((void *)&(*(Uz_Globs *)pG),(str),(len),(flag))
 #endif
 
 #if 0            /* Optimization: use the (const) result of crc32(0L,NULL,0) */
@@ -2029,7 +2029,7 @@ char    *GetLoadPath     ();                              /* local */
 #  define TEST_NTSD     NULL    /*   ... is not available */
 #endif
 
-#define SKIP_(length) if(length&&((error=do_string(__G__ length,SKIP))!=0))\
+#define SKIP_(length) if(length&&((error=do_string(pG, length,SKIP))!=0))\
   {error_in_archive=error; if(error>1) return error;}
 
 /*
@@ -2050,38 +2050,38 @@ char    *GetLoadPath     ();                              /* local */
 
 
 #ifdef FUNZIP
-#  define FLUSH(w)  flush(__G__ (ulg)(w))
-#  define NEXTBYTE  getc(G.in)   /* redefined in crypt.h if full version */
+#  define FLUSH(w)  flush(pG, (ulg)(w))
+#  define NEXTBYTE  getc((*(Uz_Globs *)pG).in)   /* redefined in crypt.h if full version */
 #else
-#  define FLUSH(w)  ((G.mem_mode) ? memflush(__G__ redirSlide,(ulg)(w)) \
-                                  : flush(__G__ redirSlide,(ulg)(w),0))
-#  define NEXTBYTE  (G.incnt-- > 0 ? (int)(*G.inptr++) : readbyte(__G))
+#  define FLUSH(w)  (((*(Uz_Globs *)pG).mem_mode) ? memflush(pG, redirSlide,(ulg)(w)) \
+                                  : flush(pG, redirSlide,(ulg)(w),0))
+#  define NEXTBYTE  ((*(Uz_Globs *)pG).incnt-- > 0 ? (int)(*(*(Uz_Globs *)pG).inptr++) : readbyte(pG))
 #endif
 
 
-#define READBITS(nbits,zdest) {if(nbits>G.bits_left) {int temp; G.zipeof=1;\
-  while (G.bits_left<=8*(int)(sizeof(G.bitbuf)-1) && (temp=NEXTBYTE)!=EOF) {\
-  G.bitbuf|=(ulg)temp<<G.bits_left; G.bits_left+=8; G.zipeof=0;}}\
-  zdest=(shrint)((unsigned)G.bitbuf&mask_bits[nbits]);G.bitbuf>>=nbits;\
-  G.bits_left-=nbits;}
+#define READBITS(nbits,zdest) {if(nbits>(*(Uz_Globs *)pG).bits_left) {int temp; (*(Uz_Globs *)pG).zipeof=1;\
+  while ((*(Uz_Globs *)pG).bits_left<=8*(int)(sizeof((*(Uz_Globs *)pG).bitbuf)-1) && (temp=NEXTBYTE)!=EOF) {\
+  (*(Uz_Globs *)pG).bitbuf|=(ulg)temp<<(*(Uz_Globs *)pG).bits_left; (*(Uz_Globs *)pG).bits_left+=8; (*(Uz_Globs *)pG).zipeof=0;}}\
+  zdest=(shrint)((unsigned)(*(Uz_Globs *)pG).bitbuf&mask_bits[nbits]);(*(Uz_Globs *)pG).bitbuf>>=nbits;\
+  (*(Uz_Globs *)pG).bits_left-=nbits;}
 
 /*
  * macro READBITS(nbits,zdest)    * only used by unreduce and unshrink *
  *  {
- *      if (nbits > G.bits_left) {  * fill G.bitbuf, 8*sizeof(ulg) bits *
+ *      if (nbits > (*(Uz_Globs *)pG).bits_left) {  * fill (*(Uz_Globs *)pG).bitbuf, 8*sizeof(ulg) bits *
  *          int temp;
  *
- *          G.zipeof = 1;
- *          while (G.bits_left <= 8*(int)(sizeof(G.bitbuf)-1) &&
+ *          (*(Uz_Globs *)pG).zipeof = 1;
+ *          while ((*(Uz_Globs *)pG).bits_left <= 8*(int)(sizeof((*(Uz_Globs *)pG).bitbuf)-1) &&
  *                 (temp = NEXTBYTE) != EOF) {
- *              G.bitbuf |= (ulg)temp << G.bits_left;
- *              G.bits_left += 8;
- *              G.zipeof = 0;
+ *              (*(Uz_Globs *)pG).bitbuf |= (ulg)temp << (*(Uz_Globs *)pG).bits_left;
+ *              (*(Uz_Globs *)pG).bits_left += 8;
+ *              (*(Uz_Globs *)pG).zipeof = 0;
  *          }
  *      }
- *      zdest = (shrint)((unsigned)G.bitbuf & mask_bits[nbits]);
- *      G.bitbuf >>= nbits;
- *      G.bits_left -= nbits;
+ *      zdest = (shrint)((unsigned)(*(Uz_Globs *)pG).bitbuf & mask_bits[nbits]);
+ *      (*(Uz_Globs *)pG).bitbuf >>= nbits;
+ *      (*(Uz_Globs *)pG).bits_left -= nbits;
  *  }
  *
  */

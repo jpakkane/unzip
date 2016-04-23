@@ -89,12 +89,12 @@ typedef struct _sign_info
 /*******************/
 
 #if (defined(REENTRANT) && !defined(NO_EXCEPT_SIGNALS))
-static int setsignalhandler (__GPRO__ savsigs_info **p_savedhandler_chain,
+static int setsignalhandler (Uz_Globs *pG, savsigs_info **p_savedhandler_chain,
                                 int signal_type, void (*newhandler)(int));
 #endif
 #ifndef SFX
 static void  help_extended      ();
-static void  show_version_info  (__GPRO);
+static void  show_version_info  (Uz_Globs *pG);
 #endif
 
 
@@ -567,7 +567,7 @@ int main(int argc, char **argv)   /* return PK-type error code (except under VMS
     int r;
 
     CONSTRUCTGLOBALS();
-    r = unzip(__G__ argc, argv);
+    r = unzip(pG, argc, argv);
     DESTROYGLOBALS();
     RETURN(r);
 }
@@ -579,8 +579,8 @@ int main(int argc, char **argv)   /* return PK-type error code (except under VMS
 /*  Primary UnZip entry point  */
 /*******************************/
 
-int unzip(__G__ argc, argv)
-    __GDEF
+int unzip(pG, argc, argv)
+    Uz_Globs *pG;
     int argc;
     char *argv[];
 {
@@ -595,7 +595,7 @@ int unzip(__G__ argc, argv)
 #ifdef REENTRANT
     savsigs_info *oldsighandlers = NULL;
 #   define SET_SIGHANDLER(sigtype, newsighandler) \
-      if ((retcode = setsignalhandler(__G__ &oldsighandlers, (sigtype), \
+      if ((retcode = setsignalhandler(pG, &oldsighandlers, (sigtype), \
                                       (newsighandler))) > PK_WARN) \
           goto cleanup_and_exit
 #else
@@ -629,10 +629,10 @@ int unzip(__G__ argc, argv)
         /* is the current codeset UTF-8 ? */
         if ((codeset != NULL) && (strcmp(codeset, "UTF-8") == 0)) {
             /* successfully found UTF-8 char coding */
-            G.native_is_utf8 = TRUE;
+            (*(Uz_Globs *)pG).native_is_utf8 = TRUE;
         } else {
             /* Current codeset is not UTF-8 or cannot be determined. */
-            G.native_is_utf8 = FALSE;
+            (*(Uz_Globs *)pG).native_is_utf8 = FALSE;
         }
         /* Note: At least for UnZip, trying to change the process codeset to
          *       UTF-8 does not work.  For the example Linux setup of the
@@ -643,12 +643,12 @@ int unzip(__G__ argc, argv)
 # endif /* UTF8_MAYBE_NATIVE */
 
     /* initialize Unicode */
-    G.unicode_escape_all = 0;
-    G.unicode_mismatch = 0;
+    (*(Uz_Globs *)pG).unicode_escape_all = 0;
+    (*(Uz_Globs *)pG).unicode_mismatch = 0;
 
-    G.unipath_version = 0;
-    G.unipath_checksum = 0;
-    G.unipath_filename = NULL;
+    (*(Uz_Globs *)pG).unipath_version = 0;
+    (*(Uz_Globs *)pG).unipath_checksum = 0;
+    (*(Uz_Globs *)pG).unipath_filename = NULL;
 #endif /* UNICODE_SUPPORT */
 
 
@@ -666,12 +666,12 @@ int unzip(__G__ argc, argv)
 #   define UZ_NUMOF_CHUNKS \
       (unsigned)(((WSIZE+UZ_SLIDE_CHUNK-1)/UZ_SLIDE_CHUNK > HSIZE) ? \
                  (WSIZE+UZ_SLIDE_CHUNK-1)/UZ_SLIDE_CHUNK : HSIZE)
-    G.area.Slide = (uch *)zcalloc(UZ_NUMOF_CHUNKS, UZ_SLIDE_CHUNK);
+    (*(Uz_Globs *)pG).area.Slide = (uch *)zcalloc(UZ_NUMOF_CHUNKS, UZ_SLIDE_CHUNK);
 #   undef UZ_SLIDE_CHUNK
 #   undef UZ_NUMOF_CHUNKS
-    G.area.shrink.Parent = (shrint *)G.area.Slide;
-    G.area.shrink.value = G.area.Slide + (sizeof(shrint)*(HSIZE));
-    G.area.shrink.Stack = G.area.Slide +
+    (*(Uz_Globs *)pG).area.shrink.Parent = (shrint *)(*(Uz_Globs *)pG).area.Slide;
+    (*(Uz_Globs *)pG).area.shrink.value = (*(Uz_Globs *)pG).area.Slide + (sizeof(shrint)*(HSIZE));
+    (*(Uz_Globs *)pG).area.shrink.Stack = (*(Uz_Globs *)pG).area.Slide +
                            (sizeof(shrint) + sizeof(uch))*(HSIZE);
 #endif
 
@@ -757,8 +757,8 @@ int unzip(__G__ argc, argv)
         int test_char;
         static uch test_buf[2] = { 'a', 'b' };
 
-        G.inptr = test_buf;
-        G.incnt = 1;
+        (*(Uz_Globs *)pG).inptr = test_buf;
+        (*(Uz_Globs *)pG).incnt = 1;
 
         test_char = NEXTBYTE;           /* Should get 'a'. */
         if (test_char == 'a')
@@ -783,19 +783,19 @@ int unzip(__G__ argc, argv)
   ---------------------------------------------------------------------------*/
 
 #ifdef SFX
-    G.argv0 = argv[0];
+    (*(Uz_Globs *)pG).argv0 = argv[0];
 #if (defined(OS2) || defined(WIN32))
-    G.zipfn = GetLoadPath(__G);/* non-MSC NT puts path into G.filename[] */
+    (*(Uz_Globs *)pG).zipfn = GetLoadPath(pG);/* non-MSC NT puts path into (*(Uz_Globs *)pG).filename[] */
 #else
-    G.zipfn = G.argv0;
+    (*(Uz_Globs *)pG).zipfn = (*(Uz_Globs *)pG).argv0;
 #endif
 
     uO.zipinfo_mode = FALSE;
-    error = uz_opts(__G__ &argc, &argv);   /* UnZipSFX call only */
+    error = uz_opts(pG, &argc, &argv);   /* UnZipSFX call only */
 
 #else /* !SFX */
 
-    G.noargs = (argc == 1);   /* no options, no zipfile, no anything */
+    (*(Uz_Globs *)pG).noargs = (argc == 1);   /* no options, no zipfile, no anything */
 
 #ifndef NO_ZIPINFO
     for (p = argv[0] + strlen(argv[0]); p >= argv[0]; --p) {
@@ -845,10 +845,10 @@ int unzip(__G__ argc, argv)
         }
 #ifndef NO_ZIPINFO
         if (uO.zipinfo_mode)
-            error = zi_opts(__G__ &argc, &argv);
+            error = zi_opts(pG, &argc, &argv);
         else
 #endif /* !NO_ZIPINFO */
-            error = uz_opts(__G__ &argc, &argv);
+            error = uz_opts(pG, &argc, &argv);
     }
 
 #endif /* ?SFX */
@@ -868,63 +868,63 @@ int unzip(__G__ argc, argv)
      * 'forward slashes' for user's convenience (include zipfile name itself)
      */
 #ifdef SFX
-    for (G.pfnames = argv, i = argc;  i > 0;  --i) {
+    for ((*(Uz_Globs *)pG).pfnames = argv, i = argc;  i > 0;  --i) {
 #else
     /* argc does not include the zipfile specification */
-    for (G.pfnames = argv, i = argc+1;  i > 0;  --i) {
+    for ((*(Uz_Globs *)pG).pfnames = argv, i = argc+1;  i > 0;  --i) {
 #endif
-        char *q = *G.pfnames;
+        char *q = *(*(Uz_Globs *)pG).pfnames;
 
         while (*q != '\0') {
             if (*q == '\\')
                 *q = '/';
             INCSTR(q);
         }
-        ++G.pfnames;
+        ++(*(Uz_Globs *)pG).pfnames;
     }
 #endif /* DOS_FLX_H68_NLM_OS2_W32 */
 
 #ifndef SFX
-    G.wildzipfn = *argv++;
+    (*(Uz_Globs *)pG).wildzipfn = *argv++;
 #endif
 
 #if (defined(SFX) && !defined(SFX_EXDIR)) /* only check for -x */
 
-    G.filespecs = argc;
-    G.xfilespecs = 0;
+    (*(Uz_Globs *)pG).filespecs = argc;
+    (*(Uz_Globs *)pG).xfilespecs = 0;
 
     if (argc > 0) {
         char **pp = argv-1;
 
-        G.pfnames = argv;
+        (*(Uz_Globs *)pG).pfnames = argv;
         while (*++pp)
             if (strcmp(*pp, "-x") == 0) {
                 if (pp > argv) {
-                    *pp = 0;              /* terminate G.pfnames */
-                    G.filespecs = pp - G.pfnames;
+                    *pp = 0;              /* terminate (*(Uz_Globs *)pG).pfnames */
+                    (*(Uz_Globs *)pG).filespecs = pp - (*(Uz_Globs *)pG).pfnames;
                 } else {
-                    G.pfnames = (char **)fnames;  /* defaults */
-                    G.filespecs = 0;
+                    (*(Uz_Globs *)pG).pfnames = (char **)fnames;  /* defaults */
+                    (*(Uz_Globs *)pG).filespecs = 0;
                 }
-                G.pxnames = pp + 1;      /* excluded-names ptr: _after_ -x */
-                G.xfilespecs = argc - G.filespecs - 1;
+                (*(Uz_Globs *)pG).pxnames = pp + 1;      /* excluded-names ptr: _after_ -x */
+                (*(Uz_Globs *)pG).xfilespecs = argc - (*(Uz_Globs *)pG).filespecs - 1;
                 break;                    /* skip rest of args */
             }
-        G.process_all_files = FALSE;
+        (*(Uz_Globs *)pG).process_all_files = FALSE;
     } else
-        G.process_all_files = TRUE;      /* for speed */
+        (*(Uz_Globs *)pG).process_all_files = TRUE;      /* for speed */
 
 #else /* !SFX || SFX_EXDIR */             /* check for -x or -d */
 
-    G.filespecs = argc;
-    G.xfilespecs = 0;
+    (*(Uz_Globs *)pG).filespecs = argc;
+    (*(Uz_Globs *)pG).xfilespecs = 0;
 
     if (argc > 0) {
         int in_files=FALSE, in_xfiles=FALSE;
         char **pp = argv-1;
 
-        G.process_all_files = FALSE;
-        G.pfnames = argv;
+        (*(Uz_Globs *)pG).process_all_files = FALSE;
+        (*(Uz_Globs *)pG).pfnames = argv;
         while (*++pp) {
             Trace((stderr, "pp - argv = %d\n", pp-argv));
 #ifdef CMS_MVS
@@ -936,12 +936,12 @@ int unzip(__G__ argc, argv)
 
                 uO.exdir = (*pp) + 2;
                 if (in_files) {      /* ... zipfile ... -d exdir ... */
-                    *pp = (char *)NULL;         /* terminate G.pfnames */
-                    G.filespecs = pp - G.pfnames;
+                    *pp = (char *)NULL;         /* terminate (*(Uz_Globs *)pG).pfnames */
+                    (*(Uz_Globs *)pG).filespecs = pp - (*(Uz_Globs *)pG).pfnames;
                     in_files = FALSE;
                 } else if (in_xfiles) {
-                    *pp = (char *)NULL;         /* terminate G.pxnames */
-                    G.xfilespecs = pp - G.pxnames;
+                    *pp = (char *)NULL;         /* terminate (*(Uz_Globs *)pG).pxnames */
+                    (*(Uz_Globs *)pG).xfilespecs = pp - (*(Uz_Globs *)pG).pxnames;
                     /* "... -x xlist -d exdir":  nothing left */
                 }
                 /* first check for "-dexdir", then for "-d exdir" */
@@ -958,36 +958,36 @@ int unzip(__G__ argc, argv)
                 }
                 if (firstarg) { /* ... zipfile -d exdir ... */
                     if (pp[1]) {
-                        G.pfnames = pp + 1;  /* argv+2 */
-                        G.filespecs = argc - (G.pfnames-argv);  /* for now... */
+                        (*(Uz_Globs *)pG).pfnames = pp + 1;  /* argv+2 */
+                        (*(Uz_Globs *)pG).filespecs = argc - ((*(Uz_Globs *)pG).pfnames-argv);  /* for now... */
                     } else {
-                        G.process_all_files = TRUE;
-                        G.pfnames = (char **)fnames;  /* GRR: necessary? */
-                        G.filespecs = 0;     /* GRR: necessary? */
+                        (*(Uz_Globs *)pG).process_all_files = TRUE;
+                        (*(Uz_Globs *)pG).pfnames = (char **)fnames;  /* GRR: necessary? */
+                        (*(Uz_Globs *)pG).filespecs = 0;     /* GRR: necessary? */
                         break;
                     }
                 }
             } else if (!in_xfiles) {
                 if (strcmp(*pp, "-x") == 0) {
                     in_xfiles = TRUE;
-                    if (pp == G.pfnames) {
-                        G.pfnames = (char **)fnames;  /* defaults */
-                        G.filespecs = 0;
+                    if (pp == (*(Uz_Globs *)pG).pfnames) {
+                        (*(Uz_Globs *)pG).pfnames = (char **)fnames;  /* defaults */
+                        (*(Uz_Globs *)pG).filespecs = 0;
                     } else if (in_files) {
-                        *pp = 0;                   /* terminate G.pfnames */
-                        G.filespecs = pp - G.pfnames;  /* adjust count */
+                        *pp = 0;                   /* terminate (*(Uz_Globs *)pG).pfnames */
+                        (*(Uz_Globs *)pG).filespecs = pp - (*(Uz_Globs *)pG).pfnames;  /* adjust count */
                         in_files = FALSE;
                     }
-                    G.pxnames = pp + 1; /* excluded-names ptr starts after -x */
-                    G.xfilespecs = argc - (G.pxnames-argv);  /* anything left */
+                    (*(Uz_Globs *)pG).pxnames = pp + 1; /* excluded-names ptr starts after -x */
+                    (*(Uz_Globs *)pG).xfilespecs = argc - ((*(Uz_Globs *)pG).pxnames-argv);  /* anything left */
                 } else
                     in_files = TRUE;
             }
         }
     } else
-        G.process_all_files = TRUE;      /* for speed */
+        (*(Uz_Globs *)pG).process_all_files = TRUE;      /* for speed */
 
-    if (uO.exdir != (char *)NULL && !G.extract_flag)    /* -d ignored */
+    if (uO.exdir != (char *)NULL && !(*(Uz_Globs *)pG).extract_flag)    /* -d ignored */
         Info(slide, 0x401, ((char *)slide, LoadFarString(NotExtracting)));
 #endif /* ?(SFX && !SFX_EXDIR) */
 
@@ -995,7 +995,7 @@ int unzip(__G__ argc, argv)
     /* set Unicode-escape-all if option -U used */
     if (uO.U_flag == 1)
 # ifdef UNICODE_WCHAR
-        G.unicode_escape_all = TRUE;
+        (*(Uz_Globs *)pG).unicode_escape_all = TRUE;
 # else
         Info(slide, 0x401, ((char *)slide, LoadFarString(UTF8EscapeUnSupp)));
 # endif
@@ -1006,7 +1006,7 @@ int unzip(__G__ argc, argv)
     Okey dokey, we have everything we need to get started.  Let's roll.
   ---------------------------------------------------------------------------*/
 
-    retcode = process_zipfiles(__G);
+    retcode = process_zipfiles(pG);
 
 cleanup_and_exit:
 #if (defined(REENTRANT) && !defined(NO_EXCEPT_SIGNALS))
@@ -1020,9 +1020,9 @@ cleanup_and_exit:
     }
 #endif
 #if (defined(MALLOC_WORK) && !defined(REENTRANT))
-    if (G.area.Slide != (uch *)NULL) {
-        free(G.area.Slide);
-        G.area.Slide = (uch *)NULL;
+    if ((*(Uz_Globs *)pG).area.Slide != (uch *)NULL) {
+        free((*(Uz_Globs *)pG).area.Slide);
+        (*(Uz_Globs *)pG).area.Slide = (uch *)NULL;
     }
 #endif
 #if (defined(MSDOS) && !defined(SFX) && !defined(WINDLL))
@@ -1042,9 +1042,9 @@ cleanup_and_exit:
 /* Function setsignalhandler() */
 /*******************************/
 
-static int setsignalhandler(__G__ p_savedhandler_chain, signal_type,
+static int setsignalhandler(pG, p_savedhandler_chain, signal_type,
                             newhandler)
-    __GDEF
+    Uz_Globs *pG;
     savsigs_info **p_savedhandler_chain;
     int signal_type;
     void (*newhandler)(int);
@@ -1079,8 +1079,8 @@ static int setsignalhandler(__G__ p_savedhandler_chain, signal_type,
 /* Function uz_opts() */
 /**********************/
 
-int uz_opts(__G__ pargc, pargv)
-    __GDEF
+int uz_opts(pG, pargc, pargv)
+    Uz_Globs *pG;
     int *pargc;
     char ***pargv;
 {
@@ -1108,7 +1108,7 @@ int uz_opts(__G__ pargc, pargv)
                     break;
 #if (defined(DLL) && defined(API_DOC))
                 case ('A'):    /* extended help for API */
-                    APIhelp(__G__ argc, argv);
+                    APIhelp(pG, argc, argv);
                     *pargc = -1;  /* signal to exit successfully */
                     return 0;
 #endif
@@ -1139,8 +1139,8 @@ int uz_opts(__G__ pargc, pargv)
                         uO.aflag = 2;   /* so you can read it on the screen */
 #endif
 #ifdef DLL
-                        if (G.redirect_text)
-                            G.redirect_data = 2;
+                        if ((*(Uz_Globs *)pG).redirect_text)
+                            (*(Uz_Globs *)pG).redirect_data = 2;
 #endif
                     }
                     break;
@@ -1238,9 +1238,9 @@ int uz_opts(__G__ pargc, pargv)
                 case ('M'):    /* send all screen output through "more" fn. */
 /* GRR:  eventually check for numerical argument => height */
                     if (negative)
-                        G.M_flag = FALSE, negative = 0;
+                        (*(Uz_Globs *)pG).M_flag = FALSE, negative = 0;
                     else
-                        G.M_flag = TRUE;
+                        (*(Uz_Globs *)pG).M_flag = TRUE;
                     break;
 #endif /* MORE */
                 case ('n'):    /* don't overwrite any files */
@@ -1458,7 +1458,7 @@ opts_done:  /* yes, very ugly...but only used by UnZipSFX with -x xlist */
         *pargc = -1;
 #ifndef SFX
         if (showhelp == 2) {
-            help_extended(__G);
+            help_extended(pG);
             return PK_OK;
         } else
 #endif /* !SFX */
@@ -1480,8 +1480,8 @@ opts_done:  /* yes, very ugly...but only used by UnZipSFX with -x xlist */
         uO.overwrite_all = FALSE;
     }
 #ifdef MORE
-    if (G.M_flag && !isatty(1))  /* stdout redirected: "more" func. useless */
-        G.M_flag = 0;
+    if ((*(Uz_Globs *)pG).M_flag && !isatty(1))  /* stdout redirected: "more" func. useless */
+        (*(Uz_Globs *)pG).M_flag = 0;
 #endif
 
 #ifdef SFX
@@ -1494,10 +1494,10 @@ opts_done:  /* yes, very ugly...but only used by UnZipSFX with -x xlist */
         *pargv = argv;
 #ifndef SFX
         if (uO.vflag >= 2 && argc == -1) {              /* "unzip -v" */
-            show_version_info(__G);
+            show_version_info(pG);
             return PK_OK;
         }
-        if (!G.noargs && !error)
+        if (!(*(Uz_Globs *)pG).noargs && !error)
             error = TRUE;       /* had options (not -h or -v) but no zipfile */
 #endif /* !SFX */
         return USAGE(error);
@@ -1521,9 +1521,9 @@ opts_done:  /* yes, very ugly...but only used by UnZipSFX with -x xlist */
                                                      || uO.T_flag
 #endif
                                                                  )
-        G.extract_flag = FALSE;
+        (*(Uz_Globs *)pG).extract_flag = FALSE;
     else
-        G.extract_flag = TRUE;
+        (*(Uz_Globs *)pG).extract_flag = TRUE;
 
     *pargc = argc;
     *pargv = argv;
@@ -1568,8 +1568,8 @@ opts_done:  /* yes, very ugly...but only used by UnZipSFX with -x xlist */
 #    endif
 #  endif
 
-int usage(__G__ error)   /* return PK-type error code */
-    __GDEF
+int usage(pG, error)   /* return PK-type error code */
+    Uz_Globs *pG;
     int error;
 {
     Info(slide, error? 1 : 0, ((char *)slide, LoadFarString(UnzipSFXBanner),
@@ -1597,8 +1597,8 @@ int usage(__G__ error)   /* return PK-type error code */
 #    define QUOT ' '
 #    define QUOTS ""
 
-int usage(__G__ error)   /* return PK-type error code */
-    __GDEF
+int usage(pG, error)   /* return PK-type error code */
+    Uz_Globs *pG;
     int error;
 {
     int flag = (error? 1 : 0);
@@ -1662,8 +1662,8 @@ int usage(__G__ error)   /* return PK-type error code */
 #ifndef SFX
 
 /* Print extended help to stdout. */
-static void help_extended(__G)
-    __GDEF
+static void help_extended(pG)
+    Uz_Globs *pG;
 {
     extent i;             /* counter for help array */
 
@@ -1905,7 +1905,7 @@ static void help_extended(__G)
 /* Function show_version_info() */
 /********************************/
 
-static void show_version_info(__GPRO)
+static void show_version_info(Uz_Globs *pG)
 {
     if (uO.qflag > 3)                           /* "unzip -vqqqq" */
         Info(slide, 0, ((char *)slide, "%d\n",
@@ -1919,7 +1919,7 @@ static void show_version_info(__GPRO)
           LoadFarStringSmall(VersionDate)));
         Info(slide, 0, ((char *)slide,
           LoadFarString(UnzipUsageLine2v)));
-        version(__G);
+        version(pG);
         Info(slide, 0, ((char *)slide, LoadFarString(CompileOptions)));
 #ifdef ASM_CRC
         Info(slide, 0, ((char *)slide, LoadFarString(CompileOptFormat),
@@ -2044,7 +2044,7 @@ static void show_version_info(__GPRO)
 #ifdef UNICODE_SUPPORT
 # ifdef UTF8_MAYBE_NATIVE
         sprintf((char *)(slide+256), LoadFarStringSmall(Use_Unicode),
-          LoadFarStringSmall2(G.native_is_utf8 ? SysChUTF8 : SysChOther));
+          LoadFarStringSmall2((*(Uz_Globs *)pG).native_is_utf8 ? SysChUTF8 : SysChOther));
         Info(slide, 0, ((char *)slide, LoadFarString(CompileOptFormat),
           (char *)(slide+256)));
 # else

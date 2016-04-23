@@ -33,14 +33,14 @@
                                      entries, added more help.
    1.3    16 Aug 92  M. Adler        removed redundant #define's, added
                                      decryption.
-   1.4    27 Aug 92  G. Roelofs      added exit(0).
+   1.4    27 Aug 92  (*(Uz_Globs *)pG). Roelofs      added exit(0).
    1.5     1 Sep 92  K. U. Rommel    changed read/write modes for OS/2.
-   1.6     6 Sep 92  G. Roelofs      modified to use dummy crypt.c and
+   1.6     6 Sep 92  (*(Uz_Globs *)pG). Roelofs      modified to use dummy crypt.c and
                                      crypt.h instead of -DCRYPT.
-   1.7    23 Sep 92  G. Roelofs      changed to use DOS_OS2; included
+   1.7    23 Sep 92  (*(Uz_Globs *)pG). Roelofs      changed to use DOS_OS2; included
                                      crypt.c under MS-DOS.
    1.8     9 Oct 92  M. Adler        improved inflation error msgs.
-   1.9    17 Oct 92  G. Roelofs      changed ULONG/UWORD/byte to ulg/ush/uch;
+   1.9    17 Oct 92  (*(Uz_Globs *)pG). Roelofs      changed ULONG/UWORD/byte to ulg/ush/uch;
                                      renamed inflate_entry() to inflate();
                                      adapted to use new, in-place zdecode.
    2.0    22 Oct 92  M. Adler        allow filename argument, prompt for
@@ -48,47 +48,47 @@
                                      command-line password entry, but as an
                                      option.
    2.1    23 Oct 92  J-l. Gailly     fixed crypt/store bug,
-                     G. Roelofs      removed crypt.c under MS-DOS, fixed
+                     (*(Uz_Globs *)pG). Roelofs      removed crypt.c under MS-DOS, fixed
                                      decryption check to compare single byte.
-   2.2    28 Oct 92  G. Roelofs      removed declaration of key.
+   2.2    28 Oct 92  (*(Uz_Globs *)pG). Roelofs      removed declaration of key.
    2.3    14 Dec 92  M. Adler        replaced fseek (fails on stdin for SCO
                                      Unix V.3.2.4).  added quietflg for
                                      inflate.c.
    3.0    11 May 93  M. Adler        added gzip support
    3.1     9 Jul 93  K. U. Rommel    fixed OS/2 pipe bug (PIPE_ERROR)
-   3.2     4 Sep 93  G. Roelofs      moved crc_32_tab[] to tables.h; used FOPx
+   3.2     4 Sep 93  (*(Uz_Globs *)pG). Roelofs      moved crc_32_tab[] to tables.h; used FOPx
                                      from unzip.h; nuked OUTB macro and outbuf;
                                      replaced flush(); inlined FlushOutput();
                                      renamed decrypt to encrypted
-   3.3    29 Sep 93  G. Roelofs      replaced ReadByte() with NEXTBYTE macro;
+   3.3    29 Sep 93  (*(Uz_Globs *)pG). Roelofs      replaced ReadByte() with NEXTBYTE macro;
                                      revised (restored?) flush(); added FUNZIP
-   3.4    21 Oct 93  G. Roelofs      renamed quietflg to qflag; changed outcnt,
+   3.4    21 Oct 93  (*(Uz_Globs *)pG). Roelofs      renamed quietflg to qflag; changed outcnt,
                      H. Gessau       second updcrc() arg and flush() arg to ulg;
                                      added inflate_free(); added "g =" to null
                                      getc(in) to avoid compiler warnings
    3.5    31 Oct 93  H. Gessau       changed DOS_OS2 to DOS_NT_OS2
    3.6     6 Dec 93  H. Gessau       added "near" to mask_bits[]
-   3.7     9 Dec 93  G. Roelofs      added extent typecasts to fwrite() checks
+   3.7     9 Dec 93  (*(Uz_Globs *)pG). Roelofs      added extent typecasts to fwrite() checks
    3.8    28 Jan 94  GRR/JlG         initialized g variable in main() for gcc
    3.81   22 Feb 94  M. Hanning-Lee  corrected usage message
-   3.82   27 Feb 94  G. Roelofs      added some typecasts to avoid warnings
-   3.83   22 Jul 94  G. Roelofs      changed fprintf to macro for DLLs
+   3.82   27 Feb 94  (*(Uz_Globs *)pG). Roelofs      added some typecasts to avoid warnings
+   3.83   22 Jul 94  (*(Uz_Globs *)pG). Roelofs      changed fprintf to macro for DLLs
     -      2 Aug 94  -               public release with UnZip 5.11
     -     28 Aug 94  -               public release with UnZip 5.12
    3.84    1 Oct 94  K. U. Rommel    changes for Metaware High C
-   3.85   29 Oct 94  G. Roelofs      changed fprintf macro to Info
+   3.85   29 Oct 94  (*(Uz_Globs *)pG). Roelofs      changed fprintf macro to Info
    3.86    7 May 95  K. Davis        RISCOS patches;
                      P. Kienitz      Amiga patches
-   3.87   12 Aug 95  G. Roelofs      inflate_free(), DESTROYGLOBALS fixes
+   3.87   12 Aug 95  (*(Uz_Globs *)pG). Roelofs      inflate_free(), DESTROYGLOBALS fixes
    3.88    4 Sep 95  C. Spieler      reordered macro to work around MSC 5.1 bug
    3.89   22 Nov 95  PK/CS           ifdef'd out updcrc() for ASM_CRC
-   3.9    17 Dec 95  G. Roelofs      modified for USE_ZLIB (new fillinbuf())
+   3.9    17 Dec 95  (*(Uz_Globs *)pG). Roelofs      modified for USE_ZLIB (new fillinbuf())
     -     30 Apr 96  -               public release with UnZip 5.2
-   3.91   17 Aug 96  G. Roelofs      main() -> return int (Peter Seebach)
-   3.92   13 Apr 97  G. Roelofs      minor cosmetic fixes to messages
+   3.91   17 Aug 96  (*(Uz_Globs *)pG). Roelofs      main() -> return int (Peter Seebach)
+   3.92   13 Apr 97  (*(Uz_Globs *)pG). Roelofs      minor cosmetic fixes to messages
     -     22 Apr 97  -               public release with UnZip 5.3
     -     31 May 97  -               public release with UnZip 5.31
-   3.93   20 Sep 97  G. Roelofs      minor cosmetic fixes to messages
+   3.93   20 Sep 97  (*(Uz_Globs *)pG). Roelofs      minor cosmetic fixes to messages
     -      3 Nov 97  -               public release with UnZip 5.32
     -     28 Nov 98  -               public release with UnZip 5.4
     -     16 Apr 00  -               public release with UnZip 5.41
@@ -179,34 +179,34 @@ static int partflush OF((uch *rawbuf, unsigned w));
 int main OF((int, char **));
 
 /* Globals */
-FILE *out;                      /* output file (*in moved to G struct) */
+FILE *out;                      /* output file (*in moved to (*(Uz_Globs *)pG) struct) */
 ulg outsiz;                     /* total bytes written to out */
 int encrypted;                  /* flag to turn on decryption */
 
 
 #ifdef USE_ZLIB
 
-int fillinbuf(__G)
-__GDEF
+int fillinbuf(pG)
+Uz_Globs *pG;
 /* Fill input buffer for pull-model inflate() in zlib.  Return the number of
  * bytes in inbuf. */
 {
 /*   GRR: check return value from fread(): same as read()?  check errno? */
-  if ((G.incnt = fread((char *)G.inbuf, 1, INBUFSIZ, G.in)) <= 0)
+  if (((*(Uz_Globs *)pG).incnt = fread((char *)(*(Uz_Globs *)pG).inbuf, 1, INBUFSIZ, (*(Uz_Globs *)pG).in)) <= 0)
     return 0;
-  G.inptr = G.inbuf;
+  (*(Uz_Globs *)pG).inptr = (*(Uz_Globs *)pG).inbuf;
 
 #if CRYPT
   if (encrypted) {
     uch *p;
     int n;
 
-    for (n = G.incnt, p = G.inptr;  n--;  p++)
+    for (n = (*(Uz_Globs *)pG).incnt, p = (*(Uz_Globs *)pG).inptr;  n--;  p++)
       zdecode(*p);
   }
 #endif /* CRYPT */
 
-  return G.incnt;
+  return (*(Uz_Globs *)pG).incnt;
 
 }
 
@@ -266,7 +266,7 @@ int main(int argc, char **argv)
    */
 # define UZ_SLIDE_CHUNK (sizeof(shrint)+sizeof(uch)+sizeof(uch))
 # define UZ_NUMOF_CHUNKS (unsigned)( (WSIZE+UZ_SLIDE_CHUNK-1)/UZ_SLIDE_CHUNK )
-  G.area.Slide = (uch *)zcalloc(UZ_NUMOF_CHUNKS, UZ_SLIDE_CHUNK);
+  (*(Uz_Globs *)pG).area.Slide = (uch *)zcalloc(UZ_NUMOF_CHUNKS, UZ_SLIDE_CHUNK);
 # undef UZ_SLIDE_CHUNK
 # undef UZ_NUMOF_CHUNKS
 #endif
@@ -289,7 +289,7 @@ int main(int argc, char **argv)
   /* prepare to be a binary filter */
   if (argc)
   {
-    if ((G.in = fopen(*argv, FOPR)) == (FILE *)NULL)
+    if (((*(Uz_Globs *)pG).in = fopen(*argv, FOPR)) == (FILE *)NULL)
       err(2, "cannot find input file");
   }
   else
@@ -303,9 +303,9 @@ int main(int argc, char **argv)
 #endif /* DOS_FLX_NLM_OS2_W32 */
 
 #ifdef RISCOS
-    G.in = stdin;
+    (*(Uz_Globs *)pG).in = stdin;
 #else
-    if ((G.in = fdopen(0, FOPR)) == (FILE *)NULL)
+    if (((*(Uz_Globs *)pG).in = fdopen(0, FOPR)) == (FILE *)NULL)
       err(2, "cannot find stdin");
 #endif
   }
@@ -326,10 +326,10 @@ int main(int argc, char **argv)
 #endif
 
   /* read local header, check validity, and skip name and extra fields */
-  n = getc(G.in);  n |= getc(G.in) << 8;
+  n = getc((*(Uz_Globs *)pG).in);  n |= getc((*(Uz_Globs *)pG).in) << 8;
   if (n == ZIPMAG)
   {
-    if (fread((char *)h, 1, LOCHDR, G.in) != LOCHDR || SH(h) != LOCREM)
+    if (fread((char *)h, 1, LOCHDR, (*(Uz_Globs *)pG).in) != LOCHDR || SH(h) != LOCREM)
       err(3, "invalid zipfile");
     switch (method = SH(h + LOCHOW)) {
       case STORED:
@@ -342,14 +342,14 @@ int main(int argc, char **argv)
         err(3, "first entry not deflated or stored--cannot unpack");
         break;
     }
-    for (n = SH(h + LOCFIL); n--; ) g = getc(G.in);
-    for (n = SH(h + LOCEXT); n--; ) g = getc(G.in);
+    for (n = SH(h + LOCFIL); n--; ) g = getc((*(Uz_Globs *)pG).in);
+    for (n = SH(h + LOCEXT); n--; ) g = getc((*(Uz_Globs *)pG).in);
     g = 0;
     encrypted = h[LOCFLG] & CRPFLG;
   }
   else if (n == GZPMAG)
   {
-    if (fread((char *)h, 1, GZPHDR, G.in) != GZPHDR)
+    if (fread((char *)h, 1, GZPHDR, (*(Uz_Globs *)pG).in) != GZPHDR)
       err(3, "invalid gzip file");
     if ((method = h[GZPHOW]) != DEFLATED && method != ENHDEFLATED)
       err(3, "gzip file not deflated");
@@ -357,13 +357,13 @@ int main(int argc, char **argv)
       err(3, "cannot handle multi-part gzip files");
     if (h[GZPFLG] & GZPISX)
     {
-      n = getc(G.in);  n |= getc(G.in) << 8;
-      while (n--) g = getc(G.in);
+      n = getc((*(Uz_Globs *)pG).in);  n |= getc((*(Uz_Globs *)pG).in) << 8;
+      while (n--) g = getc((*(Uz_Globs *)pG).in);
     }
     if (h[GZPFLG] & GZPISF)
-      while ((g = getc(G.in)) != 0 && g != EOF) ;
+      while ((g = getc((*(Uz_Globs *)pG).in)) != 0 && g != EOF) ;
     if (h[GZPFLG] & GZPISC)
-      while ((g = getc(G.in)) != 0 && g != EOF) ;
+      while ((g = getc((*(Uz_Globs *)pG).in)) != 0 && g != EOF) ;
     g = 1;
     encrypted = h[GZPFLG] & GZPISE;
   }
@@ -396,10 +396,10 @@ int main(int argc, char **argv)
 #endif /* ?CRYPT */
 
   /* prepare output buffer and crc */
-  G.outptr = slide;
-  G.outcnt = 0L;
+  (*(Uz_Globs *)pG).outptr = slide;
+  (*(Uz_Globs *)pG).outcnt = 0L;
   outsiz = 0L;
-  G.crc32val = CRCVAL_INITIAL;
+  (*(Uz_Globs *)pG).crc32val = CRCVAL_INITIAL;
 
   /* decompress */
   if (g || h[LOCHOW])
@@ -408,16 +408,16 @@ int main(int argc, char **argv)
 
 #ifdef USE_ZLIB
     /* need to allocate and prepare input buffer */
-    if ((G.inbuf = (uch *)malloc(INBUFSIZ)) == (uch *)NULL)
+    if (((*(Uz_Globs *)pG).inbuf = (uch *)malloc(INBUFSIZ)) == (uch *)NULL)
        err(1, "out of memory");
 #endif /* USE_ZLIB */
-    if ((r = UZinflate(__G__ (method == ENHDEFLATED))) != 0) {
+    if ((r = UZinflate(pG, (method == ENHDEFLATED))) != 0) {
       if (r == 3)
         err(1, "out of memory");
       else
         err(4, "invalid compressed data--format violated");
     }
-    inflate_free(__G);
+    inflate_free(pG);
   }
   else
   {                             /* stored entry */
@@ -433,57 +433,57 @@ int main(int argc, char **argv)
       err(4, "invalid compressed data--length mismatch");
     }
     while (n--) {
-      ush c = getc(G.in);
+      ush c = getc((*(Uz_Globs *)pG).in);
 #if CRYPT
       if (encrypted)
         zdecode(c);
 #endif
-      *G.outptr++ = (uch)c;
+      *(*(Uz_Globs *)pG).outptr++ = (uch)c;
 #if (defined(USE_DEFLATE64) && defined(__16BIT__))
-      if (++G.outcnt == (WSIZE>>1))     /* do FlushOutput() */
+      if (++(*(Uz_Globs *)pG).outcnt == (WSIZE>>1))     /* do FlushOutput() */
 #else
-      if (++G.outcnt == WSIZE)    /* do FlushOutput() */
+      if (++(*(Uz_Globs *)pG).outcnt == WSIZE)    /* do FlushOutput() */
 #endif
       {
-        G.crc32val = crc32(G.crc32val, slide, (extent)G.outcnt);
-        if (fwrite((char *)slide, 1,(extent)G.outcnt,out) != (extent)G.outcnt
+        (*(Uz_Globs *)pG).crc32val = crc32((*(Uz_Globs *)pG).crc32val, slide, (extent)(*(Uz_Globs *)pG).outcnt);
+        if (fwrite((char *)slide, 1,(extent)(*(Uz_Globs *)pG).outcnt,out) != (extent)(*(Uz_Globs *)pG).outcnt
             && !PIPE_ERROR)
           err(9, "out of space on stdout");
-        outsiz += G.outcnt;
-        G.outptr = slide;
-        G.outcnt = 0L;
+        outsiz += (*(Uz_Globs *)pG).outcnt;
+        (*(Uz_Globs *)pG).outptr = slide;
+        (*(Uz_Globs *)pG).outcnt = 0L;
       }
     }
   }
-  if (G.outcnt)   /* flush one last time; no need to reset G.outptr/outcnt */
+  if ((*(Uz_Globs *)pG).outcnt)   /* flush one last time; no need to reset (*(Uz_Globs *)pG).outptr/outcnt */
   {
-    G.crc32val = crc32(G.crc32val, slide, (extent)G.outcnt);
-    if (fwrite((char *)slide, 1,(extent)G.outcnt,out) != (extent)G.outcnt
+    (*(Uz_Globs *)pG).crc32val = crc32((*(Uz_Globs *)pG).crc32val, slide, (extent)(*(Uz_Globs *)pG).outcnt);
+    if (fwrite((char *)slide, 1,(extent)(*(Uz_Globs *)pG).outcnt,out) != (extent)(*(Uz_Globs *)pG).outcnt
         && !PIPE_ERROR)
       err(9, "out of space on stdout");
-    outsiz += G.outcnt;
+    outsiz += (*(Uz_Globs *)pG).outcnt;
   }
   fflush(out);
 
   /* if extended header, get it */
   if (g)
   {
-    if (fread((char *)h + LOCCRC, 1, 8, G.in) != 8)
+    if (fread((char *)h + LOCCRC, 1, 8, (*(Uz_Globs *)pG).in) != 8)
       err(3, "gzip file ended prematurely");
   }
   else
     if ((h[LOCFLG] & EXTFLG) &&
-        fread((char *)h + LOCCRC - 4, 1, EXTHDR, G.in) != EXTHDR)
+        fread((char *)h + LOCCRC - 4, 1, EXTHDR, (*(Uz_Globs *)pG).in) != EXTHDR)
       err(3, "zipfile ended prematurely");
 
   /* validate decompression */
-  if (LG(h + LOCCRC) != G.crc32val)
+  if (LG(h + LOCCRC) != (*(Uz_Globs *)pG).crc32val)
     err(4, "invalid compressed data--crc error");
   if (LG((g ? (h + LOCSIZ) : (h + LOCLEN))) != outsiz)
     err(4, "invalid compressed data--length error");
 
   /* check if there are more entries */
-  if (!g && fread((char *)h, 1, 4, G.in) == 4 && LG(h) == LOCSIG)
+  if (!g && fread((char *)h, 1, 4, (*(Uz_Globs *)pG).in) == 4 && LG(h) == LOCSIG)
     Info(slide, 1, ((char *)slide,
       "funzip warning: zipfile has more than one entry--rest ignored\n"));
 

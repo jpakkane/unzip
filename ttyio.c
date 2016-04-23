@@ -47,7 +47,7 @@
 #  endif
 #  define GLOBAL(g) g
 #else
-#  define GLOBAL(g) G.g
+#  define GLOBAL(g) (*(Uz_Globs *)pG).g
 #endif
 
 #ifdef _POSIX_VERSION
@@ -191,8 +191,8 @@
 /*
  * Turn echo off for file descriptor f.  Assumes that f is a tty device.
  */
-void Echoff(__G__ f)
-    __GDEF
+void Echoff(pG, f)
+    Uz_Globs *pG;
     int f;                    /* file descriptor for which to turn echo off */
 {
     struct sgttyb sg;         /* tty device structure */
@@ -206,8 +206,8 @@ void Echoff(__G__ f)
 /*
  * Turn echo back on for file descriptor echofd.
  */
-void Echon(__G)
-    __GDEF
+void Echon(pG)
+    Uz_Globs *pG;
 {
     struct sgttyb sg;         /* tty device structure */
 
@@ -324,8 +324,8 @@ int screensize(tt_rows, tt_cols)
 /*
  * Get a character from the given file descriptor without echo or newline.
  */
-int zgetch(__G__ f)
-    __GDEF
+int zgetch(pG, f)
+    Uz_Globs *pG;
     int f;                      /* file descriptor from which to read */
 {
 #if (defined(USE_SYSV_TERMIO) || defined(USE_POSIX_TERMIOS))
@@ -369,8 +369,8 @@ int zgetch(__G__ f)
 #ifndef VMS     /* VMS supplies its own variant of getch() */
 
 
-int zgetch(__G__ f)
-    __GDEF
+int zgetch(pG, f)
+    Uz_Globs *pG;
     int f;    /* file descriptor from which to read (must be open already) */
 {
     char c, c2;
@@ -435,8 +435,8 @@ int zgetch(__G__ f)
 /* This is the getp() function for all systems (with TTY type user interface)
  * that supply a working `non-echo' getch() function for "raw" console input.
  */
-char *getp(__G__ m, p, n)
-    __GDEF
+char *getp(pG, m, p, n)
+    Uz_Globs *pG;
     const char *m;             /* prompt for password */
     char *p;                    /* return value: line input */
     int n;                      /* bytes available in p[] */
@@ -487,8 +487,8 @@ char *getp(__G__ m, p, n)
 #  endif
 #endif
 
-char *getp(__G__ m, p, n)
-    __GDEF
+char *getp(pG, m, p, n)
+    Uz_Globs *pG;
     const char *m;             /* prompt for password */
     char *p;                    /* return value: line input */
     int n;                      /* bytes available in p[] */
@@ -540,8 +540,8 @@ char *getp(__G__ m, p, n)
 
 #if (defined(VMS) || defined(CMS_MVS))
 
-char *getp(__G__ m, p, n)
-    __GDEF
+char *getp(pG, m, p, n)
+    Uz_Globs *pG;
     const char *m;             /* prompt for password */
     char *p;                    /* return value: line input */
     int n;                      /* bytes available in p[] */

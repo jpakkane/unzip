@@ -38,7 +38,7 @@
   USING VARIABLES FROM THE STRUCTURE
   ----------------------------------
 
-  All global variables must now be prefixed with `G.' which is either a
+  All global variables must now be prefixed with `(*(Uz_Globs *)pG).' which is either a
   global struct (in which case it should be the only global variable) or
   a macro for the value of a local pointer variable that is passed from
   function to function.  Yes, this is a pain.  But it's the only way to
@@ -67,33 +67,33 @@
 
   To support this new global struct, all functions must now conditionally
   pass the globals pointer (pG) to each other.  This is supported by 5 macros:
-  __GPRO, __GPRO__, __G, __G__ and __GDEF.  A function that needs no other
+  Uz_Globs *pG, Uz_Globs *pG,, pG, pG, and Uz_Globs *pG;.  A function that needs no other
   parameters would look like this:
 
-    int extract_or_test_files(__G)
-      __GDEF
+    int extract_or_test_files(pG)
+      Uz_Globs *pG;
     {
        ... stuff ...
     }
 
   A function with other parameters would look like:
 
-    int memextract(__G__ tgt, tgtsize, src, srcsize)
-        __GDEF
+    int memextract(pG, tgt, tgtsize, src, srcsize)
+        Uz_Globs *pG;
         uch *tgt, *src;
         ulg tgtsize, srcsize;
     {
       ... stuff ...
     }
 
-  In the Function Prototypes section of unzpriv.h, you should use __GPRO and
-  __GPRO__ instead:
+  In the Function Prototypes section of unzpriv.h, you should use Uz_Globs *pG and
+  Uz_Globs *pG, instead:
 
-    int  uz_opts                   OF((__GPRO__ int *pargc, char ***pargv));
-    int  process_zipfiles          OF((__GPRO));
+    int  uz_opts                   OF((Uz_Globs *pG, int *pargc, char ***pargv));
+    int  process_zipfiles          OF((Uz_Globs *pG));
 
-  Note that there is NO comma after __G__ or __GPRO__ and no semi-colon after
-  __GDEF.  I wish there was another way but I don't think there is.
+  Note that there is NO comma after pG, or Uz_Globs *pG, and no semi-colon after
+  Uz_Globs *pG;.  I wish there was another way but I don't think there is.
 
 
   TESTING THE CODE
@@ -101,7 +101,7 @@
 
   Whether your platform requires reentrancy or not, you should always try
   building with REENTRANT defined if any functions have been added.  It is
-  pretty easy to forget a __G__ or a __GDEF and this mistake will only show
+  pretty easy to forget a pG, or a Uz_Globs *pG; and this mistake will only show
   up if REENTRANT is defined.  All platforms should run with REENTRANT
   defined.  Platforms that can't take advantage of it will just be paying
   a performance penalty needlessly.
@@ -359,7 +359,7 @@ typedef struct Globals {
 /***************************************************************************/
 
 
-#define CRC_32_TAB      G.crc_32_tab
+#define CRC_32_TAB      (*(Uz_Globs *)pG).crc_32_tab
 
 
 Uz_Globs *globalsCtor   ();
@@ -375,15 +375,9 @@ extern char end_central64_sig[4];
 extern char end_centloc64_sig[4];
 /* extern char extd_local_sig[4];  NOT USED YET */
 
-#  define G                   (*(Uz_Globs *)pG)
-#  define __G                 pG
-#  define __G__               pG,
-#  define __GPRO              Uz_Globs *pG
-#  define __GPRO__            Uz_Globs *pG,
-#  define __GDEF              Uz_Globs *pG;
 #  ifdef  USETHREADID
      extern int               lastScan;
-     void deregisterGlobalPointer OF((__GPRO));
+     void deregisterGlobalPointer OF((Uz_Globs *pG));
      Uz_Globs *getGlobalPointer   OF((void));
 #    define GETGLOBALS()      Uz_Globs *pG = getGlobalPointer()
 #    define DESTROYGLOBALS()  do {free_G_buffers(pG); \
@@ -395,4 +389,4 @@ extern char end_centloc64_sig[4];
 #  endif /* ?USETHREADID */
 #  define CONSTRUCTGLOBALS()  Uz_Globs *pG = globalsCtor()
 
-#define uO              G.UzO
+#define uO              (*(Uz_Globs *)pG).UzO
