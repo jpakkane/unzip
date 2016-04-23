@@ -817,8 +817,10 @@ int extract_or_test_files(pG)    /* return PK-type error code */
 /*  Function store_info()  */
 /***************************/
 
-static int store_info(pG)   /* return 0 if skipping, 1 if OK */
-    Uz_Globs *pG;
+static int 
+store_info (   /* return 0 if skipping, 1 if OK */
+    Uz_Globs *pG
+)
 {
 #ifdef USE_BZIP2
 #  define UNKN_BZ2 ((*(Uz_Globs *)pG).crec.compression_method!=BZIPPED)
@@ -994,8 +996,8 @@ static int store_info(pG)   /* return 0 if skipping, 1 if OK */
 /*  Function find_compr_idx()  */
 /*******************************/
 
-unsigned find_compr_idx(compr_methodnum)
-    unsigned compr_methodnum;
+unsigned 
+find_compr_idx (unsigned compr_methodnum)
 {
     unsigned i;
 
@@ -2482,9 +2484,8 @@ static void decompress_bits(outptr, needlen, bitptr)
 /* Function set_deferred_symlink() */
 /***********************************/
 
-static void set_deferred_symlink(pG, slnk_entry)
-    Uz_Globs *pG;
-    slinkentry *slnk_entry;
+static void 
+set_deferred_symlink (Uz_Globs *pG, slinkentry *slnk_entry)
 {
     extent ucsize = slnk_entry->targetlen;
     char *linkfname = slnk_entry->fname;

@@ -579,10 +579,8 @@ int main(int argc, char **argv)   /* return PK-type error code (except under VMS
 /*  Primary UnZip entry point  */
 /*******************************/
 
-int unzip(pG, argc, argv)
-    Uz_Globs *pG;
-    int argc;
-    char *argv[];
+int 
+unzip (Uz_Globs *pG, int argc, char *argv[])
 {
 #ifndef NO_ZIPINFO
     char *p;

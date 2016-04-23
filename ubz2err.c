@@ -41,8 +41,8 @@
  * BZ_NO_STDIO), required to handle fatal internal bug-type errors of
  * the bzip2 library.
  */
-void bz_internal_error(bzerrcode)
-    int bzerrcode;
+void 
+bz_internal_error (int bzerrcode)
 {
     GETGLOBALS();
 

@@ -157,9 +157,11 @@ struct dirent *readdir(dirp)
 /* Function do_wild() */   /* for porting: dir separator; match(ignore_case) */
 /**********************/
 
-char *do_wild(pG, wildspec)
-    Uz_Globs *pG;
-    const char *wildspec;  /* only used first time on a given dir */
+char *
+do_wild (
+    Uz_Globs *pG,
+    const char *wildspec  /* only used first time on a given dir */
+)
 {
 /* these statics are now declared in SYSTEM_SPECIFIC_GLOBALS in unxcfg.h:
     static DIR *wild_dir = (DIR *)NULL;
@@ -299,9 +301,8 @@ char *do_wild(pG, wildspec)
  * file as the user or group.  The new option -K bypasses this check.
  */
 
-static unsigned filtattr(pG, perms)
-Uz_Globs *pG;
-unsigned perms;
+static unsigned 
+filtattr (Uz_Globs *pG, unsigned perms)
 {
     /* keep setuid/setgid/tacky perms? */
     if (!uO.K_flag)
@@ -318,8 +319,8 @@ unsigned perms;
 /* Function mapattr() */
 /**********************/
 
-int mapattr(pG)
-    Uz_Globs *pG;
+int 
+mapattr (Uz_Globs *pG)
 {
     int r;
     ulg tmp = (*(Uz_Globs *)pG).crec.external_file_attributes;
@@ -466,9 +467,8 @@ int mapattr(pG)
 /*  Function mapname()  */
 /************************/
 
-int mapname(pG, renamed)
-    Uz_Globs *pG;
-    int renamed;
+int 
+mapname (Uz_Globs *pG, int renamed)
 /*
  * returns:
  *  MPN_OK          - no problem detected
@@ -986,9 +986,11 @@ int checkdir(pG, pathcomp, flag)
 /* Function mkdir() */
 /********************/
 
-int mkdir(path, mode)
-    const char *path;
-    int mode;   /* ignored */
+int 
+mkdir (
+    const char *path,
+    int mode   /* ignored */
+)
 /*
  * returns:   0 - successful
  *           -1 - failed (errno not set, however)
@@ -1070,8 +1072,10 @@ static int get_extattribs(pG, pzt, z_uidgid)
 /* Function close_outfile() */
 /****************************/
 
-void close_outfile(pG)    /* GRR: change to return PK-style warning level */
-    Uz_Globs *pG;
+void 
+close_outfile (    /* GRR: change to return PK-style warning level */
+    Uz_Globs *pG
+)
 {
     union {
         iztimes t3;             /* mtime, atime, ctime */
@@ -1244,9 +1248,8 @@ void close_outfile(pG)    /* GRR: change to return PK-style warning level */
 
 
 #if (defined(SYMLINKS) && defined(SET_SYMLINK_ATTRIBS))
-int set_symlnk_attribs(pG, slnk_entry)
-    Uz_Globs *pG;
-    slinkentry *slnk_entry;
+int 
+set_symlnk_attribs (Uz_Globs *pG, slinkentry *slnk_entry)
 {
     if (slnk_entry->attriblen > 0) {
 # if (!defined(NO_LCHOWN))
@@ -1292,9 +1295,8 @@ int set_symlnk_attribs(pG, slnk_entry)
 #  endif
 
 
-int defer_dir_attribs(pG, pd)
-    Uz_Globs *pG;
-    direntry **pd;
+int 
+defer_dir_attribs (Uz_Globs *pG, direntry **pd)
 {
     uxdirattr *d_entry;
 
@@ -1314,9 +1316,8 @@ int defer_dir_attribs(pG, pd)
 } /* end function defer_dir_attribs() */
 
 
-int set_direc_attribs(pG, d)
-    Uz_Globs *pG;
-    direntry *d;
+int 
+set_direc_attribs (Uz_Globs *pG, direntry *d)
 {
     int errval = PK_OK;
 
@@ -1387,8 +1388,8 @@ int stamp_file(fname, modtime)
 /*  Function version()  */
 /************************/
 
-void version(pG)
-    Uz_Globs *pG;
+void 
+version (Uz_Globs *pG)
 {
 #if (defined(__GNUC__) && defined(NX_CURRENT_COMPILER_RELEASE))
     char cc_namebuf[40];

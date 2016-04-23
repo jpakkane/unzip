@@ -69,8 +69,10 @@
 /* Function list_files() */
 /*************************/
 
-int list_files(pG)    /* return PK-type error code */
-    Uz_Globs *pG;
+int 
+list_files (    /* return PK-type error code */
+    Uz_Globs *pG
+)
 {
     int do_this_file=FALSE, cfactor, error, error_in_archive=PK_COOL;
 #ifndef WINDLL
@@ -466,8 +468,10 @@ int list_files(pG)    /* return PK-type error code */
 /* Function fn_is_dir() */
 /************************/
 
-static int fn_is_dir(pG)    /* returns TRUE if (*(Uz_Globs *)pG).filename is directory */
-    Uz_Globs *pG;
+static int 
+fn_is_dir (    /* returns TRUE if (*(Uz_Globs *)pG).filename is directory */
+    Uz_Globs *pG
+)
 {
     extent fn_len = strlen((*(Uz_Globs *)pG).filename);
     register char   endc;
@@ -629,8 +633,8 @@ int get_time_stamp(pG, last_modtime, nmember)  /* return PK-type error code */
 /* Function ratio() */    /* also used by ZipInfo routines */
 /********************/
 
-int ratio(uc, c)
-    zusz_t uc, c;
+int 
+ratio (zusz_t uc, zusz_t c)
 {
     zusz_t denom;
 
@@ -657,8 +661,10 @@ int ratio(uc, c)
 /*  Function fnprint()  */    /* also used by ZipInfo routines */
 /************************/
 
-void fnprint(pG)    /* print filename (after filtering) and newline */
-    Uz_Globs *pG;
+void 
+fnprint (    /* print filename (after filtering) and newline */
+    Uz_Globs *pG
+)
 {
     char *name = fnfilter((*(Uz_Globs *)pG).filename, slide, (extent)(WSIZE>>1));
 

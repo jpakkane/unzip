@@ -369,18 +369,15 @@ static unsigned zlib_inCB OF((void FAR *pG, unsigned char FAR * FAR * pInbuf));
 static int zlib_outCB OF((void FAR *pG, unsigned char FAR *outbuf,
                           unsigned outcnt));
 
-static unsigned zlib_inCB(pG, pInbuf)
-    void FAR *pG;
-    unsigned char FAR * FAR * pInbuf;
+static unsigned 
+zlib_inCB (void FAR *pG, unsigned char FAR *FAR *pInbuf)
 {
     *pInbuf = (*(Uz_Globs *)pG).inbuf;
     return fillinbuf(pG);
 }
 
-static int zlib_outCB(pG, outbuf, outcnt)
-    void FAR *pG;
-    unsigned char FAR *outbuf;
-    unsigned outcnt;
+static int 
+zlib_outCB (void FAR *pG, unsigned char FAR *outbuf, unsigned outcnt)
 {
 #ifdef FUNZIP
     return flush(pG, (ulg)(outcnt));
@@ -404,9 +401,8 @@ static int zlib_outCB(pG, outbuf, outcnt)
 /*  Function UZinflate()  */
 /**************************/
 
-int UZinflate(pG, is_defl64)
-    Uz_Globs *pG;
-    int is_defl64;
+int 
+UZinflate (Uz_Globs *pG, int is_defl64)
 /* decompress an inflated entry using the zlib routines */
 {
     int retval = 0;     /* return code: 0 = "no error" */
@@ -929,10 +925,14 @@ static const unsigned dbits = 6;
 
 #ifndef ASM_INFLATECODES
 
-int inflate_codes(pG, tl, td, bl, bd)
-     Uz_Globs *pG;
-struct huft *tl, *td;   /* literal/length and distance decoder tables */
-unsigned bl, bd;        /* number of bits decoded by tl[] and td[] */
+int 
+inflate_codes (
+    Uz_Globs *pG,
+    struct huft *tl,
+    struct huft *td,   /* literal/length and distance decoder tables */
+    unsigned bl,
+    unsigned bd        /* number of bits decoded by tl[] and td[] */
+)
 /* inflate (decompress) the codes in a deflated (compressed) block.
    Return an error code or zero if it all goes ok. */
 {
@@ -1067,8 +1067,8 @@ cleanup_and_exit:
 
 
 
-static int inflate_stored(pG)
-     Uz_Globs *pG;
+static int 
+inflate_stored (Uz_Globs *pG)
 /* "decompress" an inflated type 0 (stored) block. */
 {
   UINT_D64 w;           /* current window position (deflate64: up to 64k!) */
@@ -1132,8 +1132,8 @@ struct huft *fixed_td;
 int fixed_bl, fixed_bd;
 #endif
 
-static int inflate_fixed(pG)
-     Uz_Globs *pG;
+static int 
+inflate_fixed (Uz_Globs *pG)
 /* decompress an inflated type 1 (fixed Huffman codes) block.  We should
    either replace this with a custom decoder, or at least precompute the
    Huffman tables. */
@@ -1192,8 +1192,8 @@ static int inflate_fixed(pG)
 
 
 
-static int inflate_dynamic(pG)
-  Uz_Globs *pG;
+static int 
+inflate_dynamic (Uz_Globs *pG)
 /* decompress an inflated type 2 (dynamic Huffman codes) block. */
 {
   unsigned i;           /* temporary variables */
@@ -1383,9 +1383,11 @@ cleanup_and_exit:
 
 
 
-static int inflate_block(pG, e)
-  Uz_Globs *pG;
-  int *e;               /* last block flag */
+static int 
+inflate_block (
+    Uz_Globs *pG,
+    int *e               /* last block flag */
+)
 /* decompress an inflated block */
 {
   unsigned t;           /* block type */
@@ -1754,8 +1756,10 @@ int huft_build(pG, b, n, s, d, e, t, m)
 
 
 
-int huft_free(t)
-struct huft *t;         /* table to free */
+int 
+huft_free (
+    struct huft *t         /* table to free */
+)
 /* Free the malloc'ed tables built by huft_build(), which makes a linked
    list of the tables it made, with the links in a dummy first entry of
    each table. */

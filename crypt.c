@@ -209,8 +209,8 @@ void init_keys(pG, passwd)
  * crypt-crc32-table.
  */
 #ifdef IZ_CRC_BE_OPTIMIZ
-local z_uint4 near *crytab_init(pG)
-    Uz_Globs *pG;
+local z_uint4 near *
+crytab_init (Uz_Globs *pG)
 {
     int i;
 

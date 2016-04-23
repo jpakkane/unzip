@@ -186,8 +186,8 @@ int encrypted;                  /* flag to turn on decryption */
 
 #ifdef USE_ZLIB
 
-int fillinbuf(pG)
-Uz_Globs *pG;
+int 
+fillinbuf (Uz_Globs *pG)
 /* Fill input buffer for pull-model inflate() in zlib.  Return the number of
  * bytes in inbuf. */
 {
@@ -213,9 +213,8 @@ Uz_Globs *pG;
 #endif /* USE_ZLIB */
 
 
-static void err(n, m)
-int n;
-char *m;
+static void 
+err (int n, char *m)
 /* Exit on error with a message and a code */
 {
   Info(slide, 1, ((char *)slide, "funzip error: %s\n", m));

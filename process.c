@@ -226,8 +226,10 @@ static const char ZipfileCommTrunc1[] =
 /* Function process_zipfiles() */
 /*******************************/
 
-int process_zipfiles(pG)    /* return PK-type error code */
-    Uz_Globs *pG;
+int 
+process_zipfiles (    /* return PK-type error code */
+    Uz_Globs *pG
+)
 {
 #ifndef SFX
     char *lastzipfn = (char *)NULL;
@@ -551,8 +553,10 @@ int process_zipfiles(pG)    /* return PK-type error code */
 /* Function free_G_buffers() */
 /*****************************/
 
-void free_G_buffers(pG)     /* releases all memory allocated in global vars */
-    Uz_Globs *pG;
+void 
+free_G_buffers (     /* releases all memory allocated in global vars */
+    Uz_Globs *pG
+)
 {
 #ifndef SFX
     unsigned i;
@@ -630,9 +634,11 @@ void free_G_buffers(pG)     /* releases all memory allocated in global vars */
 /* Function do_seekable() */
 /**************************/
 
-static int do_seekable(pG, lastchance)        /* return PK-type error code */
-    Uz_Globs *pG;
-    int lastchance;
+static int 
+do_seekable (        /* return PK-type error code */
+    Uz_Globs *pG,
+    int lastchance
+)
 {
 #ifndef SFX
     /* static int no_ecrec = FALSE;  SKM: moved to globals.h */

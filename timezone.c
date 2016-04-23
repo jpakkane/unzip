@@ -215,10 +215,8 @@ static time_t transtime(janfirst, year, rulep, offset)
     return value + rulep->r_time + offset;
 }
 
-static void generate_transitions(sp, start, end)
-     register struct state * const sp;
-     const struct rule * const start;
-     const struct rule * const end;
+static void 
+generate_transitions (register struct state *const sp, const struct rule *const start, const struct rule *const end)
 {
     register int             year;
     register time_t          janfirst;
@@ -254,8 +252,8 @@ static void generate_transitions(sp, start, end)
     }
 }
 
-static const char *getzname(strp)
-     const char *strp;
+static const char *
+getzname (const char *strp)
 {
     register char   c;
 
@@ -265,11 +263,8 @@ static const char *getzname(strp)
     return strp;
 }
 
-static const char *getnum(strp, nump, min, max)
-     const char *strp;
-     int * const nump;
-     const int min;
-     const int max;
+static const char *
+getnum (const char *strp, int *const nump, const int min, const int max)
 {
     register char   c;
     register int    num;
@@ -289,9 +284,8 @@ static const char *getnum(strp, nump, min, max)
     return strp;
 }
 
-static const char *getsecs(strp, secsp)
-     const char *strp;
-     long * const secsp;
+static const char *
+getsecs (const char *strp, long *const secsp)
 {
     int num;
 
@@ -323,9 +317,8 @@ static const char *getsecs(strp, secsp)
     return strp;
 }
 
-static const char *getoffset(strp, offsetp)
-     const char *strp;
-     long * const offsetp;
+static const char *
+getoffset (const char *strp, long *const offsetp)
 {
     register int    neg = 0;
 
@@ -342,9 +335,8 @@ static const char *getoffset(strp, offsetp)
     return strp;
 }
 
-static const char *getrule(strp, rulep)
-     const char *strp;
-     struct rule * const rulep;
+static const char *
+getrule (const char *strp, struct rule *const rulep)
 {
     if (*strp == 'J') {
         /*
@@ -390,9 +382,8 @@ static const char *getrule(strp, rulep)
     return strp;
 }
 
-static int Parse_TZ(name, sp)
-     const char *name;
-     register struct state * const sp;
+static int 
+Parse_TZ (const char *name, register struct state *const sp)
 {
     const char *            stdname;
     const char *            dstname;
@@ -518,7 +509,8 @@ void tzset()
 }
 
 /* XXX  Does this also help SAS/C library work? */
-void __tzset()
+void 
+__tzset (void)
 {
     if (!real_timezone_is_set) tzset();
 }
@@ -577,8 +569,8 @@ struct tm *localtime(when)
 }
 
 #ifdef NEED__ISINDST
-int _isindst(tb)
-    struct tm *tb;
+int 
+_isindst (struct tm *tb)
 {
     time_t     localt;          /* time_t equivalent of given tm struct */
     time_t     univt;           /* assumed UTC value of given time */

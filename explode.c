@@ -219,10 +219,12 @@ static const ush cpdist8[] =
 }
 
 
-static int get_tree(pG, l, n)
-     Uz_Globs *pG;
-unsigned *l;            /* bit lengths */
-unsigned n;             /* number expected */
+static int 
+get_tree (
+    Uz_Globs *pG,
+    unsigned *l,            /* bit lengths */
+    unsigned n             /* number expected */
+)
 /* Get the bit lengths for a code representation from the compressed
    stream.  If get_tree() returns 4, then there is an error in the data.
    Otherwise zero is returned. */
@@ -250,11 +252,17 @@ unsigned n;             /* number expected */
 
 
 
-static int explode_lit(pG, tb, tl, td, bb, bl, bd, bdl)
-     Uz_Globs *pG;
-struct huft *tb, *tl, *td;      /* literal, length, and distance tables */
-unsigned bb, bl, bd;            /* number of bits decoded by those */
-unsigned bdl;                   /* number of distance low bits */
+static int 
+explode_lit (
+    Uz_Globs *pG,
+    struct huft *tb,
+    struct huft *tl,
+    struct huft *td,      /* literal, length, and distance tables */
+    unsigned bb,
+    unsigned bl,
+    unsigned bd,            /* number of bits decoded by those */
+    unsigned bdl                   /* number of distance low bits */
+)
 /* Decompress the imploded data using coded literals and a sliding
    window (of size 2^(6+bdl) bytes). */
 {
@@ -368,11 +376,15 @@ unsigned bdl;                   /* number of distance low bits */
 
 
 
-static int explode_nolit(pG, tl, td, bl, bd, bdl)
-     Uz_Globs *pG;
-struct huft *tl, *td;   /* length and distance decoder tables */
-unsigned bl, bd;        /* number of bits decoded by tl[] and td[] */
-unsigned bdl;           /* number of distance low bits */
+static int 
+explode_nolit (
+    Uz_Globs *pG,
+    struct huft *tl,
+    struct huft *td,   /* length and distance decoder tables */
+    unsigned bl,
+    unsigned bd,        /* number of bits decoded by tl[] and td[] */
+    unsigned bdl           /* number of distance low bits */
+)
 /* Decompress the imploded data using uncoded literals and a sliding
    window (of size 2^(6+bdl) bytes). */
 {
@@ -486,8 +498,8 @@ unsigned bdl;           /* number of distance low bits */
 
 
 
-int explode(pG)
-     Uz_Globs *pG;
+int 
+explode (Uz_Globs *pG)
 /* Explode an imploded compressed stream.  Based on the general purpose
    bit flag, decide on coded or uncoded literals, and an 8K or 4K sliding
    window.  Construct the literal (if any), length, and distance codes and

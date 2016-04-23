@@ -219,9 +219,8 @@ static int count_args(
 
 #ifdef TEST
 
-int main(argc, argv)
-    int argc;
-    char **argv;
+int 
+main (int argc, char **argv)
 {
     int err;
 
@@ -237,9 +236,8 @@ int main(argc, argv)
 
 
 
-void dump_args(argc, argv)
-    int argc;
-    char *argv[];
+void 
+dump_args (int argc, char *argv[])
 {
     int i;
 
@@ -274,9 +272,8 @@ void dump_args(argc, argv)
  *
  *    Rich Wales
  */
-void mksargs(argcp, argvp)
-    int *argcp;
-    char ***argvp;
+void 
+mksargs (int *argcp, char ***argvp)
 {
 #ifndef MSC /* declared differently in MSC 7.0 headers, at least */
 #ifndef __WATCOMC__

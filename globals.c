@@ -70,8 +70,8 @@ static void registerGlobalPointer OF((Uz_Globs *pG));
 
 
 
-static void registerGlobalPointer(pG)
-    Uz_Globs *pG;
+static void 
+registerGlobalPointer (Uz_Globs *pG)
 {
     int scan=0;
     ulg tid = GetThreadId();
@@ -93,8 +93,8 @@ static void registerGlobalPointer(pG)
 
 
 
-void deregisterGlobalPointer(pG)
-    Uz_Globs *pG;
+void 
+deregisterGlobalPointer (Uz_Globs *pG)
 {
     int scan=0;
     ulg tid = GetThreadId();
@@ -127,7 +127,8 @@ void deregisterGlobalPointer(pG)
 
 
 
-Uz_Globs *getGlobalPointer()
+Uz_Globs *
+getGlobalPointer (void)
 {
     int scan=0;
     ulg tid = GetThreadId();
@@ -156,7 +157,8 @@ Uz_Globs *getGlobalPointer()
 
 
 
-Uz_Globs *globalsCtor()
+Uz_Globs *
+globalsCtor (void)
 {
 #ifdef REENTRANT
     Uz_Globs *pG = (Uz_Globs *)malloc(sizeof(Uz_Globs));

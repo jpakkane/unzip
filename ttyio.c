@@ -191,9 +191,11 @@
 /*
  * Turn echo off for file descriptor f.  Assumes that f is a tty device.
  */
-void Echoff(pG, f)
-    Uz_Globs *pG;
-    int f;                    /* file descriptor for which to turn echo off */
+void 
+Echoff (
+    Uz_Globs *pG,
+    int f                    /* file descriptor for which to turn echo off */
+)
 {
     struct sgttyb sg;         /* tty device structure */
 
@@ -206,8 +208,8 @@ void Echoff(pG, f)
 /*
  * Turn echo back on for file descriptor echofd.
  */
-void Echon(pG)
-    Uz_Globs *pG;
+void 
+Echon (Uz_Globs *pG)
 {
     struct sgttyb sg;         /* tty device structure */
 
@@ -238,9 +240,8 @@ void Echon(pG)
 
 #if (defined(TIOCGWINSZ) && !defined(M_UNIX))
 
-int screensize(tt_rows, tt_cols)
-    int *tt_rows;
-    int *tt_cols;
+int 
+screensize (int *tt_rows, int *tt_cols)
 {
     struct winsize wsz;
 #ifdef DEBUG_WINSZ
@@ -284,9 +285,8 @@ int screensize(tt_rows, tt_cols)
 
 #else /* !TIOCGWINSZ: service not available, fall back to semi-bogus method */
 
-int screensize(tt_rows, tt_cols)
-    int *tt_rows;
-    int *tt_cols;
+int 
+screensize (int *tt_rows, int *tt_cols)
 {
     char *envptr, *getenv();
     int n;
@@ -324,9 +324,11 @@ int screensize(tt_rows, tt_cols)
 /*
  * Get a character from the given file descriptor without echo or newline.
  */
-int zgetch(pG, f)
-    Uz_Globs *pG;
-    int f;                      /* file descriptor from which to read */
+int 
+zgetch (
+    Uz_Globs *pG,
+    int f                      /* file descriptor from which to read */
+)
 {
 #if (defined(USE_SYSV_TERMIO) || defined(USE_POSIX_TERMIOS))
     char oldmin, oldtim;
@@ -369,9 +371,11 @@ int zgetch(pG, f)
 #ifndef VMS     /* VMS supplies its own variant of getch() */
 
 
-int zgetch(pG, f)
-    Uz_Globs *pG;
-    int f;    /* file descriptor from which to read (must be open already) */
+int 
+zgetch (
+    Uz_Globs *pG,
+    int f    /* file descriptor from which to read (must be open already) */
+)
 {
     char c, c2;
 
@@ -487,11 +491,13 @@ char *getp(pG, m, p, n)
 #  endif
 #endif
 
-char *getp(pG, m, p, n)
-    Uz_Globs *pG;
-    const char *m;             /* prompt for password */
-    char *p;                    /* return value: line input */
-    int n;                      /* bytes available in p[] */
+char *
+getp (
+    Uz_Globs *pG,
+    const char *m,             /* prompt for password */
+    char *p,                    /* return value: line input */
+    int n                      /* bytes available in p[] */
+)
 {
     char c;                     /* one-byte buffer for read() to use */
     int i;                      /* number of characters input */
@@ -540,11 +546,13 @@ char *getp(pG, m, p, n)
 
 #if (defined(VMS) || defined(CMS_MVS))
 
-char *getp(pG, m, p, n)
-    Uz_Globs *pG;
-    const char *m;             /* prompt for password */
-    char *p;                    /* return value: line input */
-    int n;                      /* bytes available in p[] */
+char *
+getp (
+    Uz_Globs *pG,
+    const char *m,             /* prompt for password */
+    char *p,                    /* return value: line input */
+    int n                      /* bytes available in p[] */
+)
 {
     char c;                     /* one-byte buffer for read() to use */
     int i;                      /* number of characters input */

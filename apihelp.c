@@ -93,10 +93,8 @@ static int function_help OF((Uz_Globs *pG, APIDocStruct *doc, char *fname));
 
 
 
-static int function_help(pG, doc, fname)
-    Uz_Globs *pG;
-    APIDocStruct *doc;
-    char *fname;
+static int 
+function_help (Uz_Globs *pG, APIDocStruct *doc, char *fname)
 {
     strcpy(slide, fname);
     /* strupr(slide);    non-standard */
@@ -114,10 +112,8 @@ static int function_help(pG, doc, fname)
 
 
 
-void APIhelp(pG, argc, argv)
-    Uz_Globs *pG;
-    int argc;
-    char **argv;
+void 
+APIhelp (Uz_Globs *pG, int argc, char **argv)
 {
     if (argc > 1) {
         struct APIDocStruct *doc;

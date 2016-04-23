@@ -108,7 +108,8 @@ local void make_crc_table OF((void));
 #endif /* ?DYNALLOC_CRCTAB */
 
 
-local void make_crc_table()
+local void 
+make_crc_table (void)
 {
   ulg c;                /* crc shift register */
   int n;                /* counter for all possible eight bit values */
@@ -627,7 +628,8 @@ const ulg *get_crc_table (void)
 }
 
 #ifdef DYNALLOC_CRCTAB
-void free_crc_table()
+void 
+free_crc_table (void)
 {
   if (!CRC_TABLE_IS_EMPTY)
   {

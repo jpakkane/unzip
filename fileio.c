@@ -208,8 +208,10 @@ static const char ExtraFieldTooLong[] =
 /* Function open_input_file() */
 /******************************/
 
-int open_input_file(pG)    /* return 1 if open failed */
-    Uz_Globs *pG;
+int 
+open_input_file (    /* return 1 if open failed */
+    Uz_Globs *pG
+)
 {
     /*
      *  open the zipfile for reading and in BINARY mode to prevent cr/lf
@@ -259,8 +261,10 @@ int open_input_file(pG)    /* return 1 if open failed */
 /* Function open_outfile() */
 /***************************/
 
-int open_outfile(pG)           /* return 1 if fail */
-    Uz_Globs *pG;
+int 
+open_outfile (           /* return 1 if fail */
+    Uz_Globs *pG
+)
 {
 #ifdef DLL
     if ((*(Uz_Globs *)pG).redirect_data)
@@ -512,8 +516,8 @@ int open_outfile(pG)           /* return 1 if fail */
 /* function undefer_input() */
 /****************************/
 
-void undefer_input(pG)
-    Uz_Globs *pG;
+void 
+undefer_input (Uz_Globs *pG)
 {
     if ((*(Uz_Globs *)pG).incnt > 0)
         (*(Uz_Globs *)pG).csize += (*(Uz_Globs *)pG).incnt;
@@ -539,8 +543,8 @@ void undefer_input(pG)
 /* function defer_leftover_input() */
 /***********************************/
 
-void defer_leftover_input(pG)
-    Uz_Globs *pG;
+void 
+defer_leftover_input (Uz_Globs *pG)
 {
     if ((zoff_t)(*(Uz_Globs *)pG).incnt > (*(Uz_Globs *)pG).csize) {
         /* ((*(Uz_Globs *)pG).csize < MAXINT), we can safely cast it to int !! */
@@ -562,10 +566,12 @@ void defer_leftover_input(pG)
 /* Function readbuf() */
 /**********************/
 
-unsigned readbuf(pG, buf, size)   /* return number of bytes read into buf */
-    Uz_Globs *pG;
-    char *buf;
-    register unsigned size;
+unsigned 
+readbuf (   /* return number of bytes read into buf */
+    Uz_Globs *pG,
+    char *buf,
+    register unsigned size
+)
 {
     register unsigned count;
     unsigned n;
@@ -605,8 +611,10 @@ unsigned readbuf(pG, buf, size)   /* return number of bytes read into buf */
 /* Function readbyte() */
 /***********************/
 
-int readbyte(pG)   /* refill inbuf and return a byte if available, else EOF */
-    Uz_Globs *pG;
+int 
+readbyte (   /* refill inbuf and return a byte if available, else EOF */
+    Uz_Globs *pG
+)
 {
     if ((*(Uz_Globs *)pG).mem_mode)
         return EOF;
@@ -665,8 +673,10 @@ int readbyte(pG)   /* refill inbuf and return a byte if available, else EOF */
 /* Function fillinbuf() */
 /************************/
 
-int fillinbuf(pG) /* like readbyte() except returns number of bytes in inbuf */
-    Uz_Globs *pG;
+int 
+fillinbuf ( /* like readbyte() except returns number of bytes in inbuf */
+    Uz_Globs *pG
+)
 {
     if ((*(Uz_Globs *)pG).mem_mode ||
                   ((*(Uz_Globs *)pG).incnt = read((*(Uz_Globs *)pG).zipfd, (char *)(*(Uz_Globs *)pG).inbuf, INBUFSIZ)) <= 0)
@@ -699,9 +709,8 @@ int fillinbuf(pG) /* like readbyte() except returns number of bytes in inbuf */
 /* Function seek_zipf() */
 /************************/
 
-int seek_zipf(pG, abs_offset)
-    Uz_Globs *pG;
-    zoff_t abs_offset;
+int 
+seek_zipf (Uz_Globs *pG, zoff_t abs_offset)
 {
 /*
  *  Seek to the block boundary of the block which includes abs_offset,
@@ -956,8 +965,8 @@ static int partflush(pG, rawbuf, size, unshrink)
 /* Function disk_error() */
 /*************************/
 
-static int disk_error(pG)
-    Uz_Globs *pG;
+static int 
+disk_error (Uz_Globs *pG)
 {
     /* OK to use slide[] here because this file is finished regardless */
     Info(slide, 0x4a1, ((char *)slide, LoadFarString(DiskFullQuery),
@@ -1252,10 +1261,12 @@ int UZ_EXP UzpInput(pG, buf, size, flag)
 /* Function UzpMorePause() */
 /***************************/
 
-void UZ_EXP UzpMorePause(pG, prompt, flag)
-    void *pG;            /* globals struct:  always passed */
-    const char *prompt;  /* "--More--" prompt */
-    int flag;             /* 0 = any char OK; 1 = accept only '\n', ' ', q */
+void UZ_EXP 
+UzpMorePause (
+    void *pG,            /* globals struct:  always passed */
+    const char *prompt,  /* "--More--" prompt */
+    int flag             /* 0 = any char OK; 1 = accept only '\n', ' ', q */
+)
 {
     uch c;
 
@@ -1314,13 +1325,15 @@ void UZ_EXP UzpMorePause(pG, prompt, flag)
 /* Function UzpPassword() */
 /**************************/
 
-int UZ_EXP UzpPassword (pG, rcnt, pwbuf, size, zfn, efn)
-    void *pG;         /* pointer to UnZip's internal global vars */
-    int *rcnt;         /* retry counter */
-    char *pwbuf;       /* buffer for password */
-    int size;          /* size of password buffer */
-    const char *zfn;  /* name of zip archive */
-    const char *efn;  /* name of archive entry being processed */
+int UZ_EXP 
+UzpPassword (
+    void *pG,         /* pointer to UnZip's internal global vars */
+    int *rcnt,         /* retry counter */
+    char *pwbuf,       /* buffer for password */
+    int size,          /* size of password buffer */
+    const char *zfn,  /* name of zip archive */
+    const char *efn  /* name of archive entry being processed */
+)
 {
 #if CRYPT
     int r = IZ_PW_ENTERED;
@@ -1625,9 +1638,11 @@ time_t dos_to_unix_time(dosdatetime)
 /* Function check_for_newer() */  /* used for overwriting/freshening/updating */
 /******************************/
 
-int check_for_newer(pG, filename)  /* return 1 if existing file is newer */
-    Uz_Globs *pG;                           /*  or equal; 0 if older; -1 if doesn't */
-    char *filename;                  /*  exist yet */
+int 
+check_for_newer (  /* return 1 if existing file is newer */
+    Uz_Globs *pG,                           /*  or equal; 0 if older; -1 if doesn't */
+    char *filename                  /*  exist yet */
+)
 {
     time_t existing, archive;
 #ifdef USE_EF_UT_TIME
@@ -1744,10 +1759,12 @@ int check_for_newer(pG, filename)  /* return 1 if existing file is newer */
 /* Function do_string() */
 /************************/
 
-int do_string(pG, length, option)   /* return PK-type error code */
-    Uz_Globs *pG;
-    unsigned int length;        /* without prototype, ush converted to this */
-    int option;
+int 
+do_string (   /* return PK-type error code */
+    Uz_Globs *pG,
+    unsigned int length,        /* without prototype, ush converted to this */
+    int option
+)
 {
     unsigned comment_bytes_left;
     unsigned int block_len;
@@ -2232,11 +2249,8 @@ zusz_t makeint64(sig)
 /*********************/
 
 /* Format a zoff_t value in a cylindrical buffer set. */
-char *fzofft(pG, val, pre, post)
-    Uz_Globs *pG;
-    zoff_t val;
-    const char *pre;
-    const char *post;
+char *
+fzofft (Uz_Globs *pG, zoff_t val, const char *pre, const char *post)
 {
     /* Storage cylinder. (now in globals.h) */
     /*static char fzofft_buf[FZOFFT_NUM][FZOFFT_LEN];*/
@@ -2289,9 +2303,11 @@ char *fzofft(pG, val, pre, post)
 /* Function str2iso() */
 /**********************/
 
-char *str2iso(dst, src)
-    char *dst;                          /* destination buffer */
-    register const char *src;          /* source string */
+char *
+str2iso (
+    char *dst,                          /* destination buffer */
+    register const char *src          /* source string */
+)
 {
 #ifdef INTERN_TO_ISO
     INTERN_TO_ISO(src, dst);
@@ -2315,9 +2331,11 @@ char *str2iso(dst, src)
 /* Function str2oem() */
 /**********************/
 
-char *str2oem(dst, src)
-    char *dst;                          /* destination buffer */
-    register const char *src;          /* source string */
+char *
+str2oem (
+    char *dst,                          /* destination buffer */
+    register const char *src          /* source string */
+)
 {
 #ifdef INTERN_TO_OEM
     INTERN_TO_OEM(src, dst);
@@ -2410,9 +2428,8 @@ void *memcpy(dst, src, len)
 /* Function zstrnicmp() */
 /************************/
 
-int zstrnicmp(s1, s2, n)
-    register const char *s1, *s2;
-    register unsigned n;
+int 
+zstrnicmp (register const char *s1, register const char *s2, register unsigned n)
 {
     for (; n > 0;  --n, ++s1, ++s2) {
 
@@ -2482,8 +2499,8 @@ char *plastchar(ptr, len)
 /* Function uzmbclen() */
 /***********************/
 
-extent uzmbclen(ptr)
-    const unsigned char *ptr;
+extent 
+uzmbclen (const unsigned char *ptr)
 {
     int mbl;
 
@@ -2504,9 +2521,8 @@ extent uzmbclen(ptr)
 /* Function uzmbschr() */
 /***********************/
 
-unsigned char *uzmbschr(str, c)
-    const unsigned char *str;
-    unsigned int c;
+unsigned char *
+uzmbschr (const unsigned char *str, unsigned int c)
 {
     while(*str != '\0'){
         if (*str == c) {return (unsigned char *)str;}
@@ -2522,9 +2538,8 @@ unsigned char *uzmbschr(str, c)
 /* Function uzmbsrchr() */
 /************************/
 
-unsigned char *uzmbsrchr(str, c)
-    const unsigned char *str;
-    unsigned int c;
+unsigned char *
+uzmbsrchr (const unsigned char *str, unsigned int c)
 {
     unsigned char *match = NULL;
     while(*str != '\0'){

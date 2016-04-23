@@ -97,8 +97,8 @@ static void  partial_clear  (Uz_Globs *pG, int lastcodeused);
 /* Function unshrink() */
 /***********************/
 
-int unshrink(pG)
-     Uz_Globs *pG;
+int 
+unshrink (Uz_Globs *pG)
 {
     uch *stacktop = stack + (HSIZE - 1);
     register uch *newstr;
@@ -304,9 +304,8 @@ int unshrink(pG)
 /* Function partial_clear() */      /* no longer recursive... */
 /****************************/
 
-static void partial_clear(pG, lastcodeused)
-    Uz_Globs *pG;
-    int lastcodeused;
+static void 
+partial_clear (Uz_Globs *pG, int lastcodeused)
 {
     register shrint code;
 

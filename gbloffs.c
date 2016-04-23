@@ -28,9 +28,8 @@ static int ccp_setflag(const char *flagname)
     return printf(ccp_flagdef, flagname, flagname);
 }
 
-int main(argc, argv)
-    int argc;
-    char **argv;
+int 
+main (int argc, char **argv)
 {
 #ifdef REENTRANT
     Uz_Globs *pG = NULL;

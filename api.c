@@ -367,8 +367,8 @@ int UZ_EXP UzpFileTree(char *name, cbList(callBack), char *cpInclude[],
   ---------------------------------------------------------------------------*/
 
 
-void setFileNotFound(pG)
-    Uz_Globs *pG;
+void 
+setFileNotFound (Uz_Globs *pG)
 {
     (*(Uz_Globs *)pG).filenotfound++;
 }
@@ -412,8 +412,8 @@ int unzipToMemory(Uz_Globs *pG, char *zip, char *file, UzpBuffer *retstr)
     will simply not be enough memory to handle it, and am returning
     FALSE.
 */
-int redirect_outfile(pG)
-     Uz_Globs *pG;
+int 
+redirect_outfile (Uz_Globs *pG)
 {
 #ifdef ZIP64_SUPPORT
     __int64 check_conversion;
@@ -491,8 +491,8 @@ int writeToMemory(Uz_Globs *pG, const uch *rawbuf, extent size)
 
 
 
-int close_redirect(pG)
-     Uz_Globs *pG;
+int 
+close_redirect (Uz_Globs *pG)
 {
     if ((*(Uz_Globs *)pG).pInfo->textmode) {
         *(*(Uz_Globs *)pG).redirect_pointer = '\0';

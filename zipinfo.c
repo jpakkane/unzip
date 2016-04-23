@@ -446,10 +446,8 @@ static const char DecimalTime[] = "%04u%02u%02u.%02u%02u%02u";
 /*  Function zi_opts()  */
 /************************/
 
-int zi_opts(pG, pargc, pargv)
-    int *pargc;
-    char ***pargv;
-    Uz_Globs *pG;
+int 
+zi_opts (Uz_Globs *pG, int *pargc, char ***pargv)
 {
     char   **argv, *s;
     int    argc, c, error=FALSE, negative=0;
@@ -637,8 +635,8 @@ int zi_opts(pG, pargc, pargv)
 /*  Function zi_end_central()  */
 /*******************************/
 
-void zi_end_central(pG)
-    Uz_Globs *pG;
+void 
+zi_end_central (Uz_Globs *pG)
 {
 /*---------------------------------------------------------------------------
     Print out various interesting things about the zipfile.
@@ -704,8 +702,10 @@ void zi_end_central(pG)
 /*  Function zipinfo()  */
 /************************/
 
-int zipinfo(pG)   /* return PK-type error code */
-    Uz_Globs *pG;
+int 
+zipinfo (   /* return PK-type error code */
+    Uz_Globs *pG
+)
 {
     int do_this_file=FALSE, error, error_in_archive=PK_COOL;
     int *fn_matched=NULL, *xn_matched=NULL;
@@ -986,11 +986,13 @@ int zipinfo(pG)   /* return PK-type error code */
 /*  Function zi_long()  */
 /************************/
 
-static int zi_long(pG, pEndprev, error_in_archive)
+static int 
+zi_long (
     /* return PK-type error code */
-    Uz_Globs *pG;
-    zusz_t *pEndprev;                /* for zi_long() check of extra bytes */
-    int error_in_archive;            /* may signal premature return */
+    Uz_Globs *pG,
+    zusz_t *pEndprev,                /* for zi_long() check of extra bytes */
+    int error_in_archive            /* may signal premature return */
+)
 {
 #ifdef USE_EF_UT_TIME
     iztimes z_utime;
@@ -1874,8 +1876,10 @@ ef_default_display:
 /*  Function zi_short()  */
 /*************************/
 
-static int zi_short(pG)   /* return PK-type error code */
-    Uz_Globs *pG;
+static int 
+zi_short (   /* return PK-type error code */
+    Uz_Globs *pG
+)
 {
 #ifdef USE_EF_UT_TIME
     iztimes     z_utime;
