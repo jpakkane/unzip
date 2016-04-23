@@ -75,23 +75,11 @@
 /* Local type declarations */
 /***************************/
 
-#if (!defined(NO_EXCEPT_SIGNALS))
-typedef struct _sign_info
-    {
-        struct _sign_info *previous;
-        void (*sighandler)(int);
-        int sigtype;
-    } savsigs_info;
-#endif
 
 /*******************/
 /* Local Functions */
 /*******************/
 
-#if (!defined(NO_EXCEPT_SIGNALS))
-static int setsignalhandler (Uz_Globs *pG, savsigs_info **p_savedhandler_chain,
-                                int signal_type, void (*newhandler)(int));
-#endif
 static void  help_extended      ();
 static void  show_version_info  (Uz_Globs *pG);
 
@@ -114,10 +102,6 @@ static void  show_version_info  (Uz_Globs *pG);
   static const char CmdLineParamTooLong[] =
     "error:  command line parameter #%d exceeds internal size limit\n";
 
-#if ( !defined(NO_EXCEPT_SIGNALS))
-  static const char CantSaveSigHandler[] =
-    "error:  cannot save signal handler settings\n";
-#endif
 
    static const char NotExtracting[] =
      "caution:  not extracting; -d ignored\n";
@@ -529,13 +513,6 @@ unzip (Uz_Globs *pG, int argc, char *argv[])
 #endif
     int i;
     int retcode, error=FALSE;
-#ifndef NO_EXCEPT_SIGNALS
-    savsigs_info *oldsighandlers = NULL;
-#   define SET_SIGHANDLER(sigtype, newsighandler) \
-      if ((retcode = setsignalhandler(pG, &oldsighandlers, (sigtype), \
-                                      (newsighandler))) > PK_WARN) \
-          goto cleanup_and_exit
-#endif /* NO_EXCEPT_SIGNALS */
 
     /* initialize international char support to the current environment */
     SETLOCALE(LC_CTYPE, "");
@@ -611,29 +588,6 @@ unzip (Uz_Globs *pG, int argc, char *argv[])
 /*---------------------------------------------------------------------------
     Set signal handler for restoring echo, warn of zipfile corruption, etc.
   ---------------------------------------------------------------------------*/
-#ifndef NO_EXCEPT_SIGNALS
-#ifdef SIGINT
-    SET_SIGHANDLER(SIGINT, handler);
-#endif
-#ifdef SIGTERM                 /* some systems really have no SIGTERM */
-    SET_SIGHANDLER(SIGTERM, handler);
-#endif
-#if defined(SIGABRT) && !(defined(AMIGA) && defined(__SASC))
-    SET_SIGHANDLER(SIGABRT, handler);
-#endif
-#ifdef SIGBREAK
-    SET_SIGHANDLER(SIGBREAK, handler);
-#endif
-#ifdef SIGBUS
-    SET_SIGHANDLER(SIGBUS, handler);
-#endif
-#ifdef SIGILL
-    SET_SIGHANDLER(SIGILL, handler);
-#endif
-#ifdef SIGSEGV
-    SET_SIGHANDLER(SIGSEGV, handler);
-#endif
-#endif /* NO_EXCEPT_SIGNALS */
 
 #if (defined(WIN32) && defined(__RSXNT__))
     for (i = 0 ; i < argc; i++) {
@@ -889,58 +843,9 @@ unzip (Uz_Globs *pG, int argc, char *argv[])
     retcode = process_zipfiles(pG);
 
 cleanup_and_exit:
-#if (!defined(NO_EXCEPT_SIGNALS))
-    /* restore all signal handlers back to their state at function entry */
-    while (oldsighandlers != NULL) {
-        savsigs_info *thissigsav = oldsighandlers;
-
-        signal(thissigsav->sigtype, thissigsav->sighandler);
-        oldsighandlers = thissigsav->previous;
-        free(thissigsav);
-    }
-#endif
     return(retcode);
 
 } /* end main()/unzip() */
-
-
-
-
-
-#if (!defined(NO_EXCEPT_SIGNALS))
-/*******************************/
-/* Function setsignalhandler() */
-/*******************************/
-
-static int setsignalhandler(pG, p_savedhandler_chain, signal_type,
-                            newhandler)
-    Uz_Globs *pG;
-    savsigs_info **p_savedhandler_chain;
-    int signal_type;
-    void (*newhandler)(int);
-{
-    savsigs_info *savsig;
-
-    savsig = malloc(sizeof(savsigs_info));
-    if (savsig == NULL) {
-        /* error message and break */
-        Info(slide, 0x401, ((char *)slide, LoadFarString(CantSaveSigHandler)));
-        return PK_MEM;
-    }
-    savsig->sigtype = signal_type;
-    savsig->sighandler = signal(SIGINT, newhandler);
-    if (savsig->sighandler == SIG_ERR) {
-        free(savsig);
-    } else {
-        savsig->previous = *p_savedhandler_chain;
-        *p_savedhandler_chain = savsig;
-    }
-    return PK_OK;
-
-} /* end function setsignalhandler() */
-
-#endif /* REENTRANT && !NO_EXCEPT_SIGNALS */
-
 
 
 
