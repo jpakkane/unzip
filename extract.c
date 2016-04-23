@@ -265,9 +265,7 @@ static const char Inflate[] = "inflate";
 #endif
 
    static const char Explode[] = "explode";
-#ifndef LZW_CLEAN
    static const char Unshrink[] = "unshrink";
-#endif
 
 #if (!defined(DELETE_IF_FULL) || !defined(HAVE_UNLINK))
    static const char FileTruncated[] =
@@ -814,11 +812,7 @@ store_info (   /* return 0 if skipping, 1 if OK */
 #  else
 #    define UNKN_RED  FALSE  /* reducing not unknown */
 #  endif
-#  ifdef LZW_CLEAN  /* no shrunk files */
-#    define UNKN_SHR ((*(Uz_Globs *)pG).crec.compression_method == SHRUNK)
-#  else
 #    define UNKN_SHR  FALSE  /* unshrinking not unknown */
-#  endif
 #  ifdef USE_DEFLATE64
 #    define UNKN_COMPR (UNKN_RED || UNKN_SHR || \
      (*(Uz_Globs *)pG).crec.compression_method==TOKENIZED || \
@@ -1668,7 +1662,6 @@ static int extract_or_test_member(pG)    /* return PK-type error code */
             }
             break;
 
-#ifndef LZW_CLEAN
         case SHRUNK:
             if (!uO.tflag && QCOND2) {
                 Info(slide, 0, ((char *)slide, LoadFarString(ExtractMsg),
@@ -1695,7 +1688,6 @@ static int extract_or_test_member(pG)    /* return PK-type error code */
                 error = r;
             }
             break;
-#endif /* !LZW_CLEAN */
 
 #ifndef COPYRIGHT_CLEAN
         case REDUCED1:

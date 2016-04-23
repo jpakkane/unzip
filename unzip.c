@@ -318,10 +318,6 @@ static const char ZipInfoUsageLine3[] = "miscellaneous options:\n\
 #  ifdef DLL
      static const char Dll[] = "DLL";
 #  endif
-#  ifdef LZW_CLEAN
-     static const char LZW_Clean[] =
-     "LZW_CLEAN (PKZIP/Zip 1.x unshrinking method not supported)";
-#  endif
      static const char No_More[] = "NO_MORE";
 #  ifdef NO_ZIPINFO
      static const char No_ZipInfo[] = "NO_ZIPINFO";
@@ -358,10 +354,8 @@ static const char ZipInfoUsageLine3[] = "miscellaneous options:\n\
 #  ifdef USE_EF_UT_TIME
      static const char Use_EF_UT_time[] = "USE_EF_UT_TIME";
 #  endif
-#  ifndef LZW_CLEAN
      static const char Use_Unshrink[] =
      "USE_UNSHRINK (PKZIP/Zip 1.x unshrinking method supported)";
-#  endif
 #  ifndef COPYRIGHT_CLEAN
      static const char Use_Smith_Code[] =
      "USE_SMITH_CODE (PKZIP 0.9x unreducing method supported)";
@@ -1715,11 +1709,6 @@ static void show_version_info(Uz_Globs *pG)
           LoadFarStringSmall(Dll)));
         ++numopts;
 #endif
-#ifdef LZW_CLEAN
-        Info(slide, 0, ((char *)slide, LoadFarString(CompileOptFormat),
-          LoadFarStringSmall(LZW_Clean)));
-        ++numopts;
-#endif
         Info(slide, 0, ((char *)slide, LoadFarString(CompileOptFormat),
           LoadFarStringSmall(No_More)));
         ++numopts;
@@ -1786,11 +1775,9 @@ static void show_version_info(Uz_Globs *pG)
           LoadFarStringSmall(Use_Smith_Code)));
         ++numopts;
 #endif
-#ifndef LZW_CLEAN
         Info(slide, 0, ((char *)slide, LoadFarString(CompileOptFormat),
           LoadFarStringSmall(Use_Unshrink)));
         ++numopts;
-#endif
 #ifdef USE_DEFLATE64
         Info(slide, 0, ((char *)slide, LoadFarString(CompileOptFormat),
           LoadFarStringSmall(Use_Deflate64)));

@@ -70,8 +70,6 @@
 #include "unzip.h"
 
 
-#ifndef LZW_CLEAN
-
 static void  partial_clear  (Uz_Globs *pG, int lastcodeused);
 
 #ifdef DEBUG
@@ -327,5 +325,3 @@ partial_clear (Uz_Globs *pG, int lastcodeused)
 
     return;
 }
-
-#endif /* !LZW_CLEAN */

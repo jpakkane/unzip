@@ -1693,10 +1693,8 @@ int    huft_build                (Uz_Globs *pG, const unsigned *b, unsigned n,
 /* static void  LoadFollowers    OF((Uz_Globs *pG, f_array *follower, uch *Slen));
                                                                 * unreduce.c */
 #endif /* !COPYRIGHT_CLEAN */
-#ifndef LZW_CLEAN
    int    unshrink               ();                 /* unshrink.c */
 /* static void  partial_clear    ();                  * unshrink.c */
-#endif /* !LZW_CLEAN */
 #ifdef USE_BZIP2
    int    UZbunzip2              ();                  /* extract.c */
    void   bz_internal_error      OF((int bzerrcode));           /* ubz2err.c */
@@ -1776,9 +1774,7 @@ char    *GetLoadPath     ();                              /* local */
 #ifdef OS2_W32
    int   SetFileSize     OF((FILE *file, zusz_t filesize));         /* local */
 #endif
-#ifndef MTS /* macro in MTS */
    void  close_outfile   ();                              /* local */
-#endif
 #ifdef SET_SYMLINK_ATTRIBS
    int  set_symlnk_attribs  (Uz_Globs *pG, slinkentry *slnk_entry);  /* local */
 #endif
