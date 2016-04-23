@@ -267,8 +267,6 @@
     prototypes are normally found in <string.h> and <stdlib.h>.
  */
 
-#define __INFLATE_C     /* identifies this source module */
-
 /* #define DEBUG */
 #define INFMOD          /* tell inflate.h to include code to be compiled */
 #include "inflate.h"
@@ -923,8 +921,6 @@ static const unsigned lbits = 9;
 static const unsigned dbits = 6;
 
 
-#ifndef ASM_INFLATECODES
-
 int 
 inflate_codes (
     Uz_Globs *pG,
@@ -1063,7 +1059,6 @@ cleanup_and_exit:
   return retval;
 }
 
-#endif /* ASM_INFLATECODES */
 
 
 
