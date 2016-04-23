@@ -212,30 +212,9 @@ open_input_file (    /* return 1 if open failed */
      *  translation, which would corrupt the bitstreams
      */
 
-#ifdef VMS
-    (*(Uz_Globs *)pG).zipfd = open((*(Uz_Globs *)pG).zipfn, O_RDONLY, 0, OPNZIP_RMS_ARGS);
-#else /* !VMS */
-#ifdef MACOS
-    (*(Uz_Globs *)pG).zipfd = open((*(Uz_Globs *)pG).zipfn, 0);
-#else /* !MACOS */
-#ifdef CMS_MVS
-    (*(Uz_Globs *)pG).zipfd = vmmvs_open_infile(pG);
-#else /* !CMS_MVS */
-#ifdef USE_STRM_INPUT
     (*(Uz_Globs *)pG).zipfd = fopen((*(Uz_Globs *)pG).zipfn, FOPR);
-#else /* !USE_STRM_INPUT */
-    (*(Uz_Globs *)pG).zipfd = open((*(Uz_Globs *)pG).zipfn, O_RDONLY | O_BINARY);
-#endif /* ?USE_STRM_INPUT */
-#endif /* ?CMS_MVS */
-#endif /* ?MACOS */
-#endif /* ?VMS */
 
-#ifdef USE_STRM_INPUT
     if ((*(Uz_Globs *)pG).zipfd == NULL)
-#else
-    /* if ((*(Uz_Globs *)pG).zipfd < 0) */  /* no good for Windows CE port */
-    if ((*(Uz_Globs *)pG).zipfd == -1)
-#endif
     {
         Info(slide, 0x401, ((char *)slide, LoadFarString(CannotOpenZipfile),
           (*(Uz_Globs *)pG).zipfn, strerror(errno)));
@@ -738,12 +717,8 @@ seek_zipf (Uz_Globs *pG, zoff_t abs_offset)
           "fpos_zip: abs_offset = %s, (*(Uz_Globs *)pG).extra_bytes = %s\n",
           FmZofft(abs_offset, NULL, NULL),
           FmZofft((*(Uz_Globs *)pG).extra_bytes, NULL, NULL)));
-#ifdef USE_STRM_INPUT
         zfseeko((*(Uz_Globs *)pG).zipfd, bufstart, SEEK_SET);
         (*(Uz_Globs *)pG).cur_zipfile_bufstart = zftello((*(Uz_Globs *)pG).zipfd);
-#else /* !USE_STRM_INPUT */
-        (*(Uz_Globs *)pG).cur_zipfile_bufstart = zlseek((*(Uz_Globs *)pG).zipfd, bufstart, SEEK_SET);
-#endif /* ?USE_STRM_INPUT */
         Trace((stderr,
           "       request = %s, (abs+extra) = %s, inbuf_offset = %s\n",
           FmZofft(request, NULL, NULL),

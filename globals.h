@@ -217,11 +217,7 @@ typedef struct Globals {
     char      *argv0;               /* used for NT and EXE_EXTENSION */
     char      *wildzipfn;
     char      *zipfn;    /* GRR:  WINDLL:  must nuke any malloc'd zipfn... */
-#ifdef USE_STRM_INPUT
     FILE      *zipfd;               /* zipfile file descriptor */
-#else
-    int       zipfd;                /* zipfile file handle */
-#endif
     zoff_t    ziplen;
     zoff_t    cur_zipfile_bufstart; /* extract_or_test, readbuf, ReadByte */
     zoff_t    extra_bytes;          /* used in unzip.c, misc.c */

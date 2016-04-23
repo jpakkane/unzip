@@ -30,8 +30,6 @@
  */
 
 #if !defined(__CYGWIN__)
-# ifdef USE_STRM_INPUT
-
 #  ifndef zftello
 /* 64-bit buffered ftello
  *
@@ -103,7 +101,6 @@ int zfseeko(stream, offset, origin)
   }
 }
 #  endif  /* ndef fseeko */
-# endif /* USE_STRM_INPUT */
 #endif  /* Win32 LARGE_FILE_SUPPORT */
 
 #if 0

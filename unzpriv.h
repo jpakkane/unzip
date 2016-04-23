@@ -1784,7 +1784,6 @@ char    *GetLoadPath     ();                              /* local */
 #  define ToLower      tolower          /* assumed "smart"; used in match() */
 #endif
 
-#ifdef USE_STRM_INPUT
    /* ``Replace'' the unbuffered UNIX style I/O function with similar
     * standard C functions from <stdio.h>.
     */
@@ -1794,7 +1793,6 @@ char    *GetLoadPath     ();                              /* local */
 #  endif
 #  define zlseek(fd,o,w) zfseeko((FILE *)(fd),(o),(w))
 #  define close(fd) fclose((FILE *)(fd))
-#endif /* USE_STRM_INPUT */
 
 /* The return value of the Info() "macro function" is never checked in
  * UnZip. Otherwise, to get the same behaviour as for (*(*(Uz_Globs *)pG).message)(), the

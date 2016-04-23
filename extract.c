@@ -567,13 +567,8 @@ int extract_or_test_files(pG)    /* return PK-type error code */
          * the next batch of files.
          */
 
-#ifdef USE_STRM_INPUT
         zfseeko((*(Uz_Globs *)pG).zipfd, cd_bufstart, SEEK_SET);
         (*(Uz_Globs *)pG).cur_zipfile_bufstart = zftello((*(Uz_Globs *)pG).zipfd);
-#else /* !USE_STRM_INPUT */
-        (*(Uz_Globs *)pG).cur_zipfile_bufstart =
-          zlseek((*(Uz_Globs *)pG).zipfd, cd_bufstart, SEEK_SET);
-#endif /* ?USE_STRM_INPUT */
         read((*(Uz_Globs *)pG).zipfd, (char *)(*(Uz_Globs *)pG).inbuf, INBUFSIZ);  /* been here before... */
         (*(Uz_Globs *)pG).inptr = cd_inptr;
         (*(Uz_Globs *)pG).incnt = cd_incnt;
@@ -1030,13 +1025,8 @@ static int extract_or_test_entrylist(pG, numchunk,
 
         if (bufstart != (*(Uz_Globs *)pG).cur_zipfile_bufstart) {
             Trace((stderr, "debug: bufstart != cur_zipfile_bufstart\n"));
-#ifdef USE_STRM_INPUT
             zfseeko((*(Uz_Globs *)pG).zipfd, bufstart, SEEK_SET);
             (*(Uz_Globs *)pG).cur_zipfile_bufstart = zftello((*(Uz_Globs *)pG).zipfd);
-#else /* !USE_STRM_INPUT */
-            (*(Uz_Globs *)pG).cur_zipfile_bufstart =
-              zlseek((*(Uz_Globs *)pG).zipfd, bufstart, SEEK_SET);
-#endif /* ?USE_STRM_INPUT */
             if (((*(Uz_Globs *)pG).incnt = read((*(Uz_Globs *)pG).zipfd, (char *)(*(Uz_Globs *)pG).inbuf, INBUFSIZ)) <= 0)
             {
                 Info(slide, 0x401, ((char *)slide, LoadFarString(OffsetMsg),

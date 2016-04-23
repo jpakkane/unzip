@@ -1696,7 +1696,7 @@ huft_free (
    list of the tables it made, with the links in a dummy first entry of
    each table. */
 {
-  register struct huft *p, *q;
+  struct huft *p, *q;
 
 
   /* Go through linked list, freeing from the malloced (t[-1]) address. */
